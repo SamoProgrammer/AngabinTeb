@@ -5,6 +5,7 @@ export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (
     pathname.startsWith("/api/") ||
+    pathname.startsWith("/api-test/") ||
     pathname.startsWith("/_next/") ||
     pathname.includes(".")
   ) {
