@@ -6,7 +6,12 @@ import * as schema from "@/db/schema";
 import { sendSms } from "@/lib/sms";
 
 export const auth = betterAuth({
-  database: drizzleAdapter(db, { provider: "pg", schema }),
+  database: drizzleAdapter(db, { provider: "pg", schema, usePlural: true }),
+  user: {
+    additionalFields: {
+      role: { type: "string", required: false, defaultValue: "patient", input: false },
+    },
+  },
   plugins: [
     phoneNumberPlugin({
       sendOTP: async ({ phoneNumber, code }) => {
