@@ -1,5 +1,6 @@
 {
   "nav": { "home": "الرئيسية", "doctors": "الأطباء", "services": "الخدمات", "admin": "الإدارة" },
   "home": { "heroTitle": "انگبین طب", "heroSubtitle": "الرعاية والتغذية والمعرفة الصحية" },
-  "locale": { "switch": "تغيير اللغة" }
+  "locale": { "switch": "تغيير اللغة" },
+  "search": { "placeholder": "ابحث عن الخدمات والأطباء", "submit": "بحث", "empty": "لا توجد نتائج" }
 }

@@ -1,5 +1,6 @@
 {
   "nav": { "home": "خانه", "doctors": "پزشکان", "services": "خدمات", "admin": "مدیریت" },
   "home": { "heroTitle": "انگبین طب", "heroSubtitle": "مراقبت، تغذیه و دانش سلامت" },
-  "locale": { "switch": "تغییر زبان" }
+  "locale": { "switch": "تغییر زبان" },
+  "search": { "placeholder": "جستجو در خدمات و پزشکان", "submit": "جستجو", "empty": "نتیجهای یافت نشد" }
 }

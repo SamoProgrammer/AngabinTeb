@@ -1,5 +1,6 @@
 {
   "nav": { "home": "Home", "doctors": "Doctors", "services": "Services", "admin": "Admin" },
   "home": { "heroTitle": "Angabin Teb", "heroSubtitle": "Care, nutrition and health knowledge" },
-  "locale": { "switch": "Change language" }
+  "locale": { "switch": "Change language" },
+  "search": { "placeholder": "Search services and doctors", "submit": "Search", "empty": "No results found" }
 }

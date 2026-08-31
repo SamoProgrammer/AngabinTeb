@@ -253,7 +253,7 @@ git commit -m "feat: catalog and booking schema with enforcement indexes"
 
 **Interfaces:**
 - Consumes: `translations` table (Phase 0)
-- Produces: `localize<T extends Record<string, unknown>>(entityType: string, rows: T[], locale: string, fields: string[]): T[]` — overlays non-Persian overrides onto base columns, in place, one DB query per entity type
+- Produces: `overlayTranslations<T extends Record<string, unknown>>(entityType: string, rows: T[], overrides: Override[], locale: string, fields: string[]): T[]` — overlays non-Persian overrides onto base columns, in place, one DB query per entity type
 
 - [ ] **Step 1: Write the failing test**
 
@@ -303,8 +303,10 @@ Expected: FAIL — `overlayTranslations` is not defined.
 type Row = Record<string, unknown>;
 type Override = { entityType: string; entityId: string; locale: string; field: string; value: string };
 
-// Ruling R18: entityType is a leading param — overrides are scoped per entity
-// type so a "provider" override can never touch a "service" row that shares an id.
+// Ruling R18 + R30: entityType AND locale are in the map key — overrides are
+// scoped per entity type (a "provider" override never touches a "service" row
+// that shares an id) and per locale (multiple locales for the same
+// entity+field never collide).
 export function overlayTranslations<T extends Row>(
   entityType: string,
   rows: T[],
@@ -313,12 +315,12 @@ export function overlayTranslations<T extends Row>(
   fields: string[],
 ): T[] {
   if (overrides.length === 0) return rows;
-  const byId = new Map(overrides.map((o) => [`${o.entityType}:${o.entityId}:${o.field}`, o]));
+  const byId = new Map(overrides.map((o) => [`${o.entityType}:${o.entityId}:${o.field}:${o.locale}`, o]));
   return rows.map((row) => {
     const out = { ...row };
     for (const field of fields) {
-      const match = byId.get(`${entityType}:${row.id}:${field}`);
-      if (match && match.locale === locale) out[field] = match.value;
+      const match = byId.get(`${entityType}:${row.id}:${field}:${locale}`);
+      if (match) out[field] = match.value;
     }
     return out;
   });
@@ -369,8 +371,8 @@ export type SearchResult = {
 export type DoctorCard = {
   id: string;
   name: string;
-  specialty: string;
-  cityId: string;
+  specialty: string | null; // left-join nullable (R31)
+  cityId: string | null;    // left-join nullable (R31)
   imageUrl: string | null;
 };
 
@@ -468,7 +470,7 @@ export async function listDoctors(locale: string, specialtyId?: string, cityId?:
     .select({
       id: providers.id,
       name: providers.name,
-      specialtyName: serviceCategories.name,
+      specialty: serviceCategories.name, // R31: alias matches DoctorCard's property name
       cityId: locations.cityId,
       imageUrl: providers.imageUrl,
     })
