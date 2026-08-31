@@ -1,7 +1,7 @@
 import "server-only";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { providers, practitioners, services, locations, serviceCategories, translations } from "@/db/schema";
+import { providers, practitioners, services, locations, serviceCategories, translations, diagnosticServices } from "@/db/schema";
 import { overlayTranslations } from "@/lib/translate";
 import type { SearchResult, DoctorCard, ServiceCard } from "./model";
 
@@ -165,4 +165,12 @@ export async function getService(id: string, locale: string) {
     .where(and(eq(services.id, id), eq(services.isActive, true)));
   if (!row) return null;
   return overlayTranslations("service", [row], await fetchOverrides("service", [id]), locale, ["name"])[0];
+}
+
+export async function getPrepInfo(serviceId: string) {
+  const [row] = await db
+    .select({ prepInstructions: diagnosticServices.prepInstructions, fastingHours: diagnosticServices.fastingHours })
+    .from(diagnosticServices)
+    .where(eq(diagnosticServices.serviceId, serviceId));
+  return row ?? null;
 }
