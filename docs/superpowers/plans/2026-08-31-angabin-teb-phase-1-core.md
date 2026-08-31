@@ -689,7 +689,7 @@ describe("expandPattern", () => {
       from: new Date("2026-09-01T00:00:00Z"),
       to: new Date("2026-09-30T00:00:00Z"),
     });
-    expect(slots.length).toBe(20); // 4 Tuesdays × 8 one-hour slots
+    expect(slots.length).toBe(40); // 5 Tuesdays × 8 one-hour slots (Sep 2026 has 5 Tuesdays — R33)
     expect(slots[0]).toEqual(new Date("2026-09-01T09:00:00Z"));
     expect(slots[slots.length - 1]).toEqual(new Date("2026-09-29T16:00:00Z"));
   });
@@ -923,7 +923,7 @@ export default async function AdminProvidersPage() {
 Run: `bun run dev` — as seeded admin:
 1. Create a provider (person) with Persian name + English name.
 2. Create a diagnostic service "ECG" under it, 30 min, price.
-3. Generate slots: Tuesday 09:00–11:00, 30 min each, capacity 1, from 2026-09-01 to 2026-09-30 → 4 Tuesdays × 4 slots = 16 rows.
+3. Generate slots: Tuesday 09:00–11:00, 30 min each, capacity 1, from 2026-09-01 to 2026-09-30 → 5 Tuesdays × 4 slots = 20 rows (R33).
 4. Generate the same pattern again → `{ ok: false, reason: "overlap" }`.
 5. `/fa/doctors` and `/fa/services` show the new rows; `/en/services` shows the English name.
 
