@@ -15,6 +15,13 @@
       "when": 1788204885276,
       "tag": "0001_many_maestro",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788205629023,
+      "tag": "0002_regular_bullseye",
+      "breakpoints": true
     }
   ]
 }

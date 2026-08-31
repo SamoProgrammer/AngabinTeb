@@ -639,9 +639,9 @@ Add `search.placeholder`, `search.submit`, `search.empty` keys to all three `mes
 
 - [ ] **Step 6: Verify discovery pages render**
 
-Run: `bun run dev`
+Run: `bun run dev` (requires the base catalog seed rows added in Task 1.8 — run that seed first; ruling R32)
 1. `/fa/search?q=قلب` returns seeded ECGs (seed data) — confirm by searching a Persian term.
-2. `/fa/doctors` and `/fa/services` render lists; `/en/search?q=ecg` returns the same row with the English overlay.
+2. `/en/search?q=نوار قلب` returns the same row with the English overlay (title "ECG") — FTS indexes the Persian base column by design (spec §5.6); English terms are never indexed, so the English search check searches Persian and asserts the RENDERED overlay.
 
 - [ ] **Step 7: Commit**
 

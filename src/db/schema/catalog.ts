@@ -80,6 +80,7 @@ export const availabilitySlots = pgTable("availability_slot", {
   startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
   endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
   capacity: integer("capacity").notNull().default(1),
+  isActive: boolean("is_active").notNull().default(true),
   bookedCount: integer("booked_count").notNull().default(0),
   heldUntil: timestamp("held_until", { withTimezone: true }),
   heldBy: text("held_by"),
