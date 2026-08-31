@@ -82,6 +82,12 @@ async function main() {
     startsAt: slotStart, endsAt: new Date(slotStart.getTime() + 30 * 60_000),
     capacity: 1,
   }).onConflictDoNothing();
+  const slotStart2 = new Date(slotStart.getTime() + 60 * 60_000);
+  await db.insert(availabilitySlots).values({
+    id: "slot-test-2", providerId: PROVIDER_ID, serviceId: SERVICE_ID,
+    startsAt: slotStart2, endsAt: new Date(slotStart2.getTime() + 30 * 60_000),
+    capacity: 1,
+  }).onConflictDoNothing();
 
   console.log("seed complete");
 }
