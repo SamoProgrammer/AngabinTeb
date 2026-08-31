@@ -33,6 +33,8 @@ export async function bookAppointmentWithUser(
   if (!validatePartySize(data.partySize)) return { ok: false as const, reason: "invalid_party" };
 
   return db.transaction(async (tx) => {
+    const [svc] = await tx.select().from(services).where(eq(services.id, data.serviceId));
+    if (!svc) return { ok: false as const, reason: "capacity_exceeded" }; // stale/deleted service
     const slotRes = await tx.execute(
       sql`UPDATE availability_slot
             SET booked_count = booked_count + ${data.partySize},
@@ -43,8 +45,6 @@ export async function bookAppointmentWithUser(
     );
     if (slotRes.count === 0) return { ok: false as const, reason: "capacity_exceeded" };
 
-    const [svc] = await tx.select().from(services).where(eq(services.id, data.serviceId));
-    if (!svc) return { ok: false as const, reason: "capacity_exceeded" }; // stale/deleted service
     const appointmentId = randomUUID();
     await tx.insert(appointments).values({
       id: appointmentId,
