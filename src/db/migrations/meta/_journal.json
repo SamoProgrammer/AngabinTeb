@@ -8,6 +8,13 @@
       "when": 1788196477679,
       "tag": "0000_slim_firebird",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788204885276,
+      "tag": "0001_many_maestro",
+      "breakpoints": true
     }
   ]
 }

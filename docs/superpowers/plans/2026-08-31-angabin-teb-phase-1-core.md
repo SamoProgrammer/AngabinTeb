@@ -14,7 +14,7 @@
 
 ## Global Constraints
 
-Every task implicitly includes the Phase 0 constraints (TS 7 → Oxlint only; `proxy.ts` never authorizes; async request APIs; Persian base columns + translation overrides; pnpm; commit per task), plus:
+Every task implicitly includes the Phase 0 constraints (TS 7 → Oxlint only; `proxy.ts` never authorizes; async request APIs; Persian base columns + translation overrides; bun; commit per task), plus:
 
 1. **Booking states** (spec §5.2): `confirmed | cancelled | completed | no_show`. No `pending` until Phase 4 payments.
 2. **Payment status** (spec §6.2/§10): `unpaid | paid_at_location | refunded`. No gateway.
@@ -223,8 +223,8 @@ export * from "./booking";
 - [ ] **Step 4: Generate and apply the migration**
 
 ```bash
-pnpm db:generate
-pnpm db:migrate
+bun run db:generate
+bun run db:migrate
 ```
 
 Expected: migration creates the 10 tables and both unique indexes.
@@ -232,7 +232,7 @@ Expected: migration creates the 10 tables and both unique indexes.
 - [ ] **Step 5: Verify the enforcement indexes exist**
 
 ```bash
-pnpm exec tsx -e "import { db } from './src/db'; import { sql } from 'drizzle-orm'; const r = await db.execute(sql\`select indexname from pg_indexes where tablename in ('appointment','availability_slot') order by indexname\`); console.log(r.map(x=>x.indexname).join('\n'));"
+bunx tsx -e "import { db } from './src/db'; import { sql } from 'drizzle-orm'; const r = await db.execute(sql\`select indexname from pg_indexes where tablename in ('appointment','availability_slot') order by indexname\`); console.log(r.map(x=>x.indexname).join('\n'));"
 ```
 
 Expected: `appointment_idempotency`, `one_booking_per_slot` present.
@@ -267,13 +267,13 @@ describe("overlayTranslations", () => {
   const base = [{ id: "s1", name: "نوار قلب", bio: "پزشک" }];
 
   it("returns base columns when no overrides exist", () => {
-    expect(overlayTranslations(base, [], "en", ["name"])).toEqual([
+    expect(overlayTranslations("service", base, [], "en", ["name"])).toEqual([
       { id: "s1", name: "نوار قلب", bio: "پزشک" },
     ]);
   });
 
   it("overlays matching locale+field, leaves others untouched", () => {
-    const rows = overlayTranslations(base, [
+    const rows = overlayTranslations("service", base, [
       { entityType: "service", entityId: "s1", locale: "en", field: "name", value: "ECG" },
       { entityType: "service", entityId: "s1", locale: "ar", field: "name", value: "تخطيط القلب" },
     ], "en", ["name"]);
@@ -282,7 +282,7 @@ describe("overlayTranslations", () => {
   });
 
   it("ignores overrides for other entities", () => {
-    const rows = overlayTranslations(base, [
+    const rows = overlayTranslations("service", base, [
       { entityType: "provider", entityId: "s1", locale: "en", field: "name", value: "NOPE" },
     ], "en", ["name"]);
     expect(rows[0].name).toBe("نوار قلب");
@@ -292,7 +292,7 @@ describe("overlayTranslations", () => {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `pnpm vitest run src/lib/__tests__/translate.test.ts`
+Run: `bunx vitest run src/lib/__tests__/translate.test.ts`
 Expected: FAIL — `overlayTranslations` is not defined.
 
 - [ ] **Step 3: Write the implementation**
@@ -303,18 +303,21 @@ Expected: FAIL — `overlayTranslations` is not defined.
 type Row = Record<string, unknown>;
 type Override = { entityType: string; entityId: string; locale: string; field: string; value: string };
 
+// Ruling R18: entityType is a leading param — overrides are scoped per entity
+// type so a "provider" override can never touch a "service" row that shares an id.
 export function overlayTranslations<T extends Row>(
+  entityType: string,
   rows: T[],
   overrides: Override[],
   locale: string,
   fields: string[],
 ): T[] {
   if (overrides.length === 0) return rows;
-  const byId = new Map(overrides.map((o) => [`${o.entityId}:${o.field}`, o]));
+  const byId = new Map(overrides.map((o) => [`${o.entityType}:${o.entityId}:${o.field}`, o]));
   return rows.map((row) => {
     const out = { ...row };
     for (const field of fields) {
-      const match = byId.get(`${row.id}:${field}`);
+      const match = byId.get(`${entityType}:${row.id}:${field}`);
       if (match && match.locale === locale) out[field] = match.value;
     }
     return out;
@@ -324,7 +327,7 @@ export function overlayTranslations<T extends Row>(
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `pnpm vitest run src/lib/__tests__/translate.test.ts`
+Run: `bunx vitest run src/lib/__tests__/translate.test.ts`
 Expected: PASS, 3 tests.
 
 - [ ] **Step 5: Commit**
@@ -387,7 +390,7 @@ export type ServiceCard = {
 
 ```ts
 import "server-only";
-import { sql, eq, and, or, desc } from "drizzle-orm";
+import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { providers, practitioners, services, locations, serviceCategories, translations } from "@/db/schema";
 import { overlayTranslations } from "@/lib/translate";
@@ -438,8 +441,8 @@ export async function searchAll(term: string, locale: string): Promise<SearchRes
   const overrides = await fetchOverrides("service", svc.map((r) => r.id));
   const docOverrides = await fetchOverrides("provider", docs.map((r) => r.id));
 
-  const localizedServices = overlayTranslations(svc, overrides, locale, ["name"]);
-  const localizedDocs = overlayTranslations(docs, docOverrides, locale, ["name"]);
+  const localizedServices = overlayTranslations("service", svc, overrides, locale, ["name"]);
+  const localizedDocs = overlayTranslations("provider", docs, docOverrides, locale, ["name"]);
 
   const results: SearchResult[] = [
     ...localizedServices.map((s) => ({
@@ -480,7 +483,7 @@ export async function listDoctors(locale: string, specialtyId?: string, cityId?:
       cityId ? eq(locations.cityId, cityId) : undefined,
     ))
     .orderBy(providers.name);
-  return overlayTranslations(rows, await fetchOverrides("provider", rows.map((r) => r.id)), locale, ["name"]) as DoctorCard[];
+  return overlayTranslations("provider", rows, await fetchOverrides("provider", rows.map((r) => r.id)), locale, ["name"]) as DoctorCard[];
 }
 
 export async function listServices(locale: string, categoryId?: string, cityId?: string): Promise<ServiceCard[]> {
@@ -503,7 +506,7 @@ export async function listServices(locale: string, categoryId?: string, cityId?:
     ))
     .orderBy(services.name)
     .limit(50);
-  return overlayTranslations(rows, await fetchOverrides("service", rows.map((r) => r.id)), locale, ["name"]) as ServiceCard[];
+  return overlayTranslations("service", rows, await fetchOverrides("service", rows.map((r) => r.id)), locale, ["name"]) as ServiceCard[];
 }
 
 export async function getDoctor(id: string, locale: string) {
@@ -530,7 +533,7 @@ export async function getDoctor(id: string, locale: string) {
     .leftJoin(locations, eq(locations.id, providers.primaryLocationId))
     .where(eq(providers.id, id));
   if (!row) return null;
-  return overlayTranslations([row], await fetchOverrides("provider", [id]), locale, ["name", "bio"])[0];
+  return overlayTranslations("provider", [row], await fetchOverrides("provider", [id]), locale, ["name", "bio"])[0];
 }
 
 export async function getService(id: string, locale: string) {
@@ -552,7 +555,7 @@ export async function getService(id: string, locale: string) {
     .leftJoin(locations, eq(locations.id, services.locationId))
     .where(and(eq(services.id, id), eq(services.isActive, true)));
   if (!row) return null;
-  return overlayTranslations([row], await fetchOverrides("service", [id]), locale, ["name"])[0];
+  return overlayTranslations("service", [row], await fetchOverrides("service", [id]), locale, ["name"])[0];
 }
 ```
 
@@ -563,8 +566,8 @@ export async function getService(id: string, locale: string) {
 ```ts
 import { describe, expect, it, vi } from "vitest";
 
-const fetchOverrides = vi.fn().mockResolvedValue([]);
-vi.mock("@/lib/translate", () => ({ overlayTranslations: (r: unknown[]) => r }));
+vi.mock("server-only", () => ({}));
+vi.mock("@/lib/translate", () => ({ overlayTranslations: (_entityType: string, rows: unknown[]) => rows }));
 
 import { searchAll } from "../queries";
 
@@ -572,14 +575,13 @@ describe("searchAll", () => {
   it("returns an empty array for a blank term without touching the DB", async () => {
     const results = await searchAll("   ", "fa");
     expect(results).toEqual([]);
-    expect(fetchOverrides).not.toHaveBeenCalled();
   });
 });
 ```
 
 - [ ] **Step 4: Run to verify the query module compiles and the test passes**
 
-Run: `pnpm vitest run src/contexts/catalog/__tests__/search.test.ts`
+Run: `bunx vitest run src/contexts/catalog/__tests__/search.test.ts`
 Expected: PASS. (The `searchAll` module must compile under TS 7 — this is the first file using `sql` template tags and `and(...)` with `undefined` filters, the two patterns the whole phase relies on.)
 
 - [ ] **Step 5: Write the discovery pages**
@@ -635,7 +637,7 @@ Add `search.placeholder`, `search.submit`, `search.empty` keys to all three `mes
 
 - [ ] **Step 6: Verify discovery pages render**
 
-Run: `pnpm dev`
+Run: `bun run dev`
 1. `/fa/search?q=قلب` returns seeded ECGs (seed data) — confirm by searching a Persian term.
 2. `/fa/doctors` and `/fa/services` render lists; `/en/search?q=ecg` returns the same row with the English overlay.
 
@@ -661,7 +663,13 @@ git commit -m "feat: catalog queries, FTS search, discovery list pages"
   - `generateSlots(input: { serviceId: string; providerId: string; weekday: number; startsAt: string; endsAt: string; durationMinutes: number; capacity: number; fromDate: string; toDate: string })` — expands a weekly pattern into `availability_slot` rows, refusing rows that overlap existing slots
   - `availabilityForService(serviceId, date)` in `queries.ts` — used by the booking UI (Task 1.5)
 
-- [ ] **Step 1: Write the failing scheduling test**
+- [ ] **Step 1: Install Zod** (ruling R28 — Phase 0 never installed it; Task 1.4/1.6 actions validate with it)
+
+```bash
+bun add zod
+```
+
+- [ ] **Step 2: Write the failing scheduling test**
 
 `src/contexts/catalog/__tests__/scheduling.test.ts`:
 
@@ -693,12 +701,12 @@ describe("expandPattern", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [ ] **Step 3: Run to verify it fails**
 
-Run: `pnpm vitest run src/contexts/catalog/__tests__/scheduling.test.ts`
+Run: `bunx vitest run src/contexts/catalog/__tests__/scheduling.test.ts`
 Expected: FAIL — `expandPattern` not defined.
 
-- [ ] **Step 3: Write the pure expansion function and the actions**
+- [ ] **Step 4: Write the pure expansion function and the actions**
 
 `src/contexts/catalog/actions.ts`:
 
@@ -706,10 +714,10 @@ Expected: FAIL — `expandPattern` not defined.
 "use server";
 
 import { z } from "zod";
-import { and, eq, ne } from "drizzle-orm";
+import { sql, and, eq, ne } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { db } from "@/db";
-import { providers, services, serviceCategories, locations, availabilitySlots, translations } from "@/db/schema";
+import { providers, practitioners, diagnosticServices, services, availabilitySlots, translations } from "@/db/schema";
 import { requireAdmin } from "@/contexts/identity/actions";
 
 const providerSchema = z.object({
@@ -739,11 +747,6 @@ export async function createProvider(input: z.infer<typeof providerSchema>) {
     }
     for (const [locale, value] of [["en", data.nameEn], ["ar", data.nameAr]] as const) {
       if (value) await tx.insert(translations).values({ entityType: "provider", entityId: id, locale, field: "name", value });
-    }
-    if (data.kind === "person" && data.bioFa) {
-      for (const [locale, value] of [["en", data.nameEn], ["ar", data.nameAr]] as const) {
-        if (value) await tx.insert(translations).values({ entityType: "provider", entityId: id, locale, field: "bio", value });
-      }
     }
   });
   return { ok: true as const, id };
@@ -862,14 +865,14 @@ export async function availabilityForService(serviceId: string, date: string) {
 }
 ```
 
-Add `isActive: boolean("is_active").notNull().default(true)` to `availabilitySlots` in `src/db/schema/catalog.ts` and regenerate the migration (`pnpm db:generate && pnpm db:migrate`) before running tests.
+Add `isActive: boolean("is_active").notNull().default(true)` to `availabilitySlots` in `src/db/schema/catalog.ts` and regenerate the migration (`bun run db:generate && bun run db:migrate`) before running tests.
 
-- [ ] **Step 4: Run the scheduling tests**
+- [ ] **Step 5: Run the scheduling tests**
 
-Run: `pnpm vitest run src/contexts/catalog/__tests__/scheduling.test.ts`
+Run: `bunx vitest run src/contexts/catalog/__tests__/scheduling.test.ts`
 Expected: PASS, 2 tests.
 
-- [ ] **Step 5: Write the admin CRUD pages**
+- [ ] **Step 6: Write the admin CRUD pages**
 
 For each resource (providers, services, categories, locations), one list page and one edit page using the shadcn primitives:
 
@@ -913,16 +916,16 @@ export default async function AdminProvidersPage() {
 
 `src/app/[locale]/admin/scheduling/page.tsx`: form with service/`providerId`, `weekday`, `startsAt`, `endsAt`, `durationMinutes`, `capacity`, `fromDate`, `toDate` → `<form action={generateSlots}>`; result shows `ok/count` or the `overlap` rejection.
 
-- [ ] **Step 6: Verify the admin loop end to end**
+- [ ] **Step 7: Verify the admin loop end to end**
 
-Run: `pnpm dev` — as seeded admin:
+Run: `bun run dev` — as seeded admin:
 1. Create a provider (person) with Persian name + English name.
 2. Create a diagnostic service "ECG" under it, 30 min, price.
 3. Generate slots: Tuesday 09:00–11:00, 30 min each, capacity 1, from 2026-09-01 to 2026-09-30 → 4 Tuesdays × 4 slots = 16 rows.
 4. Generate the same pattern again → `{ ok: false, reason: "overlap" }`.
 5. `/fa/doctors` and `/fa/services` show the new rows; `/en/services` shows the English name.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add -A
@@ -946,6 +949,8 @@ git commit -m "feat: admin catalog CRUD and weekly-pattern slot generation"
   - `canCancel(status: BookingStatus): boolean` — true only for `confirmed`
   - `reschedulePlan(slot: SlotView, partySize: number, now: Date): { ok: true } | { ok: false; reason: "capacity" | "held" }`
   - `validatePartySize(n: unknown): n is 1 | 2 | 3 | 4`
+
+`src/contexts/booking/model.ts` (types shared with the UI): re-export `BookingStatus`, `SlotView` from `./kernel` and define `AppointmentRow` — the shape `myAppointments` returns (id, status, paymentStatus, partySize, price, serviceName, startsAt) so Task 1.6/1.7 import it from the model, not the queries return type.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1007,7 +1012,7 @@ describe("validatePartySize", () => {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `pnpm vitest run src/contexts/booking/__tests__/kernel.test.ts`
+Run: `bunx vitest run src/contexts/booking/__tests__/kernel.test.ts`
 Expected: FAIL — kernel not defined.
 
 - [ ] **Step 3: Write the kernel**
@@ -1053,7 +1058,7 @@ export function validatePartySize(n: unknown): n is 1 | 2 | 3 | 4 {
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `pnpm vitest run src/contexts/booking/__tests__/kernel.test.ts`
+Run: `bunx vitest run src/contexts/booking/__tests__/kernel.test.ts`
 Expected: PASS, 13 assertions across 5 suites.
 
 - [ ] **Step 5: Commit**
@@ -1090,7 +1095,7 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { availabilitySlots, appointments, services, providers } from "@/db/schema";
+import { appointments, services } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 import { canCancel, validatePartySize } from "./kernel";
 
@@ -1104,6 +1109,15 @@ const bookSchema = z.object({
 
 export async function bookAppointment(input: z.infer<typeof bookSchema>) {
   const user = await requireUser();
+  return bookAppointmentWithUser(user, input);
+}
+
+// Ruling R23: seam for the Task 1.8 test-only api-test route (e2e has no OTP
+// path); the transaction itself lives in exactly one place.
+export async function bookAppointmentWithUser(
+  user: { id: string },
+  input: z.infer<typeof bookSchema>,
+) {
   const data = bookSchema.parse(input);
   if (!validatePartySize(data.partySize)) return { ok: false as const, reason: "invalid_party" };
 
@@ -1201,7 +1215,7 @@ export async function rescheduleAppointment(id: string, newSlotId: string) {
 }
 ```
 
-- [ ] **Step 2: Write the dashboard query**
+- [ ] **Step 5: Write the dashboard query**
 
 `src/contexts/booking/queries.ts`:
 
@@ -1231,7 +1245,7 @@ export async function myAppointments(userId: string) {
 }
 ```
 
-- [ ] **Step 3: Write the booking page (server) and slot picker (client)**
+- [ ] **Step 6: Write the booking page (server) and slot picker (client)**
 
 `src/app/[locale]/(booking)/services/[slug]/book/page.tsx`:
 
@@ -1375,16 +1389,16 @@ export default async function ConfirmPage({
 }
 ```
 
-- [ ] **Step 4: Verify the booking flow end to end**
+- [ ] **Step 7: Verify the booking flow end to end**
 
-Run: `pnpm dev`
+Run: `bun run dev`
 1. Seeded admin generated slots (Task 1.4).
 2. As a fresh patient: `/fa/services/<id>/book?date=2026-09-01` → pick a slot → confirm → `/confirm?id=…`.
 3. Confirm page links to `/fa/appointments` — build that page now (Task 1.7) or verify via DB.
 4. Double-submit protection: the SlotPicker disables after click, and `idempotency_key` is per-attempt; re-running the same action with the same key hits the unique index → the second insert fails and the transaction rolls back the capacity update.
 5. Book the last free seat of a capacity-1 slot from two browsers → exactly one succeeds, the other shows "This slot was just taken."
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add -A
@@ -1490,7 +1504,7 @@ export default async function ServicePage({
 }
 ```
 
-Add `getPrepInfo` to `src/contexts/catalog/queries.ts`:
+Add `getPrepInfo` to `src/contexts/catalog/queries.ts` (ruling R22: extend the schema import with `diagnosticServices` — Task 1.3's import line does not include it):
 
 ```ts
 export async function getPrepInfo(serviceId: string) {
@@ -1556,7 +1570,7 @@ export default async function AppointmentsPage() {
 
 - [ ] **Step 4: Verify**
 
-Run: `pnpm dev` — doctor profile renders seeded provider with map link; service profile renders prep box for diagnostics; dashboard lists the appointment from Task 1.6; cancel frees the slot (booked_count decrements — check via `drizzle studio`).
+Run: `bun run dev` — doctor profile renders seeded provider with map link; service profile renders prep box for diagnostics; dashboard lists the appointment from Task 1.6; cancel frees the slot (booked_count decrements — check via `drizzle studio`).
 
 - [ ] **Step 5: Commit**
 
@@ -1579,11 +1593,48 @@ git commit -m "feat: doctor and service profiles, patient appointment dashboard"
 - [ ] **Step 1: Install Playwright**
 
 ```bash
-pnpm add -D @playwright/test
-pnpm dlx playwright install chromium
+bun add -d @playwright/test
+bunx playwright install chromium
 ```
 
-- [ ] **Step 2: Write the config**
+- [ ] **Step 2: Extend the seed with base catalog rows + a test slot** (ruling R24 — completes Phase 0 ruling R5's deferral; the e2e journeys and the concurrency proof need real rows and a fixed capacity-1 slot)
+
+Append to `scripts/seed.ts` (idempotent, fixed IDs; the slot date is dynamic — today UTC, 18:00, so the book page's default date shows it):
+
+```ts
+// Base catalog rows (catalog schema arrived in Phase 1 Task 1.1)
+await db.insert(serviceCategories).values({
+  id: CATEGORY_ID, slug: "cardiology", name: "قلب و عروق",
+}).onConflictDoUpdate({ target: serviceCategories.id, set: { name: "قلب و عروق" } });
+await db.insert(providers).values({
+  id: PROVIDER_ID, kind: "person", name: "دکتر آزمایشی قلب", primaryLocationId: LOCATION_ID, phone: "02111111111",
+}).onConflictDoUpdate({ target: providers.id, set: { name: "دکتر آزمایشی قلب" } });
+await db.insert(practitioners).values({
+  providerId: PROVIDER_ID, specialtyId: CATEGORY_ID, bio: "متخصص قلب و عروق", credentials: "فوق تخصص قلب",
+}).onConflictDoUpdate({ target: practitioners.providerId, set: { bio: "متخصص قلب و عروق" } });
+await db.insert(locations).values({
+  id: LOCATION_ID, providerId: PROVIDER_ID, label: "تهران مرکزی", addressLine: "تهران، خیابان ولیعصر", cityId: "1",
+}).onConflictDoUpdate({ target: locations.id, set: { label: "تهران مرکزی" } });
+await db.insert(services).values({
+  id: SERVICE_ID, providerId: PROVIDER_ID, categoryId: CATEGORY_ID, serviceType: "diagnostic",
+  locationId: LOCATION_ID, name: "نوار قلب", durationMinutes: 30, basePrice: "500000",
+}).onConflictDoUpdate({ target: services.id, set: { name: "نوار قلب" } });
+await db.insert(diagnosticServices).values({
+  serviceId: SERVICE_ID, prepInstructions: "ناشتا بودن به مدت ۸ ساعت", fastingHours: 8,
+}).onConflictDoNothing();
+const TEST_SLOT_ID = "slot-test-1";
+const today = new Date();
+const slotStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 18, 0));
+await db.insert(availabilitySlots).values({
+  id: TEST_SLOT_ID, providerId: PROVIDER_ID, serviceId: SERVICE_ID,
+  startsAt: slotStart, endsAt: new Date(slotStart.getTime() + 30 * 60_000),
+  capacity: 1,
+}).onConflictDoNothing();
+```
+
+Re-run idempotency holds (upserts + `onConflictDoNothing` on the slot).
+
+- [ ] **Step 3: Write the config**
 
 `playwright.config.ts`:
 
@@ -1594,25 +1645,43 @@ export default defineConfig({
   testDir: "./e2e",
   use: { baseURL: "http://localhost:3000", ...devices["Desktop Chrome"] },
   webServer: {
-    command: "pnpm dev",
+    command: "bun run dev",
     url: "http://localhost:3000",
     reuseExistingServer: true,
   },
 });
 ```
 
-- [ ] **Step 3: Write the journey spec**
+- [ ] **Step 4: Write the journey spec** (rulings R25/R26 — the flows need a session and a slot selection)
 
 `e2e/journeys.spec.ts`:
 
 ```ts
 import { test, expect } from "@playwright/test";
 
+test.beforeAll(async ({ request }) => {
+  const res = await request.post("/api-test/login");
+  expect(res.ok()).toBeTruthy();
+  const { token } = await res.json();
+  await test.use({ storageState: undefined });
+  // token is consumed per-context in each test below via the login route cookie
+});
+
+async function signIn(page: import("@playwright/test").Page) {
+  const res = await page.request.post("/api-test/login");
+  const { token } = await res.json();
+  await page.context().addCookies([
+    { name: "better-auth.session_token", value: token, url: "http://localhost:3000" },
+  ]);
+}
+
 test("J-001 find and book a doctor service", async ({ page }) => {
+  await signIn(page);
   await page.goto("/fa/search?q=قلب");
   await expect(page.getByRole("link", { name: /ECG|نوار قلب/ }).first()).toBeVisible();
   await page.getByRole("link", { name: /ECG|نوار قلب/ }).first().click();
   await page.getByRole("link", { name: "Book this service" }).click();
+  await page.getByRole("button", { name: /^\d{2}:\d{2}$/ }).first().click();
   await page.getByRole("button", { name: /Confirm booking/ }).click();
   await expect(page).toHaveURL(/\/confirm\?id=/);
 });
@@ -1624,7 +1693,7 @@ test("J-002 book a diagnostic service with prep visible", async ({ page }) => {
 });
 ```
 
-- [ ] **Step 4: Write the concurrency proof**
+- [ ] **Step 5: Write the concurrency proof + the test-only routes**
 
 `e2e/double-book.spec.ts` — two parallel requests against the same capacity-1 slot; exactly one appointment exists after:
 
@@ -1633,22 +1702,68 @@ import { test, expect } from "@playwright/test";
 
 test("concurrent booking cannot double-book a capacity-1 slot", async ({ page }) => {
   const resp = await Promise.all([
-    page.request.post("/api-test/book", { data: { slotId: process.env.TEST_SLOT_ID! } }),
-    page.request.post("/api-test/book", { data: { slotId: process.env.TEST_SLOT_ID! } }),
+    page.request.post("/api-test/book", { data: { slotId: process.env.TEST_SLOT_ID ?? "slot-test-1" } }),
+    page.request.post("/api-test/book", { data: { slotId: process.env.TEST_SLOT_ID ?? "slot-test-1" } }),
   ]);
   const statuses = (await Promise.all(resp.map((r) => r.json()))).map((r) => r.ok);
   expect(statuses.filter(Boolean).length).toBe(1);
 });
 ```
 
-To support this, add a temporary test-only route `src/app/api-test/book/route.ts` that calls `bookAppointment` with a fixed slot created by `scripts/seed.ts` (capacity 1). The route is removed in Phase 2 after the kernel tests cover the same path — mark it with `// ponytail: test-only route, delete when e2e is stable`.
+To support this, add two temporary test-only routes (rulings R23/R25 — the e2e cannot run the OTP flow, so auth is bypassed with a fixed patient; the booking transaction stays in exactly one place), and extend the proxy's R11 exclusion in `src/proxy.ts` to also pass `/api-test/` through (ruling R29 — otherwise it 307s these routes to `/fa/api-test/...`):
 
-- [ ] **Step 5: Run the journeys**
+```ts
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/api-test/") ||
+    pathname.startsWith("/_next/") ||
+```
 
-Run: `pnpm exec playwright test`
+`src/app/api-test/book/route.ts` (calls the `bookAppointmentWithUser` seam from Task 1.6 against the seeded slot):
+
+```ts
+import { NextRequest, NextResponse } from "next/server";
+import { bookAppointmentWithUser } from "@/contexts/booking/actions";
+// ponytail: test-only route, delete when e2e is stable
+
+export async function POST(req: NextRequest) {
+  const { slotId } = await req.json();
+  const res = await bookAppointmentWithUser(
+    { id: "test-patient" },
+    { serviceId: "svc-ecg-1", slotId, partySize: 1, idempotencyKey: crypto.randomUUID() },
+  );
+  return NextResponse.json(res);
+}
+```
+
+`src/app/api-test/login/route.ts` (creates a fixed patient + session row, returns the token for the session cookie):
+
+```ts
+import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
+import { db } from "@/db";
+import { users, sessions } from "@/db/schema";
+// ponytail: test-only route, delete when e2e is stable
+
+export async function POST() {
+  await db.insert(users).values({
+    id: "test-patient", name: "Test Patient", phoneNumber: "09120000001",
+    phoneNumberVerified: true, role: "patient",
+  }).onConflictDoUpdate({ target: users.id, set: { role: "patient" } });
+  const token = randomUUID();
+  await db.insert(sessions).values({
+    id: randomUUID(), token, userId: "test-patient",
+    expiresAt: new Date(Date.now() + 24 * 3600 * 1000),
+  }).onConflictDoNothing();
+  return NextResponse.json({ token });
+}
+```
+
+- [ ] **Step 6: Run the journeys**
+
+Run: `bunx playwright test`
 Expected: 3 tests pass. If the concurrency test flakes, run it 5× (`--repeat-each=5`) — the conditional UPDATE must make both outcomes deterministic: one `rowCount===0`.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -1664,7 +1779,7 @@ git commit -m "test: journey and concurrency proof for booking"
 - [ ] **Step 1: Full pass**
 
 ```bash
-pnpm test && pnpm lint && pnpm build && pnpm exec playwright test
+bun run test && bun run lint && bun run build && bunx playwright test
 ```
 
 Expected: all green.
