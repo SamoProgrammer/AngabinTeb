@@ -1099,8 +1099,7 @@ import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, services } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
-import { canCancel, validatePartySize } from "./kernel";
-import type { BookingStatus } from "./model";
+import { canCancel, validatePartySize, type BookingStatus } from "./kernel";
 
 const bookSchema = z.object({
   serviceId: z.string().min(1),
@@ -1109,6 +1108,8 @@ const bookSchema = z.object({
   notes: z.string().max(500).optional(),
   idempotencyKey: z.string().min(8).max(64),
 });
+
+class RescheduleCapacityError extends Error {}
 
 export async function bookAppointment(input: z.infer<typeof bookSchema>) {
   const user = await requireUser();
@@ -1136,6 +1137,7 @@ export async function bookAppointmentWithUser(
     if (slotRes.count === 0) return { ok: false as const, reason: "capacity_exceeded" };
 
     const [svc] = await tx.select().from(services).where(eq(services.id, data.serviceId));
+    if (!svc) return { ok: false as const, reason: "capacity_exceeded" }; // stale/deleted service (harden)
     const appointmentId = randomUUID();
     await tx.insert(appointments).values({
       id: appointmentId,
@@ -1183,7 +1185,8 @@ export async function rescheduleAppointment(id: string, newSlotId: string) {
     .where(and(eq(appointments.id, id), eq(appointments.patientId, user.id)));
   if (!row || !canCancel(row.status as BookingStatus)) return { ok: false as const, reason: "not_cancellable" };
 
-  return db.transaction(async (tx) => {
+  try {
+    return await db.transaction(async (tx) => {
     await tx.update(appointments).set({ status: "cancelled" }).where(eq(appointments.id, id));
     await tx.execute(
       sql`UPDATE availability_slot
@@ -1198,7 +1201,12 @@ export async function rescheduleAppointment(id: string, newSlotId: string) {
             AND booked_count + ${row.partySize} <= capacity
             AND (held_until IS NULL OR held_until < now())`,
     );
-    if (slotRes.count === 0) return { ok: false as const, reason: "capacity_exceeded" };
+    if (slotRes.count === 0) {
+      // R35: returning here would COMMIT the earlier cancel (postgres.js
+      // begin() commits on resolve) — the patient would lose the confirmed
+      // appointment with no replacement. Throw so the whole tx rolls back.
+      throw new RescheduleCapacityError();
+    }
 
     const newId = randomUUID();
     await tx.insert(appointments).values({
@@ -1214,7 +1222,11 @@ export async function rescheduleAppointment(id: string, newSlotId: string) {
       idempotencyKey: `reschedule-${row.id}-${newSlotId}`,
     });
     return { ok: true as const, appointmentId: newId };
-  });
+    });
+  } catch (e) {
+    if (e instanceof RescheduleCapacityError) return { ok: false as const, reason: "capacity_exceeded" };
+    throw e;
+  }
 }
 ```
 
@@ -1276,7 +1288,7 @@ export default async function BookPage({
       <p className="mt-1 text-gray-600">{service.providerName} · {service.durationMinutes} min</p>
       <p className="mt-4 text-lg">{service.basePrice} Toman</p>
 
-      <form className="mt-8" action={`/services/${slug}/book`}>
+      <form className="mt-8" action={`/${locale}/services/${slug}/book`}>
         <label className="block" htmlFor="date">Date</label>
         <input id="date" type="date" name="date" defaultValue={day}
                className="mb-6 rounded border px-3 py-2" />

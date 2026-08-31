@@ -21,7 +21,7 @@ export default async function BookPage({
       <p className="mt-1 text-gray-600">{service.providerName} · {service.durationMinutes} min</p>
       <p className="mt-4 text-lg">{service.basePrice} Toman</p>
 
-      <form className="mt-8" action={`/services/${slug}/book`}>
+      <form className="mt-8" action={`/${locale}/services/${slug}/book`}>
         <label className="block" htmlFor="date">Date</label>
         <input id="date" type="date" name="date" defaultValue={day}
                className="mb-6 rounded border px-3 py-2" />

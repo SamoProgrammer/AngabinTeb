@@ -16,6 +16,8 @@ const bookSchema = z.object({
   idempotencyKey: z.string().min(8).max(64),
 });
 
+class RescheduleCapacityError extends Error {}
+
 export async function bookAppointment(input: z.infer<typeof bookSchema>) {
   const user = await requireUser();
   return bookAppointmentWithUser(user, input);
@@ -42,6 +44,7 @@ export async function bookAppointmentWithUser(
     if (slotRes.count === 0) return { ok: false as const, reason: "capacity_exceeded" };
 
     const [svc] = await tx.select().from(services).where(eq(services.id, data.serviceId));
+    if (!svc) return { ok: false as const, reason: "capacity_exceeded" }; // stale/deleted service
     const appointmentId = randomUUID();
     await tx.insert(appointments).values({
       id: appointmentId,
@@ -89,36 +92,43 @@ export async function rescheduleAppointment(id: string, newSlotId: string) {
     .where(and(eq(appointments.id, id), eq(appointments.patientId, user.id)));
   if (!row || !canCancel(row.status as BookingStatus)) return { ok: false as const, reason: "not_cancellable" };
 
-  return db.transaction(async (tx) => {
-    await tx.update(appointments).set({ status: "cancelled" }).where(eq(appointments.id, id));
-    await tx.execute(
-      sql`UPDATE availability_slot
-            SET booked_count = GREATEST(booked_count - ${row.partySize}, 0)
-          WHERE id = ${row.slotId}`,
-    );
-    const slotRes = await tx.execute(
-      sql`UPDATE availability_slot
-            SET booked_count = booked_count + ${row.partySize},
-                held_until = NULL, held_by = NULL
-          WHERE id = ${newSlotId}
-            AND booked_count + ${row.partySize} <= capacity
-            AND (held_until IS NULL OR held_until < now())`,
-    );
-    if (slotRes.count === 0) return { ok: false as const, reason: "capacity_exceeded" };
+  try {
+    return await db.transaction(async (tx) => {
+      await tx.update(appointments).set({ status: "cancelled" }).where(eq(appointments.id, id));
+      await tx.execute(
+        sql`UPDATE availability_slot
+              SET booked_count = GREATEST(booked_count - ${row.partySize}, 0)
+            WHERE id = ${row.slotId}`,
+      );
+      const slotRes = await tx.execute(
+        sql`UPDATE availability_slot
+              SET booked_count = booked_count + ${row.partySize},
+                  held_until = NULL, held_by = NULL
+            WHERE id = ${newSlotId}
+              AND booked_count + ${row.partySize} <= capacity
+              AND (held_until IS NULL OR held_until < now())`,
+      );
+      if (slotRes.count === 0) {
+        throw new RescheduleCapacityError();
+      }
 
-    const newId = randomUUID();
-    await tx.insert(appointments).values({
-      id: newId,
-      patientId: user.id,
-      serviceId: row.serviceId,
-      providerId: row.providerId,
-      locationId: row.locationId,
-      slotId: newSlotId,
-      partySize: row.partySize,
-      price: row.price,
-      notes: row.notes,
-      idempotencyKey: `reschedule-${row.id}-${newSlotId}`,
+      const newId = randomUUID();
+      await tx.insert(appointments).values({
+        id: newId,
+        patientId: user.id,
+        serviceId: row.serviceId,
+        providerId: row.providerId,
+        locationId: row.locationId,
+        slotId: newSlotId,
+        partySize: row.partySize,
+        price: row.price,
+        notes: row.notes,
+        idempotencyKey: `reschedule-${row.id}-${newSlotId}`,
+      });
+      return { ok: true as const, appointmentId: newId };
     });
-    return { ok: true as const, appointmentId: newId };
-  });
+  } catch (e) {
+    if (e instanceof RescheduleCapacityError) return { ok: false as const, reason: "capacity_exceeded" };
+    throw e;
+  }
 }
