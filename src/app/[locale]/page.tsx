@@ -10,6 +10,7 @@ export default function HomePage() {
           <a href="/">{t("nav.home")}</a>
           <a href="/doctors">{t("nav.doctors")}</a>
           <a href="/services">{t("nav.services")}</a>
+          <a href="/admin">{t("nav.admin")}</a>
         </nav>
         <LocaleSwitcher />
       </header>
