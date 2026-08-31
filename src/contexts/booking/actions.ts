@@ -40,6 +40,9 @@ export async function bookAppointmentWithUser(
             SET booked_count = booked_count + ${data.partySize},
                 held_until = NULL, held_by = NULL
           WHERE id = ${data.slotId}
+            AND service_id = ${data.serviceId}
+            AND is_active = true
+            AND starts_at > now()
             AND booked_count + ${data.partySize} <= capacity
             AND (held_until IS NULL OR held_until < now())`,
     );
@@ -71,19 +74,22 @@ export async function cancelAppointment(id: string) {
   if (!row) return { ok: false as const, reason: "not_found" };
   if (!canCancel(row.status as BookingStatus)) return { ok: false as const, reason: "not_cancellable" };
 
-  await db.transaction(async (tx) => {
-    await tx.update(appointments)
+  return db.transaction(async (tx) => {
+    const upd = await tx.update(appointments)
       .set({ status: "cancelled" })
-      .where(eq(appointments.id, id));
+      .where(and(eq(appointments.id, id), eq(appointments.status, "confirmed")));
+    if (upd.count === 0) return { ok: false as const, reason: "not_cancellable" };
     await tx.execute(
       sql`UPDATE availability_slot
             SET booked_count = GREATEST(booked_count - ${row.partySize}, 0)
           WHERE id = ${row.slotId}`,
     );
+    return { ok: true as const };
   });
-  return { ok: true as const };
 }
 
+// ponytail: reschedule UI (dashboard button + slot picker) deferred to Phase 2;
+// the action and kernel are implemented and tested (spec §6.3 cancel+create).
 export async function rescheduleAppointment(id: string, newSlotId: string) {
   const user = await requireUser();
   const [row] = await db
@@ -105,6 +111,9 @@ export async function rescheduleAppointment(id: string, newSlotId: string) {
               SET booked_count = booked_count + ${row.partySize},
                   held_until = NULL, held_by = NULL
             WHERE id = ${newSlotId}
+              AND service_id = ${row.serviceId}
+              AND is_active = true
+              AND starts_at > now()
               AND booked_count + ${row.partySize} <= capacity
               AND (held_until IS NULL OR held_until < now())`,
       );

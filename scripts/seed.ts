@@ -75,8 +75,8 @@ async function main() {
     serviceId: SERVICE_ID, prepInstructions: "ناشتا بودن به مدت ۸ ساعت", fastingHours: 8,
   }).onConflictDoNothing();
   const TEST_SLOT_ID = "slot-test-1";
-  const today = new Date();
-  const slotStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 18, 0));
+  const tomorrow = new Date(Date.now() + 86400_000);
+  const slotStart = new Date(Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate(), 18, 0));
   await db.insert(availabilitySlots).values({
     id: TEST_SLOT_ID, providerId: PROVIDER_ID, serviceId: SERVICE_ID,
     startsAt: slotStart, endsAt: new Date(slotStart.getTime() + 30 * 60_000),

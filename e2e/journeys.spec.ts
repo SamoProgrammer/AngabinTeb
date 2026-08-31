@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
 
+test.beforeAll(async ({ request }) => {
+  const res = await request.post("/api-test/setup");
+  expect(res.ok()).toBeTruthy();
+});
+
 async function signIn(page: import("@playwright/test").Page) {
   const res = await page.request.post("/api-test/login");
   const { token } = await res.json();
@@ -14,6 +19,9 @@ test("J-001 find and book a doctor service", async ({ page }) => {
   await expect(page.getByRole("link", { name: /ECG|نوار قلب/ }).first()).toBeVisible();
   await page.getByRole("link", { name: /ECG|نوار قلب/ }).first().click();
   await page.getByRole("link", { name: "Book this service" }).click();
+  const tomorrow = new Date(Date.now() + 86400_000).toISOString().slice(0, 10);
+  await page.locator("#date").fill(tomorrow);
+  await page.locator("#date").press("Enter");
   await page.getByRole("button", { name: /^\d{2}:\d{2}$/ }).first().click();
   await page.getByRole("button", { name: /Confirm booking/ }).click();
   await expect(page).toHaveURL(/\/confirm\?id=/);
