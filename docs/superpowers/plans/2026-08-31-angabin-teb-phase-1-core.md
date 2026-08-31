@@ -1645,6 +1645,14 @@ await db.insert(availabilitySlots).values({
   startsAt: slotStart, endsAt: new Date(slotStart.getTime() + 30 * 60_000),
   capacity: 1,
 }).onConflictDoNothing();
+// R38: second capacity-1 slot (19:00) so the double-book spec never races
+// J-001's UI booking of slot-test-1 across parallel Playwright workers.
+const slotStart2 = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 19, 0));
+await db.insert(availabilitySlots).values({
+  id: "slot-test-2", providerId: PROVIDER_ID, serviceId: SERVICE_ID,
+  startsAt: slotStart2, endsAt: new Date(slotStart2.getTime() + 30 * 60_000),
+  capacity: 1,
+}).onConflictDoNothing();
 ```
 
 Re-run idempotency holds (upserts + `onConflictDoNothing` on the slot).
@@ -1658,7 +1666,12 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
-  use: { baseURL: "http://localhost:3000", ...devices["Desktop Chrome"] },
+  use: {
+    baseURL: "http://localhost:3000",
+    ...devices["Desktop Chrome"],
+    locale: "en-GB",     // R39: h23 clock — SlotPicker renders "18:00", not "09:30 PM"
+    timezoneId: "UTC",   // R39: aligns browser local time with the seed's UTC slot times
+  },
   webServer: {
     command: "bun run dev",
     url: "http://localhost:3000",
@@ -1673,14 +1686,6 @@ export default defineConfig({
 
 ```ts
 import { test, expect } from "@playwright/test";
-
-test.beforeAll(async ({ request }) => {
-  const res = await request.post("/api-test/login");
-  expect(res.ok()).toBeTruthy();
-  const { token } = await res.json();
-  await test.use({ storageState: undefined });
-  // token is consumed per-context in each test below via the login route cookie
-});
 
 async function signIn(page: import("@playwright/test").Page) {
   const res = await page.request.post("/api-test/login");
@@ -1715,10 +1720,15 @@ test("J-002 book a diagnostic service with prep visible", async ({ page }) => {
 ```ts
 import { test, expect } from "@playwright/test";
 
+test.beforeAll(async ({ request }) => {
+  const res = await request.post("/api-test/login");
+  expect(res.ok()).toBeTruthy();
+});
+
 test("concurrent booking cannot double-book a capacity-1 slot", async ({ page }) => {
   const resp = await Promise.all([
-    page.request.post("/api-test/book", { data: { slotId: process.env.TEST_SLOT_ID ?? "slot-test-1" } }),
-    page.request.post("/api-test/book", { data: { slotId: process.env.TEST_SLOT_ID ?? "slot-test-1" } }),
+    page.request.post("/api-test/book", { data: { slotId: process.env.TEST_SLOT_ID ?? "slot-test-2" } }),
+    page.request.post("/api-test/book", { data: { slotId: process.env.TEST_SLOT_ID ?? "slot-test-2" } }),
   ]);
   const statuses = (await Promise.all(resp.map((r) => r.json()))).map((r) => r.ok);
   expect(statuses.filter(Boolean).length).toBe(1);

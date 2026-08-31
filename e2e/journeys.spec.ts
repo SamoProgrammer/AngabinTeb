@@ -1,13 +1,5 @@
 import { test, expect } from "@playwright/test";
 
-test.beforeAll(async ({ request }) => {
-  const res = await request.post("/api-test/login");
-  expect(res.ok()).toBeTruthy();
-  const { token } = await res.json();
-  await test.use({ storageState: undefined });
-  // token is consumed per-context in each test below via the login route cookie
-});
-
 async function signIn(page: import("@playwright/test").Page) {
   const res = await page.request.post("/api-test/login");
   const { token } = await res.json();
