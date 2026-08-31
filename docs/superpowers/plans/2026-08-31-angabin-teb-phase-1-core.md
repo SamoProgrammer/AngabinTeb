@@ -1100,6 +1100,7 @@ import { db } from "@/db";
 import { appointments, services } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 import { canCancel, validatePartySize } from "./kernel";
+import type { BookingStatus } from "./model";
 
 const bookSchema = z.object({
   serviceId: z.string().min(1),
@@ -1132,7 +1133,7 @@ export async function bookAppointmentWithUser(
             AND booked_count + ${data.partySize} <= capacity
             AND (held_until IS NULL OR held_until < now())`,
     );
-    if (slotRes.rowCount === 0) return { ok: false as const, reason: "capacity_exceeded" };
+    if (slotRes.count === 0) return { ok: false as const, reason: "capacity_exceeded" };
 
     const [svc] = await tx.select().from(services).where(eq(services.id, data.serviceId));
     const appointmentId = randomUUID();
@@ -1159,7 +1160,7 @@ export async function cancelAppointment(id: string) {
     .from(appointments)
     .where(and(eq(appointments.id, id), eq(appointments.patientId, user.id)));
   if (!row) return { ok: false as const, reason: "not_found" };
-  if (!canCancel(row.status)) return { ok: false as const, reason: "not_cancellable" };
+  if (!canCancel(row.status as BookingStatus)) return { ok: false as const, reason: "not_cancellable" };
 
   await db.transaction(async (tx) => {
     await tx.update(appointments)
@@ -1180,7 +1181,7 @@ export async function rescheduleAppointment(id: string, newSlotId: string) {
     .select()
     .from(appointments)
     .where(and(eq(appointments.id, id), eq(appointments.patientId, user.id)));
-  if (!row || !canCancel(row.status)) return { ok: false as const, reason: "not_cancellable" };
+  if (!row || !canCancel(row.status as BookingStatus)) return { ok: false as const, reason: "not_cancellable" };
 
   return db.transaction(async (tx) => {
     await tx.update(appointments).set({ status: "cancelled" }).where(eq(appointments.id, id));
@@ -1197,7 +1198,7 @@ export async function rescheduleAppointment(id: string, newSlotId: string) {
             AND booked_count + ${row.partySize} <= capacity
             AND (held_until IS NULL OR held_until < now())`,
     );
-    if (slotRes.rowCount === 0) return { ok: false as const, reason: "capacity_exceeded" };
+    if (slotRes.count === 0) return { ok: false as const, reason: "capacity_exceeded" };
 
     const newId = randomUUID();
     await tx.insert(appointments).values({
