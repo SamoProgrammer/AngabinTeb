@@ -1,4 +1,4 @@
-import { getService } from "@/contexts/catalog/queries";
+import { getService, homeCareInfo } from "@/contexts/catalog/queries";
 import { availabilityForService } from "@/contexts/catalog/actions";
 import { SlotPicker } from "@/components/booking/slot-picker";
 
@@ -14,6 +14,7 @@ export default async function BookPage({
   if (!service) return <p>Not found</p>;
   const day = date ?? new Date().toISOString().slice(0, 10);
   const slots = await availabilityForService(slug, day);
+  const satellite = service.serviceType === "home_care" ? await homeCareInfo(service.id) : null;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
@@ -30,7 +31,7 @@ export default async function BookPage({
       <SlotPicker slots={slots.map((s) => ({
         id: s.id, startsAt: s.startsAt.toISOString(),
         capacity: s.capacity, bookedCount: s.bookedCount,
-      }))} serviceId={slug} />
+      }))} serviceId={slug} {...(satellite ? { homeCare: { serviceableCityIds: satellite.serviceableCityIds } } : {})} />
     </main>
   );
 }

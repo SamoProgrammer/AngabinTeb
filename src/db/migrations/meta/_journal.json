@@ -50,6 +50,13 @@
       "when": 1788249312920,
       "tag": "0006_boring_gateway",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788283886695,
+      "tag": "0007_orange_fabian_cortez",
+      "breakpoints": true
     }
   ]
 }

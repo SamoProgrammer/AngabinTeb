@@ -64,7 +64,7 @@ export const diagnosticServices = pgTable("diagnostic_service", {
 export const homeCareServices = pgTable("home_care_service", {
   serviceId: text("service_id").primaryKey().references(() => services.id, { onDelete: "cascade" }),
   requiresPatientAddress: boolean("requires_patient_address").notNull().default(true),
-  serviceableCityIds: jsonb("serviceable_city_ids").notNull().default([]), // string[]
+  serviceableCityIds: jsonb("serviceable_city_ids").$type<string[]>().notNull().default([]), // string[]
 });
 
 export const ambulanceServices = pgTable("ambulance_service", {

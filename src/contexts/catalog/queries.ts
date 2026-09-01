@@ -1,7 +1,7 @@
 import "server-only";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { providers, practitioners, services, locations, serviceCategories, translations, diagnosticServices, contents } from "@/db/schema";
+import { providers, practitioners, services, locations, serviceCategories, translations, diagnosticServices, homeCareServices, contents } from "@/db/schema";
 import { overlayTranslations } from "@/lib/translate";
 import type { SearchResult, DoctorCard, ServiceCard } from "./model";
 
@@ -190,5 +190,13 @@ export async function getPrepInfo(serviceId: string) {
     .select({ prepInstructions: diagnosticServices.prepInstructions, fastingHours: diagnosticServices.fastingHours })
     .from(diagnosticServices)
     .where(eq(diagnosticServices.serviceId, serviceId));
+  return row ?? null;
+}
+
+export async function homeCareInfo(serviceId: string) {
+  const [row] = await db
+    .select({ serviceableCityIds: homeCareServices.serviceableCityIds })
+    .from(homeCareServices)
+    .where(eq(homeCareServices.serviceId, serviceId));
   return row ?? null;
 }

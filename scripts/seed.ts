@@ -9,6 +9,7 @@ import {
   locations,
   services,
   diagnosticServices,
+  homeCareServices,
   availabilitySlots,
 } from "../src/db/schema";
 
@@ -86,6 +87,36 @@ async function main() {
   await db.insert(availabilitySlots).values({
     id: "slot-test-2", providerId: PROVIDER_ID, serviceId: SERVICE_ID,
     startsAt: slotStart2, endsAt: new Date(slotStart2.getTime() + 30 * 60_000),
+    capacity: 1,
+  }).onConflictDoNothing();
+
+  // Home care fixture (Task 4.1 e2e): city 1/2 serviceable, slot tomorrow 20:00 UTC
+  const HOME_CAT_ID = "cat-home";
+  const HOME_PROVIDER_ID = "prov-home-1";
+  const HOME_LOC_ID = "loc-home-1";
+  const HOME_SERVICE_ID = "svc-home-1";
+  await upsertTranslation("service_category", HOME_CAT_ID, "en", "name", "Home Care");
+  await upsertTranslation("service", HOME_SERVICE_ID, "en", "name", "Home Care Nursing");
+  await db.insert(serviceCategories).values({
+    id: HOME_CAT_ID, slug: "home-care", name: "پرستاری در منزل",
+  }).onConflictDoUpdate({ target: serviceCategories.id, set: { name: "پرستاری در منزل" } });
+  await db.insert(providers).values({
+    id: HOME_PROVIDER_ID, kind: "person", name: "پرستار نمونه", phone: "02122222222",
+  }).onConflictDoUpdate({ target: providers.id, set: { name: "پرستار نمونه" } });
+  await db.insert(locations).values({
+    id: HOME_LOC_ID, providerId: HOME_PROVIDER_ID, label: "خانه", cityId: "1",
+  }).onConflictDoUpdate({ target: locations.id, set: { label: "خانه" } });
+  await db.insert(services).values({
+    id: HOME_SERVICE_ID, providerId: HOME_PROVIDER_ID, categoryId: HOME_CAT_ID, serviceType: "home_care",
+    locationId: null, name: "پرستاری در منزل", durationMinutes: 120, basePrice: "800000",
+  }).onConflictDoUpdate({ target: services.id, set: { name: "پرستاری در منزل" } });
+  await db.insert(homeCareServices).values({
+    serviceId: HOME_SERVICE_ID, requiresPatientAddress: true, serviceableCityIds: ["1", "2"],
+  }).onConflictDoNothing();
+  const homeSlotStart = new Date(Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate(), 20, 0));
+  await db.insert(availabilitySlots).values({
+    id: "slot-home-test-1", providerId: HOME_PROVIDER_ID, serviceId: HOME_SERVICE_ID,
+    startsAt: homeSlotStart, endsAt: new Date(homeSlotStart.getTime() + 30 * 60_000),
     capacity: 1,
   }).onConflictDoNothing();
 

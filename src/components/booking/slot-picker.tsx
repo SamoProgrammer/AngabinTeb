@@ -6,9 +6,20 @@ import { bookAppointment } from "@/contexts/booking/actions";
 
 type SlotProps = { id: string; startsAt: string; capacity: number; bookedCount: number };
 type Result = { ok: boolean; appointmentId?: string; reason?: string };
+type HomeCareProps = { serviceableCityIds: string[] };
 
-export function SlotPicker({ slots, serviceId }: { slots: SlotProps[]; serviceId: string }) {
+const CITIES = [
+  { id: "1", label: "تهران" },
+  { id: "2", label: "کرج" },
+  { id: "3", label: "اصفهان" },
+];
+
+export function SlotPicker({ slots, serviceId, homeCare }: {
+  slots: SlotProps[]; serviceId: string; homeCare?: HomeCareProps;
+}) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [cityId, setCityId] = useState("");
+  const [addressLine, setAddressLine] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const router = useRouter();
@@ -17,19 +28,31 @@ export function SlotPicker({ slots, serviceId }: { slots: SlotProps[]; serviceId
 
   async function confirm() {
     if (!selected) return;
+    const homeAddress = homeCare
+      ? cityId && addressLine.trim() ? { cityId, addressLine: addressLine.trim() } : null
+      : undefined;
+    if (homeCare && !homeAddress) {
+      setError("Please provide your address.");
+      return;
+    }
     setBusy(true);
     setError(null);
     const key = crypto.randomUUID();
     const res = (await bookAppointment({
       serviceId, slotId: selected, partySize: 1,
       idempotencyKey: key,
+      ...(homeAddress ? { homeAddress } : {}),
     })) as Result;
     if (res.ok && res.appointmentId) {
       router.push(`/confirm?id=${res.appointmentId}`);
     } else {
       setError(res.reason === "capacity_exceeded"
         ? "This slot was just taken. Please choose another."
-        : "Booking failed. Try again.");
+        : res.reason === "not_serviceable"
+          ? "This service is not available in your area."
+          : res.reason === "address_required"
+            ? "Please provide your address."
+            : "Booking failed. Try again.");
       setBusy(false);
     }
   }
@@ -37,6 +60,19 @@ export function SlotPicker({ slots, serviceId }: { slots: SlotProps[]; serviceId
   return (
     <div className="mt-6">
       <h2 className="mb-3 text-lg font-semibold">Choose a time</h2>
+      {homeCare && (
+        <div className="mb-6">
+          <label className="block" htmlFor="city">City</label>
+          <select id="city" name="city" value={cityId} onChange={(e) => setCityId(e.target.value)}
+                  className="mb-4 w-full rounded border px-3 py-2">
+            <option value="">Select city</option>
+            {CITIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+          </select>
+          <label className="block" htmlFor="address">Address</label>
+          <textarea id="address" name="address" value={addressLine} onChange={(e) => setAddressLine(e.target.value)}
+                    rows={3} className="w-full rounded border px-3 py-2" />
+        </div>
+      )}
       <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
         {slots.map((s) => {
           const time = new Date(s.startsAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
