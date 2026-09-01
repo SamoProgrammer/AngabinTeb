@@ -27,6 +27,7 @@ test("home care booking requires a serviceable address", async ({ page }) => {
   await page.locator("#date").press("Enter");
   await page.getByRole("button", { name: /^\d{2}:\d{2}$/ }).first().click();
   await page.getByLabel("City").selectOption("3"); // unserviceable
+  await page.locator("#address").fill("Test St");
   await page.getByRole("button", { name: "Confirm booking" }).click();
   await expect(page.getByText(/not available in your area/i)).toBeVisible();
 });
