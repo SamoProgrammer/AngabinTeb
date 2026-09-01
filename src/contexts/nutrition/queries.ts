@@ -1,9 +1,9 @@
 import "server-only";
 import { sql, eq, and, gte, lt } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, dailyNutrition } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition } from "@/db/schema";
 import { bmr, tdee, type ActivityLevel } from "./kernel";
-import type { FoodCard, FoodOption } from "./model";
+import type { FoodCard, FoodDetail, FoodOption } from "./model";
 
 export async function getPhysiology(userId: string) {
   const [row] = await db.select().from(physiologyProfiles).where(eq(physiologyProfiles.userId, userId));
@@ -70,6 +70,36 @@ export async function searchFoods(_locale: string, term: string, category?: stri
     .from(foods)
     .where(where);
   return { rows, total: count?.total ?? 0 };
+}
+
+export async function getFoodDetail(id: string, _locale: string): Promise<FoodDetail | null> {
+  const [food] = await db.select().from(foods).where(eq(foods.id, id));
+  if (!food) return null;
+  const [servingUnitsRows, nutrientRows] = await Promise.all([
+    db
+      .select({ id: servingUnits.id, name: servingUnits.name, gramsEquivalent: servingUnits.gramsEquivalent })
+      .from(servingUnits)
+      .where(eq(servingUnits.foodId, id))
+      .orderBy(servingUnits.name),
+    db
+      .select({
+        nutrientId: foodNutrients.nutrientId,
+        name: nutrients.name,
+        unit: nutrients.unit,
+        amountPer100g: foodNutrients.amountPer100g,
+      })
+      .from(foodNutrients)
+      .innerJoin(nutrients, eq(foodNutrients.nutrientId, nutrients.id))
+      .where(eq(foodNutrients.foodId, id))
+      .orderBy(nutrients.name),
+  ]);
+  return {
+    id: food.id,
+    name: food.name,
+    category: food.category,
+    servingUnits: servingUnitsRows,
+    nutrients: nutrientRows,
+  };
 }
 
 export async function foodPickerOptions(_locale: string): Promise<FoodOption[]> {
