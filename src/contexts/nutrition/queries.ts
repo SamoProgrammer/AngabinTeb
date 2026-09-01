@@ -29,7 +29,8 @@ export async function getPhysiology(userId: string) {
 
 export async function dayIntake(userId: string, day: string) {
   const start = `${day}T00:00:00Z`;
-  const end = `${day}T23:59:59Z`;
+  const nextDay = new Date(start);
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
   const intakes = await db
     .select({
       id: foodIntakes.id,
@@ -45,7 +46,7 @@ export async function dayIntake(userId: string, day: string) {
     .where(and(
       eq(foodIntakes.userId, userId),
       gte(foodIntakes.loggedAt, new Date(start)),
-      lt(foodIntakes.loggedAt, new Date(end)),
+      lt(foodIntakes.loggedAt, nextDay),
     ))
     .orderBy(foodIntakes.loggedAt);
 

@@ -21,7 +21,8 @@ export default async function FoodsPage({
 }) {
   const { locale } = await params;
   const { q, category, page } = await searchParams;
-  const current = Math.max(1, Number(page ?? 1));
+  const p = Number(page ?? 1);
+  const current = Number.isFinite(p) ? Math.max(1, p) : 1;
   const categories = await db
     .select({ category: foods.category })
     .from(foods)

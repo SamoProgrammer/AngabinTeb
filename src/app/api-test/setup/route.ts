@@ -6,6 +6,8 @@ import { availabilitySlots } from "@/db/schema";
 
 export async function POST() {
   await db.execute(sql`DELETE FROM appointment WHERE patient_id = 'test-patient'`);
+  await db.execute(sql`DELETE FROM food_intake WHERE user_id = 'test-patient'`);
+  await db.execute(sql`DELETE FROM daily_nutrition WHERE user_id = 'test-patient'`);
   await db.execute(sql`DELETE FROM availability_slot WHERE id IN ('slot-test-1','slot-test-2')`);
   const tomorrow = new Date(Date.now() + 86400_000);
   const day = Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate());

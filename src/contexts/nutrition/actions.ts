@@ -179,7 +179,7 @@ export async function saveFoodNutrient(input: FormData) {
     const raw = input.get(`amount-${n.id}`);
     if (raw === null || String(raw).trim() === "") continue;
     const value = String(raw);
-    if (!/^\d+(\.\d+)?$/.test(value) || Number(value) <= 0) {
+    if (!/^\d+(\.\d+)?$/.test(value) || Number(value) < 0) {
       return { ok: false as const, error: `Invalid amount for ${n.id}` };
     }
     upserts.push({ foodId, nutrientId: n.id, amountPer100g: value });

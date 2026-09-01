@@ -15,7 +15,8 @@ export default async function DiaryPage({
   const { day: dayParam } = await searchParams;
   const user = await requireUser();
   const today = new Date().toISOString().slice(0, 10);
-  const day = dayParam && dayPattern.test(dayParam) ? dayParam : today;
+  const rawDay = dayParam ?? today;
+  const day = dayPattern.test(rawDay) && !Number.isNaN(Date.parse(`${rawDay}T00:00:00Z`)) ? rawDay : today;
   const [{ intakes, totals }, options] = await Promise.all([
     dayIntake(user.id, day),
     foodPickerOptions(locale),
