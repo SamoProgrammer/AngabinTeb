@@ -16,7 +16,7 @@ const SETTING_KEYS = ["regim24", "nobat24", "aparat", "leaflet", "enamad", "soci
 
 const settingsSchema = z.object({
   key: z.enum(SETTING_KEYS),
-  url: z.string().optional(),
+  url: z.string().url().optional().or(z.literal("").transform(() => undefined)),
 });
 
 export async function saveSettings(input: FormData) {

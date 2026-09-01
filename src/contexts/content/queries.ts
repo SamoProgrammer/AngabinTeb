@@ -124,7 +124,7 @@ export async function getTopicHub(topicSlug: string, locale: string): Promise<To
   const content = await listContent("article", locale, topic.id);
   const conditionRows = await db.select().from(conditions).where(
     sql`exists (select 1 from content_topic ct join content c on c.id = ct.content_id
-                where ct.topic_id = ${topic.id} and c.id = ${conditions.id})`,
+                where ct.topic_id = ${topic.id} and c.id = ${conditions.id} and c.status = 'published')`,
   );
   const conditionOverrides =
     conditionRows.length === 0

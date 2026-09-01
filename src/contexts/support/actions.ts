@@ -45,15 +45,17 @@ export async function updateRequestStatus(id: string, status: "open" | "in_progr
   if (!isRequestStatus(value)) return { ok: false as const, reason: "bad_status" };
   const [row] = await db.select().from(supportRequests).where(eq(supportRequests.id, id));
   if (!row) return { ok: false as const, reason: "not_found" };
-  await db.update(supportRequests).set({ status: value, updatedAt: new Date() }).where(eq(supportRequests.id, id));
-  await db.insert(notifications).values({
-    id: randomUUID(),
-    userId: row.userId,
-    kind: "support_reply",
-    title: "Support request updated",
-    body: `Your request "${row.subject}" is now ${value}.`,
+  return db.transaction(async (tx) => {
+    await tx.update(supportRequests).set({ status: value, updatedAt: new Date() }).where(eq(supportRequests.id, id));
+    await tx.insert(notifications).values({
+      id: randomUUID(),
+      userId: row.userId,
+      kind: "support_reply",
+      title: "Support request updated",
+      body: `Your request "${row.subject}" is now ${value}.`,
+    });
+    return { ok: true as const };
   });
-  return { ok: true as const };
 }
 
 export async function markNotificationsRead(_formData: FormData) {
