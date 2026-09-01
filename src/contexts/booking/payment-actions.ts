@@ -31,7 +31,7 @@ export async function completePayment(appointmentId: string, token: string) {
   if (!row) return { ok: false as const, reason: "not_found" };
 
   const next = nextPaymentState(row.paymentStatus as "pending" | "paid_online" | "unpaid", true);
-  if (next === "paid_online") {
+  if (row.paymentStatus === "pending") {
     await db.update(appointments)
       .set({ paymentStatus: "paid_online", status: "confirmed" })
       .where(eq(appointments.id, appointmentId));
