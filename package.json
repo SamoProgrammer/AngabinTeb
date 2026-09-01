@@ -13,6 +13,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx scripts/seed.ts",
     "db:seed:nutrition": "tsx scripts/seed-nutrition.ts",
+    "db:seed:content": "tsx scripts/seed-content.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
