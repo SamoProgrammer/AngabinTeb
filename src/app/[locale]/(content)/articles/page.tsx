@@ -19,7 +19,7 @@ export default async function ArticlesPage({
   const { page } = await searchParams;
   const p = Number(page ?? 1);
   const current = Number.isFinite(p) ? Math.max(1, p) : 1;
-  const { rows, total } = await listContent("article", locale, undefined, current);
+  const { rows, total } = await listContent("article", locale, undefined, undefined, current);
   const pages = Math.max(1, Math.ceil(total / pageSize));
   return (
     <div>

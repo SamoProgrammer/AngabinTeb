@@ -1,3 +1,5 @@
+import type { SearchResult } from "@/contexts/catalog/model";
+
 export type ContentKind = "article" | "pamphlet" | "faq" | "video";
 
 export type ContentCard = {
@@ -23,4 +25,18 @@ export type TopicCard = {
   slug: string;
   name: string;
   count: number;
+};
+
+export type ConditionCard = {
+  id: string;
+  slug: string;
+  name: string;
+};
+
+export type TopicHub = {
+  topic: { id: string; slug: string; name: string };
+  content: ContentCard[];
+  conditions: ConditionCard[];
+  relatedServices: SearchResult[];
+  relatedDoctors: SearchResult[];
 };
