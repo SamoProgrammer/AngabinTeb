@@ -113,7 +113,7 @@ export async function listDoctors(locale: string, specialtyId?: string, cityId?:
   return overlayTranslations("provider", rows, await fetchOverrides("provider", rows.map((r) => r.id)), locale, ["name"]) as DoctorCard[];
 }
 
-export async function listServices(locale: string, categoryId?: string, cityId?: string): Promise<ServiceCard[]> {
+export async function listServices(locale: string, categoryId?: string, cityId?: string, serviceType?: string): Promise<ServiceCard[]> {
   const rows = await db
     .select({
       id: services.id,
@@ -130,6 +130,7 @@ export async function listServices(locale: string, categoryId?: string, cityId?:
       eq(services.isActive, true),
       categoryId ? eq(services.categoryId, categoryId) : undefined,
       cityId ? eq(locations.cityId, cityId) : undefined,
+      serviceType ? eq(services.serviceType, serviceType) : undefined,
     ))
     .orderBy(services.name)
     .limit(50);

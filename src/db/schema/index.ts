@@ -2,6 +2,7 @@ export * from "./identity";
 export * from "./platform";
 export * from "./catalog";
 export * from "./booking";
+export * from "./ambulance";
 export * from "./nutrition";
 export * from "./content";
 export * from "./support";

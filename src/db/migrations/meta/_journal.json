@@ -57,6 +57,13 @@
       "when": 1788283886695,
       "tag": "0007_orange_fabian_cortez",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788284741248,
+      "tag": "0008_typical_lila_cheney",
+      "breakpoints": true
     }
   ]
 }

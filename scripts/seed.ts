@@ -10,6 +10,7 @@ import {
   services,
   diagnosticServices,
   homeCareServices,
+  ambulanceServices,
   availabilitySlots,
 } from "../src/db/schema";
 
@@ -117,6 +118,23 @@ async function main() {
   await db.insert(availabilitySlots).values({
     id: "slot-home-test-1", providerId: HOME_PROVIDER_ID, serviceId: HOME_SERVICE_ID,
     startsAt: homeSlotStart, endsAt: new Date(homeSlotStart.getTime() + 30 * 60_000),
+    capacity: 1,
+  }).onConflictDoNothing();
+
+  // Ambulance fixture (Task 4.3): scheduled non-emergency transport, slot tomorrow 21:00 UTC
+  const AMB_SERVICE_ID = "svc-amb-1";
+  await upsertTranslation("service", AMB_SERVICE_ID, "en", "name", "Non-emergency Ambulance");
+  await db.insert(services).values({
+    id: AMB_SERVICE_ID, providerId: HOME_PROVIDER_ID, categoryId: HOME_CAT_ID, serviceType: "ambulance",
+    locationId: null, name: "آمبولانس غیر اورژانسی", durationMinutes: 30, basePrice: "1200000",
+  }).onConflictDoUpdate({ target: services.id, set: { name: "آمبولانس غیر اورژانسی" } });
+  await db.insert(ambulanceServices).values({
+    serviceId: AMB_SERVICE_ID, dispatchModel: null, vehicleType: "basic",
+  }).onConflictDoNothing();
+  const ambSlotStart = new Date(Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate(), 21, 0));
+  await db.insert(availabilitySlots).values({
+    id: "slot-amb-test-1", providerId: HOME_PROVIDER_ID, serviceId: AMB_SERVICE_ID,
+    startsAt: ambSlotStart, endsAt: new Date(ambSlotStart.getTime() + 30 * 60_000),
     capacity: 1,
   }).onConflictDoNothing();
 

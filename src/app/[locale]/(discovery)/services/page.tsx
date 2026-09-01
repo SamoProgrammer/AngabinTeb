@@ -5,11 +5,11 @@ export default async function ServicesPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ category?: string; city?: string }>;
+  searchParams: Promise<{ category?: string; city?: string; serviceType?: string }>;
 }) {
   const { locale } = await params;
-  const { category, city } = await searchParams;
-  const services = await listServices(locale, category, city);
+  const { category, city, serviceType } = await searchParams;
+  const services = await listServices(locale, category, city, serviceType);
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
       <h1 className="mb-8 text-2xl font-bold">Services</h1>

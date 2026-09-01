@@ -4,10 +4,11 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { appointments, services, notifications, homeCareServices } from "@/db/schema";
+import { appointments, services, notifications, homeCareServices, dispatchRecords } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 import { canCancel, validatePartySize, type BookingStatus } from "./kernel";
 import { isServiceable } from "./address";
+import { initialDispatchStatus } from "./ambulance";
 
 const homeAddressSchema = z.object({
   cityId: z.string().min(1),
@@ -87,6 +88,14 @@ export async function bookAppointmentWithUser(
       title: "Appointment confirmed",
       body: `Your booking is confirmed (${appointmentId}).`,
     });
+    if (svc.serviceType === "ambulance") {
+      await tx.insert(dispatchRecords).values({
+        id: randomUUID(),
+        ambulanceServiceId: data.serviceId,
+        appointmentId,
+        status: initialDispatchStatus("confirmed"),
+      });
+    }
     return { ok: true as const, appointmentId };
   });
 }
