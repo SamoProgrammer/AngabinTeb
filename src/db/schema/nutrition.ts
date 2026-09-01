@@ -1,0 +1,101 @@
+import { pgTable, text, timestamp, integer, numeric, date, index, primaryKey } from "drizzle-orm/pg-core";
+import { users } from "./identity";
+import { providers } from "./catalog";
+
+export const physiologyProfiles = pgTable("physiology_profile", {
+  userId: text("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  sex: text("sex").notNull(), // male | female
+  birthDate: date("birth_date").notNull(),
+  heightCm: numeric("height_cm", { precision: 5, scale: 1 }).notNull(),
+  weightKg: numeric("weight_kg", { precision: 5, scale: 1 }).notNull(),
+  activityLevel: text("activity_level").notNull().default("moderate"), // sedentary|light|moderate|active|very_active
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const foods = pgTable("food", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(), // Persian base
+  category: text("category").notNull(),
+  mealTypes: text("meal_types").array().notNull().default([]),
+  imageUrl: text("image_url"),
+  source: text("source").notNull(),
+  sourceVersion: text("source_version").notNull(),
+});
+
+export const servingUnits = pgTable("serving_unit", {
+  id: text("id").primaryKey(),
+  foodId: text("food_id").notNull().references(() => foods.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // Persian base: بشقاب / ملاقه / قاشق / گرم
+  gramsEquivalent: numeric("grams_equivalent", { precision: 8, scale: 1 }).notNull(),
+});
+
+export const nutrients = pgTable("nutrient", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(), // Persian base
+  unit: text("unit").notNull(), // kcal | g | mg | µg
+});
+
+export const foodNutrients = pgTable(
+  "food_nutrient",
+  {
+    foodId: text("food_id").notNull().references(() => foods.id, { onDelete: "cascade" }),
+    nutrientId: text("nutrient_id").notNull().references(() => nutrients.id),
+    amountPer100g: numeric("amount_per_100g", { precision: 10, scale: 2 }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.foodId, t.nutrientId] }),
+  ],
+);
+
+export const nutrientRequirements = pgTable(
+  "nutrient_requirement",
+  {
+    nutrientId: text("nutrient_id").notNull().references(() => nutrients.id),
+    sex: text("sex").notNull(), // male | female | any
+    ageMin: integer("age_min").notNull(), // inclusive
+    ageMax: integer("age_max").notNull(), // inclusive; 200 = 200+
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+    source: text("source").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.nutrientId, t.sex, t.ageMin] }),
+  ],
+);
+
+export const foodIntakes = pgTable(
+  "food_intake",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    foodId: text("food_id").notNull().references(() => foods.id),
+    servingUnitId: text("serving_unit_id").notNull().references(() => servingUnits.id),
+    quantity: numeric("quantity", { precision: 6, scale: 2 }).notNull(),
+    loggedAt: timestamp("logged_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("intake_user_day").on(t.userId, t.loggedAt)],
+);
+
+export const dailyNutrition = pgTable(
+  "daily_nutrition",
+  {
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    day: date("day").notNull(),
+    energyKcal: numeric("energy_kcal", { precision: 10, scale: 2 }).notNull().default("0"),
+    carbsG: numeric("carbs_g", { precision: 10, scale: 2 }).notNull().default("0"),
+    proteinG: numeric("protein_g", { precision: 10, scale: 2 }).notNull().default("0"),
+    fatG: numeric("fat_g", { precision: 10, scale: 2 }).notNull().default("0"),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.day] })],
+);
+
+export const dietPrograms = pgTable("diet_program", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(), // Persian base
+  organizationContext: text("organization_context").notNull(), // banks|universities|health_centers|clinics|other
+  planType: text("plan_type").notNull(),
+  durationDays: integer("duration_days").notNull(),
+  price: numeric("price", { precision: 12, scale: 0 }).notNull().default("0"),
+  practitionerId: text("practitioner_id").references(() => providers.id),
+  description: text("description"), // Persian base
+});
