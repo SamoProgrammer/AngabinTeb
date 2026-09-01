@@ -4,7 +4,7 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { appointments, services } from "@/db/schema";
+import { appointments, services, notifications } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 import { canCancel, validatePartySize, type BookingStatus } from "./kernel";
 
@@ -60,6 +60,13 @@ export async function bookAppointmentWithUser(
       price: svc.basePrice,
       notes: data.notes ?? null,
       idempotencyKey: data.idempotencyKey,
+    });
+    await tx.insert(notifications).values({
+      id: randomUUID(),
+      userId: user.id,
+      kind: "appointment_confirmed",
+      title: "Appointment confirmed",
+      body: `Your booking is confirmed (${appointmentId}).`,
     });
     return { ok: true as const, appointmentId };
   });

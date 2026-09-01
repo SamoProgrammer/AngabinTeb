@@ -55,3 +55,8 @@ export async function updateRequestStatus(id: string, status: "open" | "in_progr
   });
   return { ok: true as const };
 }
+
+export async function markNotificationsRead(_formData: FormData) {
+  const user = await requireUser();
+  await db.update(notifications).set({ read: true }).where(eq(notifications.userId, user.id));
+}
