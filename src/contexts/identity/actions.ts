@@ -23,6 +23,6 @@ export async function requireProvider() {
   const user = await requireUser();
   if (user.role !== "provider") redirect("/");
   const [row] = await db.select().from(providers).where(eq(providers.phone, user.phoneNumber ?? ""));
-  if (!row) return redirect("/provider/claim");
+  if (!row) return redirect("/provider-claim");
   return { user, providerRow: row };
 }

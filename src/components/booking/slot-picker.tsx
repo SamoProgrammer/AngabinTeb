@@ -29,20 +29,27 @@ export function SlotPicker({ slots, serviceId, homeCare }: {
   async function confirm() {
     if (!selected) return;
     const homeAddress = homeCare
-      ? cityId && addressLine.trim() ? { cityId, addressLine: addressLine.trim() } : null
+      ? cityId && addressLine.trim().length >= 5 ? { cityId, addressLine: addressLine.trim() } : null
       : undefined;
     if (homeCare && !homeAddress) {
-      setError("Please provide your address.");
+      setError("Please provide a valid address (at least 5 characters).");
       return;
     }
     setBusy(true);
     setError(null);
     const key = crypto.randomUUID();
-    const res = (await bookAppointment({
-      serviceId, slotId: selected, partySize: 1,
-      idempotencyKey: key,
-      ...(homeAddress ? { homeAddress } : {}),
-    })) as Result;
+    let res: Result;
+    try {
+      res = (await bookAppointment({
+        serviceId, slotId: selected, partySize: 1,
+        idempotencyKey: key,
+        ...(homeAddress ? { homeAddress } : {}),
+      })) as Result;
+    } catch {
+      setError("Booking failed. Try again.");
+      setBusy(false);
+      return;
+    }
     if (res.ok && res.appointmentId) {
       router.push(`/confirm?id=${res.appointmentId}`);
     } else {

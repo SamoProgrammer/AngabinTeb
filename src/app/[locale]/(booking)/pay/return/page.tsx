@@ -10,11 +10,13 @@ export default async function PaymentReturnPage({
   return (
     <main className="mx-auto max-w-xl px-4 py-16 text-center">
       <h1 className="text-2xl font-bold">
-        {result.ok
+        {result.ok && result.paymentStatus === "paid_online"
           ? "Paid — appointment confirmed"
-          : result.reason === "invalid"
-            ? "Payment verification failed."
-            : "Appointment not found."}
+          : result.ok
+            ? `Payment not applied — appointment status: ${result.paymentStatus}`
+            : result.reason === "invalid"
+              ? "Payment verification failed."
+              : "Appointment not found."}
       </h1>
     </main>
   );

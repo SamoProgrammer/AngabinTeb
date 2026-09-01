@@ -21,6 +21,7 @@ export async function startPayment(appointmentId: string) {
 
 export async function completePayment(appointmentId: string, token: string) {
   const user = await requireUser();
+  // paymentId is currently unused by the dev gateway; it becomes the idempotency hook when the real SDK lands.
   const result = await verifyPayment(token);
   if (!result.ok) return result;
 

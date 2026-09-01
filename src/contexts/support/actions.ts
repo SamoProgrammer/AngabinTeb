@@ -4,7 +4,7 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { supportRequests, notifications } from "@/db/schema";
+import { supportRequests, notifications, users } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 
 function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
@@ -62,6 +62,8 @@ export async function assignRequest(id: string, assigneeUserId: string) {
   const user = await requireUser();
   if (user.role !== "admin") return { ok: false as const, reason: "forbidden" };
   if (!id || !assigneeUserId) return { ok: false as const, reason: "bad_input" };
+  const [assignee] = await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, assigneeUserId));
+  if (!assignee || assignee.role !== "admin") return { ok: false as const, reason: "bad_assignee" };
   return db.transaction(async (tx) => {
     await tx
       .update(supportRequests)

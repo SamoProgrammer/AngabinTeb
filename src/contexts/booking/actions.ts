@@ -115,6 +115,7 @@ export async function cancelAppointment(id: string) {
       .set({ status: "cancelled" })
       .where(and(eq(appointments.id, id), inArray(appointments.status, ["confirmed", "pending"])));
     if (upd.count === 0) return { ok: false as const, reason: "not_cancellable" };
+    await tx.update(dispatchRecords).set({ status: "cancelled" }).where(eq(dispatchRecords.appointmentId, id));
     await tx.execute(
       sql`UPDATE availability_slot
             SET booked_count = GREATEST(booked_count - ${row.partySize}, 0)

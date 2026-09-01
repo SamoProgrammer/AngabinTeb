@@ -34,6 +34,14 @@ What: marking appointments no-show and enforcing a policy consequence.
 Gate: a booking no-show/cancellation policy decision (spec §13 risk 7).
 Hook: none.
 
+## Reschedule vs payment state
+
+What: reschedule currently drops online-payment state — a rescheduled
+`paid_online` appointment defaults to confirmed/unpaid; will be addressed when
+the reschedule UI ships (see `booking/actions.ts` `rescheduleAppointment`).
+Gate: the reschedule UI (dashboard button + slot picker, Phase 2) ships.
+Hook: `appointment.payment_status` already supports `paid_online`.
+
 ## Emergency dispatch
 
 What: real-time emergency dispatch of ambulances.
