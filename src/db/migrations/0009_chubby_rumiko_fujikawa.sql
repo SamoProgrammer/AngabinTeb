@@ -1,0 +1,2 @@
+ALTER TABLE "support_request" ADD COLUMN "assignee_user_id" text;--> statement-breakpoint
+ALTER TABLE "support_request" ADD CONSTRAINT "support_request_assignee_user_id_user_id_fk" FOREIGN KEY ("assignee_user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;

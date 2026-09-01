@@ -64,6 +64,13 @@
       "when": 1788284741248,
       "tag": "0008_typical_lila_cheney",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788286863643,
+      "tag": "0009_chubby_rumiko_fujikawa",
+      "breakpoints": true
     }
   ]
 }

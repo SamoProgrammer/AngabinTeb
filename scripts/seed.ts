@@ -47,6 +47,17 @@ async function main() {
     })
     .onConflictDoUpdate({ target: users.id, set: { role: "admin" } });
 
+  await db
+    .insert(users)
+    .values({
+      id: "admin-seed-2",
+      name: "Administrator 2",
+      phoneNumber: "09120000003",
+      phoneNumberVerified: true,
+      role: "admin",
+    })
+    .onConflictDoUpdate({ target: users.id, set: { role: "admin" } });
+
   // Location / provider / service base rows arrive with the Phase 1 catalog schema;
   // seed only translation overrides for now.
   await upsertTranslation("provider", PROVIDER_ID, "en", "name", "Dr. Test Cardiologist");

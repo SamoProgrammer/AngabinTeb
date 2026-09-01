@@ -12,7 +12,8 @@ export const supportRequests = pgTable(
     subject: text("subject").notNull(),
     body: text("body").notNull(),
     status: text("status").notNull().default("open"), // open | in_progress | resolved | closed
-    priority: text("priority").notNull().default("normal"), // normal | high (Phase 4 assignment extends this)
+    priority: text("priority").notNull().default("normal"), // normal | high
+    assigneeUserId: text("assignee_user_id").references(() => users.id),
     appointmentId: text("appointment_id").references(() => appointments.id),
     serviceId: text("service_id").references(() => services.id),
     providerId: text("provider_id").references(() => providers.id),

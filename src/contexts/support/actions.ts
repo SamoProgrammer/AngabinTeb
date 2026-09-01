@@ -58,6 +58,37 @@ export async function updateRequestStatus(id: string, status: "open" | "in_progr
   });
 }
 
+export async function assignRequest(id: string, assigneeUserId: string) {
+  const user = await requireUser();
+  if (user.role !== "admin") return { ok: false as const, reason: "forbidden" };
+  if (!id || !assigneeUserId) return { ok: false as const, reason: "bad_input" };
+  return db.transaction(async (tx) => {
+    await tx
+      .update(supportRequests)
+      .set({ assigneeUserId, updatedAt: new Date() })
+      .where(eq(supportRequests.id, id));
+    await tx.insert(notifications).values({
+      id: randomUUID(),
+      userId: assigneeUserId,
+      kind: "support_reply",
+      title: "Request assigned",
+      body: `A support request was assigned to you.`,
+    });
+    return { ok: true as const };
+  });
+}
+
+export async function updateRequestPriority(id: string, priority: "normal" | "high") {
+  const user = await requireUser();
+  if (user.role !== "admin") return { ok: false as const, reason: "forbidden" };
+  if (priority !== "normal" && priority !== "high") return { ok: false as const, reason: "bad_priority" };
+  await db
+    .update(supportRequests)
+    .set({ priority, updatedAt: new Date() })
+    .where(eq(supportRequests.id, id));
+  return { ok: true as const };
+}
+
 export async function markNotificationsRead(_formData: FormData) {
   const user = await requireUser();
   await db.update(notifications).set({ read: true }).where(eq(notifications.userId, user.id));
