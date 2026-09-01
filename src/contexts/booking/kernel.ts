@@ -1,4 +1,4 @@
-export type BookingStatus = "confirmed" | "cancelled" | "completed" | "no_show";
+export type BookingStatus = "confirmed" | "pending" | "cancelled" | "completed" | "no_show";
 
 export type SlotView = {
   capacity: number;
@@ -16,7 +16,7 @@ export function canBook(slot: SlotView, partySize: number, now: Date): boolean {
 }
 
 export function canCancel(status: BookingStatus): boolean {
-  return status === "confirmed";
+  return status === "confirmed" || status === "pending";
 }
 
 export function reschedulePlan(
@@ -31,4 +31,13 @@ export function reschedulePlan(
 
 export function validatePartySize(n: unknown): n is 1 | 2 | 3 | 4 {
   return typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= 4;
+}
+
+export function nextPaymentState(
+  current: "pending" | "paid_online" | "unpaid",
+  gatewayOk: boolean,
+): "pending" | "paid_online" | "unpaid" {
+  if (current === "paid_online") return "paid_online";
+  if (current === "pending" && gatewayOk) return "paid_online";
+  return current;
 }

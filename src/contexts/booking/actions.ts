@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { sql, eq, and } from "drizzle-orm";
+import { sql, eq, and, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, services, notifications, homeCareServices, dispatchRecords } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
@@ -76,6 +76,7 @@ export async function bookAppointmentWithUser(
       slotId: data.slotId,
       partySize: data.partySize,
       price: svc.basePrice,
+      status: process.env.PAYMENT_GATEWAY && Number(svc.basePrice) > 0 ? "pending" : "confirmed",
       notes: data.notes ?? null,
       homeCityId: data.homeAddress?.cityId ?? null,
       homeAddressLine: data.homeAddress?.addressLine ?? null,
@@ -112,7 +113,7 @@ export async function cancelAppointment(id: string) {
   return db.transaction(async (tx) => {
     const upd = await tx.update(appointments)
       .set({ status: "cancelled" })
-      .where(and(eq(appointments.id, id), eq(appointments.status, "confirmed")));
+      .where(and(eq(appointments.id, id), inArray(appointments.status, ["confirmed", "pending"])));
     if (upd.count === 0) return { ok: false as const, reason: "not_cancellable" };
     await tx.execute(
       sql`UPDATE availability_slot

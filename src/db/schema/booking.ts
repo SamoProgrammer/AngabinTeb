@@ -11,8 +11,8 @@ export const appointments = pgTable(
     locationId: text("location_id").references(() => locations.id),
     slotId: text("slot_id").notNull(),
     partySize: integer("party_size").notNull().default(1),
-    status: text("status").notNull().default("confirmed"), // confirmed | cancelled | completed | no_show
-    paymentStatus: text("payment_status").notNull().default("unpaid"), // unpaid | paid_at_location | refunded
+    status: text("status").notNull().default("confirmed"), // confirmed | pending | cancelled | completed | no_show
+    paymentStatus: text("payment_status").notNull().default("unpaid"), // unpaid | paid_at_location | paid_online | refunded
     price: numeric("price", { precision: 12, scale: 0 }).notNull(),
     notes: text("notes"),
     homeCityId: text("home_city_id"),
