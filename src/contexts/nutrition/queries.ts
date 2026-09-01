@@ -1,8 +1,9 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { sql, eq, and, gte, lt } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, dailyNutrition } from "@/db/schema";
 import { bmr, tdee, type ActivityLevel } from "./kernel";
+import type { FoodCard, FoodOption } from "./model";
 
 export async function getPhysiology(userId: string) {
   const [row] = await db.select().from(physiologyProfiles).where(eq(physiologyProfiles.userId, userId));
@@ -15,4 +16,78 @@ export async function getPhysiology(userId: string) {
     bmr: Math.round(bmrValue),
     tdee: Math.round(tdee(bmrValue, row.activityLevel as ActivityLevel)),
   };
+}
+
+export async function dayIntake(userId: string, day: string) {
+  const start = `${day}T00:00:00Z`;
+  const end = `${day}T23:59:59Z`;
+  const intakes = await db
+    .select({
+      id: foodIntakes.id,
+      foodId: foodIntakes.foodId,
+      foodName: foods.name,
+      servingUnitName: servingUnits.name,
+      quantity: foodIntakes.quantity,
+      loggedAt: foodIntakes.loggedAt,
+    })
+    .from(foodIntakes)
+    .innerJoin(foods, eq(foodIntakes.foodId, foods.id))
+    .innerJoin(servingUnits, eq(foodIntakes.servingUnitId, servingUnits.id))
+    .where(and(
+      eq(foodIntakes.userId, userId),
+      gte(foodIntakes.loggedAt, new Date(start)),
+      lt(foodIntakes.loggedAt, new Date(end)),
+    ))
+    .orderBy(foodIntakes.loggedAt);
+
+  const [rollup] = await db
+    .select()
+    .from(dailyNutrition)
+    .where(and(eq(dailyNutrition.userId, userId), eq(dailyNutrition.day, day)));
+
+  return {
+    intakes,
+    totals: rollup
+      ? { "n-energy": Number(rollup.energyKcal), "n-carbs": Number(rollup.carbsG), "n-protein": Number(rollup.proteinG), "n-fat": Number(rollup.fatG) }
+      : {},
+  };
+}
+
+export async function searchFoods(_locale: string, term: string, category?: string, page = 1): Promise<{ rows: FoodCard[]; total: number }> {
+  const where = and(
+    term.trim() ? sql`to_tsvector('simple', ${foods.name}) @@ plainto_tsquery('simple', ${term.trim()})` : undefined,
+    category ? eq(foods.category, category) : undefined,
+  );
+  const rows = await db
+    .select({ id: foods.id, name: foods.name, category: foods.category })
+    .from(foods)
+    .where(where)
+    .orderBy(foods.name)
+    .limit(20)
+    .offset((page - 1) * 20);
+  const [count] = await db
+    .select({ total: sql<number>`count(*)::int` })
+    .from(foods)
+    .where(where);
+  return { rows, total: count?.total ?? 0 };
+}
+
+export async function foodPickerOptions(_locale: string): Promise<FoodOption[]> {
+  const rows = await db
+    .select({
+      id: foods.id,
+      name: foods.name,
+      servingUnitId: servingUnits.id,
+      servingUnitName: servingUnits.name,
+    })
+    .from(foods)
+    .leftJoin(servingUnits, eq(servingUnits.foodId, foods.id))
+    .orderBy(foods.name);
+  const map = new Map<string, FoodOption>();
+  for (const row of rows) {
+    const option = map.get(row.id) ?? { id: row.id, name: row.name, servingUnits: [] };
+    if (row.servingUnitId && row.servingUnitName) option.servingUnits.push({ id: row.servingUnitId, name: row.servingUnitName });
+    map.set(row.id, option);
+  }
+  return [...map.values()];
 }
