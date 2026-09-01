@@ -111,6 +111,30 @@ export async function getFoodDetail(id: string, _locale: string): Promise<FoodDe
   };
 }
 
+export async function getFoodAdmin(id: string) {
+  const [food] = await db.select().from(foods).where(eq(foods.id, id));
+  if (!food) return null;
+  const [servingUnitsRows, nutrientRows] = await Promise.all([
+    db
+      .select({ id: servingUnits.id, name: servingUnits.name, gramsEquivalent: servingUnits.gramsEquivalent })
+      .from(servingUnits)
+      .where(eq(servingUnits.foodId, id))
+      .orderBy(servingUnits.name),
+    db
+      .select({
+        nutrientId: foodNutrients.nutrientId,
+        name: nutrients.name,
+        unit: nutrients.unit,
+        amountPer100g: foodNutrients.amountPer100g,
+      })
+      .from(foodNutrients)
+      .innerJoin(nutrients, eq(foodNutrients.nutrientId, nutrients.id))
+      .where(eq(foodNutrients.foodId, id))
+      .orderBy(nutrients.name),
+  ]);
+  return { ...food, servingUnits: servingUnitsRows, nutrients: nutrientRows };
+}
+
 export async function foodPickerOptions(_locale: string): Promise<FoodOption[]> {
   const rows = await db
     .select({

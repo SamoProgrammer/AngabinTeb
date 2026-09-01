@@ -4,9 +4,15 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims } from "@/db/schema";
-import { requireUser } from "@/contexts/identity/actions";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, nutrients, translations } from "@/db/schema";
+import { requireAdmin, requireUser } from "@/contexts/identity/actions";
 import { servingToGrams, nutrientsForIntake } from "./kernel";
+
+function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
+  const r = schema.safeParse(input);
+  if (!r.success) return { ok: false, error: r.error.issues.map((i) => i.message).join("; ") };
+  return { ok: true, data: r.data };
+}
 
 const physiologySchema = z.object({
   sex: z.enum(["male", "female"]),
@@ -108,4 +114,124 @@ export async function claimDietProgram(input: FormData) {
     }
     throw err;
   }
+}
+
+const foodSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  category: z.string().min(1),
+});
+
+export async function saveFood(input: FormData) {
+  await requireAdmin();
+  const parsed = parseOrError(foodSchema, {
+    id: input.get("id"),
+    name: input.get("name"),
+    category: input.get("category"),
+  });
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
+  await db
+    .insert(foods)
+    .values({ id: data.id, name: data.name, category: data.category, source: "admin", sourceVersion: "admin" })
+    .onConflictDoUpdate({ target: foods.id, set: { name: data.name, category: data.category } });
+  return { ok: true as const };
+}
+
+const servingUnitSchema = z.object({
+  id: z.string().min(1),
+  foodId: z.string().min(1),
+  name: z.string().min(1),
+  gramsEquivalent: z.string().regex(/^\d+(\.\d+)?$/).refine((v) => Number(v) > 0, "must be a positive number"),
+});
+
+export async function saveServingUnit(input: FormData) {
+  await requireAdmin();
+  const parsed = parseOrError(servingUnitSchema, {
+    id: input.get("id"),
+    foodId: input.get("foodId"),
+    name: input.get("name"),
+    gramsEquivalent: input.get("gramsEquivalent"),
+  });
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
+  await db
+    .insert(servingUnits)
+    .values({ id: data.id, foodId: data.foodId, name: data.name, gramsEquivalent: data.gramsEquivalent })
+    .onConflictDoUpdate({
+      target: servingUnits.id,
+      set: { foodId: data.foodId, name: data.name, gramsEquivalent: data.gramsEquivalent },
+    });
+  return { ok: true as const };
+}
+
+const foodNutrientSchema = z.object({ foodId: z.string().min(1) });
+
+export async function saveFoodNutrient(input: FormData) {
+  await requireAdmin();
+  const parsed = parseOrError(foodNutrientSchema, { foodId: input.get("foodId") });
+  if (!parsed.ok) return parsed;
+  const foodId = parsed.data.foodId;
+
+  const nutrientRows = await db.select({ id: nutrients.id }).from(nutrients);
+  const upserts: { foodId: string; nutrientId: string; amountPer100g: string }[] = [];
+  for (const n of nutrientRows) {
+    const raw = input.get(`amount-${n.id}`);
+    if (raw === null || String(raw).trim() === "") continue;
+    const value = String(raw);
+    if (!/^\d+(\.\d+)?$/.test(value) || Number(value) <= 0) {
+      return { ok: false as const, error: `Invalid amount for ${n.id}` };
+    }
+    upserts.push({ foodId, nutrientId: n.id, amountPer100g: value });
+  }
+  if (upserts.length > 0) {
+    await db
+      .insert(foodNutrients)
+      .values(upserts)
+      .onConflictDoUpdate({
+        target: [foodNutrients.foodId, foodNutrients.nutrientId],
+        set: { amountPer100g: sql`excluded.amount_per_100g` },
+      });
+  }
+  return { ok: true as const };
+}
+
+const dietProgramSchema = z.object({
+  nameFa: z.string().min(1),
+  nameEn: z.string().optional(),
+  nameAr: z.string().optional(),
+  organizationContext: z.enum(["banks", "universities", "health_centers", "clinics", "other"]),
+  planType: z.string().min(1),
+  durationDays: z.number().int().positive(),
+  price: z.string().regex(/^\d+$/),
+  descriptionFa: z.string().optional(),
+  descriptionEn: z.string().optional(),
+  descriptionAr: z.string().optional(),
+});
+
+export async function createDietProgram(input: z.infer<typeof dietProgramSchema>) {
+  await requireAdmin();
+  const parsed = parseOrError(dietProgramSchema, input);
+  if (!parsed.ok) return parsed;
+  const data = parsed.data;
+  const id = randomUUID();
+  await db.transaction(async (tx) => {
+    await tx.insert(dietPrograms).values({
+      id,
+      name: data.nameFa,
+      organizationContext: data.organizationContext,
+      planType: data.planType,
+      durationDays: data.durationDays,
+      price: data.price,
+      practitionerId: null,
+      description: data.descriptionFa ?? null,
+    });
+    for (const [locale, value] of [["en", data.nameEn], ["ar", data.nameAr]] as const) {
+      if (value) await tx.insert(translations).values({ entityType: "diet_program", entityId: id, locale, field: "name", value });
+    }
+    for (const [locale, value] of [["en", data.descriptionEn], ["ar", data.descriptionAr]] as const) {
+      if (value) await tx.insert(translations).values({ entityType: "diet_program", entityId: id, locale, field: "description", value });
+    }
+  });
+  return { ok: true as const, id };
 }
