@@ -93,7 +93,7 @@ describe("isServiceable", () => {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `pnpm vitest run src/contexts/booking/__tests__/address.test.ts`
+Run: `bunx vitest run src/contexts/booking/__tests__/address.test.ts`
 Expected: FAIL — module not defined.
 
 - [ ] **Step 3: Write the pure module**
@@ -108,7 +108,7 @@ export function isServiceable(serviceableCityIds: string[], cityId: string): boo
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `pnpm vitest run src/contexts/booking/__tests__/address.test.ts`
+Run: `bunx vitest run src/contexts/booking/__tests__/address.test.ts`
 Expected: PASS, 3 tests.
 
 - [ ] **Step 5: Branch the booking action**
@@ -131,17 +131,16 @@ const bookSchema = z.object({
 });
 ```
 
-Inside the transaction, after the slot `UPDATE` succeeds and before the appointment insert:
+The home-care branch runs BEFORE the capacity `UPDATE` (Phase 1's action already selects `svc` pre-UPDATE; a return after the UPDATE would commit a partial booking — the R35/R44 pattern):
 
 ```ts
-const [svc, satellite] = await Promise.all([
-  tx.select().from(services).where(eq(services.id, data.serviceId)),
-  tx.select().from(homeCareServices).where(eq(homeCareServices.serviceId, data.serviceId)),
-]);
-if (svc[0]?.serviceType === "home_care") {
+if (svc.serviceType === "home_care") {
+  const [satellite] = await tx
+    .select()
+    .from(homeCareServices)
+    .where(eq(homeCareServices.serviceId, data.serviceId));
   if (!data.homeAddress) return { ok: false as const, reason: "address_required" };
-  const serviceable = satellite[0]?.serviceableCityIds as string[] | undefined;
-  if (!isServiceable(serviceable ?? [], data.homeAddress.cityId)) {
+  if (!isServiceable(satellite?.serviceableCityIds ?? [], data.homeAddress.cityId)) {
     return { ok: false as const, reason: "not_serviceable" };
   }
 }
@@ -155,7 +154,7 @@ Persist the address on the appointment — add `homeCityId` and `homeAddressLine
 
 - [ ] **Step 7: Verify**
 
-Run: `pnpm dev` — seed a home-care service with `serviceable_city_ids: ["1"]`; booking with city 1 succeeds; city 3 is rejected with the area message; a non-home-care service never shows the address step.
+Run: `bun run dev` — seed a home-care service with `serviceable_city_ids: ["1"]`; booking with city 1 succeeds; city 3 is rejected with the area message; a non-home-care service never shows the address step.
 
 - [ ] **Step 8: Commit**
 
@@ -186,7 +185,7 @@ git commit -m "feat: home care address capture with serviceability check"
 
 - [ ] **Step 3: Verify**
 
-Run: `pnpm dev` — rehab services appear in `/fa/services`, are bookable through the unchanged Phase 1 flow, and are filterable in admin.
+Run: `bun run dev` — rehab services appear in `/fa/services`, are bookable through the unchanged Phase 1 flow, and are filterable in admin.
 
 - [ ] **Step 4: Commit**
 
@@ -272,7 +271,7 @@ if (svc[0]?.serviceType === "ambulance") {
 
 - [ ] **Step 5: Verify**
 
-Run: `pnpm dev` — seed one ambulance service + slots; book it; a `dispatch_record` row appears with `scheduled`; the marketing page states the non-emergency scope.
+Run: `bun run dev` — seed one ambulance service + slots; book it; a `dispatch_record` row appears with `scheduled`; the marketing page states the non-emergency scope.
 
 - [ ] **Step 6: Commit**
 
@@ -427,7 +426,7 @@ export type BookingStatus = "confirmed" | "pending" | "cancelled" | "completed" 
 
 - [ ] **Step 7: Verify**
 
-Run: `pnpm dev` — book a priced service with the payment flag on → status `pending`; pay → `paid_online` + `confirmed`; paying again is rejected by `already_paid`; the dev gateway path never double-charges because `completePayment` is guarded by the payment status transition.
+Run: `bun run dev` — book a priced service with the payment flag on → status `pending`; pay → `paid_online` + `confirmed`; paying again is rejected by `already_paid`; the dev gateway path never double-charges because `completePayment` is guarded by the payment status transition.
 
 - [ ] **Step 8: Commit**
 
@@ -488,7 +487,7 @@ Same for `generateSlots` (provider-scoped: `generateMySlots(providerId, input)` 
 
 - [ ] **Step 4: Verify**
 
-Run: `pnpm dev` — create a provider-role user via seed, claim the seeded provider row, generate slots for their own service; a second provider user cannot see or touch the first provider's rows (each query is scoped by `providerRow.id`).
+Run: `bun run dev` — create a provider-role user via seed, claim the seeded provider row, generate slots for their own service; a second provider user cannot see or touch the first provider's rows (each query is scoped by `providerRow.id`).
 
 - [ ] **Step 5: Commit**
 
@@ -536,7 +535,7 @@ export async function assignRequest(id: string, assigneeUserId: string) {
 
 - [ ] **Step 4: Verify**
 
-Run: `pnpm dev` — assign an open complaint to a second admin → the assignee's notifications show the assignment; priority renders in the queue filter.
+Run: `bun run dev` — assign an open complaint to a second admin → the assignee's notifications show the assignment; priority renders in the queue filter.
 
 - [ ] **Step 5: Commit**
 
@@ -560,16 +559,28 @@ git commit -m "feat: support assignment and priority"
 import { test, expect } from "@playwright/test";
 
 test("home care booking requires a serviceable address", async ({ page }) => {
+  // Patient session via the Phase 1 test-only helper
+  const res = await page.request.post("/api-test/login");
+  const { token } = await res.json();
+  await page.context().addCookies([
+    { name: "better-auth.session_token", value: token, url: "http://localhost:3000" },
+  ]);
   await page.goto("/fa/services");
   await page.getByRole("link", { name: /پرستاری در منزل/ }).first().click();
   await page.getByRole("link", { name: "Book this service" }).click();
+  // Slots are seeded for tomorrow (Phase 1 R40) — select the date and a time
+  const tomorrow = new Date(Date.now() + 86400_000).toISOString().slice(0, 10);
+  await page.locator("#date").fill(tomorrow);
+  await page.locator("#date").press("Enter");
+  await page.getByRole("button", { name: /^\d{2}:\d{2}$/ }).first().click();
   await page.getByLabel("City").selectOption("3"); // unserviceable
   await page.getByRole("button", { name: "Confirm booking" }).click();
   await expect(page.getByText(/not available in your area/i)).toBeVisible();
 });
 
 test("provider portal schedules slots", async ({ page }) => {
-  // provider-role session (seed helper)
+  // provider-role session: seed the provider helper from Task 4.5, then set the
+  // better-auth.session_token cookie the same way the Phase 1 helper does
   await page.goto("/fa/provider/schedule");
   await page.getByLabel("Weekday").selectOption("2");
   await page.getByLabel("Start").fill("09:00");
@@ -582,7 +593,7 @@ test("provider portal schedules slots", async ({ page }) => {
 - [ ] **Step 2: Full pass**
 
 ```bash
-pnpm test && pnpm lint && pnpm build && pnpm exec playwright test
+bun run test && bun run lint && bun run build && bunx playwright test
 ```
 
 - [ ] **Step 3: Spec §11 Phase 4 exit criteria**

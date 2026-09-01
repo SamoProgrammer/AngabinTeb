@@ -169,7 +169,7 @@ export const notifications = pgTable(
 `src/db/schema/index.ts` — add the three exports.
 
 ```bash
-pnpm db:generate && pnpm db:migrate
+bun run db:generate && bun run db:migrate
 ```
 
 Expected: `content`, `topic`, `condition`, `content_topic`, `support_request`, `notification` created.
@@ -302,7 +302,7 @@ export default async function KnowledgePage({ params }: { params: Promise<{ loca
 
 - [ ] **Step 3: Verify**
 
-Run: `pnpm dev` — seeded topics render with counts; `/fa/articles/<slug>` shows Persian; `/en/articles/<slug>` shows the English title override (proof the overlay works for content); `/fa/faq` shows answers.
+Run: `bun run dev` — seeded topics render with counts; `/fa/articles/<slug>` shows Persian; `/en/articles/<slug>` shows the English title override (proof the overlay works for content); `/fa/faq` shows answers.
 
 - [ ] **Step 4: Commit**
 
@@ -393,7 +393,7 @@ export async function getTopicHub(topicSlug: string, locale: string) {
 
 - [ ] **Step 4: Verify**
 
-Run: `pnpm dev` — `/fa/topics/diabetes` renders seeded articles for the topic, its conditions, and the seeded ECG service + cardiologist as related (from the Phase 1 seed). This is the whole F-017 claim: hub from a query, zero new tables.
+Run: `bun run dev` — `/fa/topics/diabetes` renders seeded articles for the topic, its conditions, and the seeded ECG service + cardiologist as related (from the Phase 1 seed). This is the whole F-017 claim: hub from a query, zero new tables.
 
 - [ ] **Step 5: Commit**
 
@@ -471,7 +471,7 @@ export async function updateRequestStatus(id: string, status: "open" | "in_progr
 
 - [ ] **Step 3: Verify**
 
-Run: `pnpm dev` — submit a complaint as a patient; as admin, see it in `/admin/support`, resolve it; the patient's `/support/requests` shows `resolved`, and `/notifications` (Task 3.5) shows the support_reply row.
+Run: `bun run dev` — submit a complaint as a patient; as admin, see it in `/admin/support`, resolve it; the patient's `/support/requests` shows `resolved`, and `/notifications` (Task 3.5) shows the support_reply row.
 
 - [ ] **Step 4: Commit**
 
@@ -514,7 +514,7 @@ Import `notifications` from `@/db/schema`. This is the whole notification strate
 
 - [ ] **Step 3: Verify**
 
-Run: `pnpm dev` — book a service → the notification appears; admin resolves a support request → second notification; marking read clears the unread state.
+Run: `bun run dev` — book a service → the notification appears; admin resolves a support request → second notification; marking read clears the unread state.
 
 - [ ] **Step 4: Commit**
 
@@ -590,7 +590,7 @@ Store these as `settings` rows (add `settings(id, key, value_json, updated_at)` 
 
 - [ ] **Step 5: Verify**
 
-Run: `pnpm dev` — `/fa/search?q=دیابت` returns the seeded diabetes article alongside services/doctors; admin can publish a video and it appears on `/fa/videos`; footer shows the integration links.
+Run: `bun run dev` — `/fa/search?q=دیابت` returns the seeded diabetes article alongside services/doctors; admin can publish a video and it appears on `/fa/videos`; footer shows the integration links.
 
 - [ ] **Step 6: Commit**
 
@@ -626,7 +626,7 @@ test("J-005 learn about a health issue", async ({ page }) => {
 - [ ] **Step 2: Full pass**
 
 ```bash
-pnpm test && pnpm lint && pnpm build && pnpm exec playwright test
+bun run test && bun run lint && bun run build && bunx playwright test
 ```
 
 - [ ] **Step 3: Spec §11 Phase 3 exit criteria**

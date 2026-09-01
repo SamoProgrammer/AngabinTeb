@@ -176,7 +176,7 @@ import { providers } from "./catalog";
 `src/db/schema/index.ts` — add `export * from "./nutrition";`
 
 ```bash
-pnpm db:generate && pnpm db:migrate
+bun run db:generate && bun run db:migrate
 ```
 
 Expected: 9 tables created.
@@ -282,7 +282,7 @@ describe("deficits", () => {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `pnpm vitest run src/contexts/nutrition/__tests__/kernel.test.ts`
+Run: `bunx vitest run src/contexts/nutrition/__tests__/kernel.test.ts`
 Expected: FAIL — kernel not defined.
 
 - [ ] **Step 3: Write the kernel**
@@ -365,7 +365,7 @@ export function deficits(
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `pnpm vitest run src/contexts/nutrition/__tests__/kernel.test.ts`
+Run: `bunx vitest run src/contexts/nutrition/__tests__/kernel.test.ts`
 Expected: PASS, 15 assertions.
 
 - [ ] **Step 5: Commit**
@@ -384,7 +384,7 @@ git commit -m "feat: nutrition kernel — conversion, rollup, requirements, ener
 
 **Interfaces:**
 - Consumes: kernel (2.2), nutrition schema (2.1)
-- Produces: `pnpm db:seed:nutrition` — idempotent; 50–100 foods, each with serving units and ≥ 8 nutrients, plus the `nutrient` rows (energy, carbs, protein, fat, fiber, iron, calcium, vitamin C, vitamin D, sodium) and the `nutrient_requirement` table for those nutrients, with `source` recorded
+- Produces: `bun run db:seed:nutrition` — idempotent; 50–100 foods, each with serving units and ≥ 8 nutrients, plus the `nutrient` rows (energy, carbs, protein, fat, fiber, iron, calcium, vitamin C, vitamin D, sodium) and the `nutrient_requirement` table for those nutrients, with `source` recorded
 
 **This task is gated on the §13 risk-1 spike:** before writing it, pick the food composition source (Iran national FCT or USDA FDC) and the RDA authority (WHO/FAO or national standard) and record both in the seed file header comment and on every row's `source`/`source_version`.
 
@@ -464,8 +464,8 @@ Add `"db:seed:nutrition": "tsx scripts/seed-nutrition.ts"` to `package.json`. Th
 - [ ] **Step 2: Run it twice**
 
 ```bash
-pnpm db:seed:nutrition
-pnpm db:seed:nutrition
+bun run db:seed:nutrition
+bun run db:seed:nutrition
 ```
 
 Expected: idempotent; second run inserts nothing (`onConflictDoNothing`), prints the same count.
@@ -473,7 +473,7 @@ Expected: idempotent; second run inserts nothing (`onConflictDoNothing`), prints
 - [ ] **Step 3: Verify math on a hand-checked case**
 
 ```bash
-pnpm exec tsx -e "
+bunx tsx -e "
 import { db } from './src/db';
 import { foods, servingUnits, foodNutrients } from './src/db/schema';
 import { eq } from 'drizzle-orm';
@@ -644,7 +644,7 @@ export default async function BodyPage() {
 
 - [ ] **Step 3: Verify**
 
-Run: `pnpm dev` — as a signed-in user, save a profile (male, 75 kg, 175 cm, age 30) → summary shows BMR 1684 and TDEE 2610 (1683.75 × 1.55).
+Run: `bun run dev` — as a signed-in user, save a profile (male, 75 kg, 175 cm, age 30) → summary shows BMR 1684 and TDEE 2610 (1683.75 × 1.55).
 
 - [ ] **Step 4: Commit**
 
@@ -835,7 +835,7 @@ export function LogFood({ foods }: { foods: FoodOption[] }) {
 
 - [ ] **Step 4: Verify with the hand-checked case**
 
-Run: `pnpm dev` — log 1 plate of آش رشته (`su-ash-plate`, quantity 1) → diary totals show energy ≈ 276, protein ≈ 9.3, fat ≈ 10.8 (3× per-100g from the seed check in Task 2.3 Step 3). Log it again → totals double, proving the rollup increments.
+Run: `bun run dev` — log 1 plate of آش رشته (`su-ash-plate`, quantity 1) → diary totals show energy ≈ 276, protein ≈ 9.3, fat ≈ 10.8 (3× per-100g from the seed check in Task 2.3 Step 3). Log it again → totals double, proving the rollup increments.
 
 - [ ] **Step 5: Commit**
 
@@ -907,7 +907,7 @@ export default async function FoodsPage({
 
 - [ ] **Step 3: Verify**
 
-Run: `pnpm dev` — search "آش" returns آش رشته with the English overlay in `/en`; detail shows serving units (بشقاب 300g, ملاقه 120g, …) and the nutrient table; quick-log from the detail page adds to today's diary.
+Run: `bun run dev` — search "آش" returns آش رشته with the English overlay in `/en`; detail shows serving units (بشقاب 300g, ملاقه 120g, …) and the nutrient table; quick-log from the detail page adds to today's diary.
 
 - [ ] **Step 4: Commit**
 
@@ -949,7 +949,7 @@ Regenerate + migrate. Add `claimDietProgram` to `actions.ts` (Zod-validated, `re
 
 - [ ] **Step 3: Verify**
 
-Run: `pnpm dev` — pick "clinics" → program list → claim → status pending; claiming the same program again is rejected (partial unique index).
+Run: `bun run dev` — pick "clinics" → program list → claim → status pending; claiming the same program again is rejected (partial unique index).
 
 - [ ] **Step 4: Commit**
 
@@ -1038,7 +1038,12 @@ Add `getFoodAdmin`, `saveFood`, `saveServingUnit`, `saveFoodNutrient` per the sc
 import { test, expect } from "@playwright/test";
 
 test("J-004 analyze food intake", async ({ page }) => {
-  // Signed-in session: seed a known OTP user or reuse the e2e helper from Phase 1
+  // Patient session via the Phase 1 test-only helper (no OTP path in Playwright)
+  const res = await page.request.post("/api-test/login");
+  const { token } = await res.json();
+  await page.context().addCookies([
+    { name: "better-auth.session_token", value: token, url: "http://localhost:3000" },
+  ]);
   await page.goto("/fa/diary");
   await page.getByLabel("Food").selectOption({ label: /آش رشته/ });
   await page.getByLabel("Serving").selectOption({ label: "بشقاب" });
@@ -1051,7 +1056,7 @@ test("J-004 analyze food intake", async ({ page }) => {
 - [ ] **Step 4: Run the suite**
 
 ```bash
-pnpm exec playwright test e2e/nutrition.spec.ts
+bunx playwright test e2e/nutrition.spec.ts
 ```
 
 Expected: PASS.
@@ -1072,7 +1077,7 @@ git commit -m "feat: nutrition admin and J-004 journey test"
 - [ ] **Step 1: Full pass**
 
 ```bash
-pnpm test && pnpm lint && pnpm build && pnpm exec playwright test
+bun run test && bun run lint && bun run build && bunx playwright test
 ```
 
 - [ ] **Step 2: Spec §11 Phase 2 exit criteria**
