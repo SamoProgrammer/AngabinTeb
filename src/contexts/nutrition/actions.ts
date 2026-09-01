@@ -2,9 +2,9 @@
 
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { sql, eq } from "drizzle-orm";
+import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 import { servingToGrams, nutrientsForIntake } from "./kernel";
 
@@ -78,4 +78,34 @@ export async function logIntake(input: z.infer<typeof intakeSchema>) {
     });
   });
   return { ok: true as const };
+}
+
+const claimSchema = z.object({ programId: z.string().min(1) });
+
+export async function claimDietProgram(input: FormData) {
+  const user = await requireUser();
+  const parsed = claimSchema.safeParse({ programId: input.get("programId") });
+  if (!parsed.success) return { ok: false as const, error: parsed.error.issues.map((i) => i.message).join("; ") };
+  const programId = parsed.data.programId;
+
+  const [program] = await db.select({ id: dietPrograms.id }).from(dietPrograms).where(eq(dietPrograms.id, programId));
+  if (!program) return { ok: false as const, reason: "not_found" as const };
+
+  const [existing] = await db
+    .select({ id: dietClaims.id })
+    .from(dietClaims)
+    .where(and(eq(dietClaims.userId, user.id), eq(dietClaims.programId, programId), sql`${dietClaims.status} != 'completed'`));
+  if (existing) return { ok: false as const, reason: "already_claimed" as const };
+
+  try {
+    const claimId = randomUUID();
+    await db.insert(dietClaims).values({ id: claimId, userId: user.id, programId, status: "pending" });
+    return { ok: true as const, claimId };
+  } catch (err) {
+    // partial unique index (user_id, program_id) where status != 'completed'
+    if (err instanceof Error && "code" in err && (err as { code?: string }).code === "23505") {
+      return { ok: false as const, reason: "already_claimed" as const };
+    }
+    throw err;
+  }
 }

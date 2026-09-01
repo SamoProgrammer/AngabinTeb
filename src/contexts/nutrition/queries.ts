@@ -1,9 +1,18 @@
 import "server-only";
 import { sql, eq, and, gte, lt } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, translations, providers } from "@/db/schema";
+import { overlayTranslations } from "@/lib/translate";
 import { bmr, tdee, type ActivityLevel } from "./kernel";
-import type { FoodCard, FoodDetail, FoodOption } from "./model";
+import type { FoodCard, FoodDetail, FoodOption, ProgramCard } from "./model";
+
+async function fetchDietOverrides(entityType: string, ids: string[]) {
+  if (ids.length === 0) return [];
+  return db
+    .select()
+    .from(translations)
+    .where(and(eq(translations.entityType, entityType), sql`${translations.entityId} = any(${ids}::text[])`));
+}
 
 export async function getPhysiology(userId: string) {
   const [row] = await db.select().from(physiologyProfiles).where(eq(physiologyProfiles.userId, userId));
@@ -120,4 +129,31 @@ export async function foodPickerOptions(_locale: string): Promise<FoodOption[]> 
     map.set(row.id, option);
   }
   return [...map.values()];
+}
+
+export async function listPrograms(context: string, locale: string): Promise<ProgramCard[]> {
+  const rows = await db
+    .select({
+      id: dietPrograms.id,
+      name: dietPrograms.name,
+      description: dietPrograms.description,
+      organizationContext: dietPrograms.organizationContext,
+      planType: dietPrograms.planType,
+      durationDays: dietPrograms.durationDays,
+      price: dietPrograms.price,
+      practitionerName: providers.name,
+      practitionerPhone: providers.phone,
+    })
+    .from(dietPrograms)
+    .leftJoin(providers, eq(dietPrograms.practitionerId, providers.id))
+    .where(eq(dietPrograms.organizationContext, context))
+    .orderBy(dietPrograms.name);
+  return overlayTranslations("diet_program", rows, await fetchDietOverrides("diet_program", rows.map((r) => r.id)), locale, ["name", "description"]) as ProgramCard[];
+}
+
+export async function myClaims(userId: string): Promise<Array<{ programId: string; status: string }>> {
+  return db
+    .select({ programId: dietClaims.programId, status: dietClaims.status })
+    .from(dietClaims)
+    .where(and(eq(dietClaims.userId, userId), sql`${dietClaims.status} != 'completed'`));
 }

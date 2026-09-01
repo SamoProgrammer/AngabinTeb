@@ -1,4 +1,5 @@
-import { pgTable, text, timestamp, integer, numeric, date, index, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, numeric, date, index, primaryKey, uniqueIndex } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { users } from "./identity";
 import { providers } from "./catalog";
 
@@ -99,3 +100,13 @@ export const dietPrograms = pgTable("diet_program", {
   practitionerId: text("practitioner_id").references(() => providers.id),
   description: text("description"), // Persian base
 });
+
+export const dietClaims = pgTable("diet_claim", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  programId: text("program_id").notNull().references(() => dietPrograms.id),
+  status: text("status").notNull().default("pending"), // pending | active | completed
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex("one_claim_per_program").on(t.userId, t.programId).where(sql`status != 'completed'`),
+]);

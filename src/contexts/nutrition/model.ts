@@ -11,3 +11,14 @@ export type FoodDetail = {
 };
 export type IntakeRow = { id: string; foodId: string; foodName: string; servingUnitName: string; quantity: string; loggedAt: Date };
 export type DayTotals = Record<string, number>;
+export type ProgramCard = {
+  id: string;
+  name: string;
+  description: string | null;
+  organizationContext: string;
+  planType: string;
+  durationDays: number;
+  price: string;
+  practitionerName: string | null;
+  practitionerPhone: string | null;
+};
