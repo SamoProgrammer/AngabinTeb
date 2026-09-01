@@ -1,5 +1,5 @@
 export type SearchResult = {
-  type: "service" | "doctor" | "clinic";
+  type: "service" | "doctor" | "clinic" | "content";
   id: string;
   title: string;
   subtitle: string;

@@ -2,5 +2,7 @@
   "nav": { "home": "Home", "doctors": "Doctors", "services": "Services", "admin": "Admin" },
   "home": { "heroTitle": "Angabin Teb", "heroSubtitle": "Care, nutrition and health knowledge" },
   "locale": { "switch": "Change language" },
-  "search": { "placeholder": "Search services and doctors", "submit": "Search", "empty": "No results found" }
+  "search": { "placeholder": "Search services and doctors", "submit": "Search", "empty": "No results found" },
+  "about": { "body": "Angabin Teb is an Iranian health platform bringing medical services, nutrition and health knowledge together in one place. Our goal is to provide easy and trustworthy access to health care for everyone." },
+  "contact": { "body": "To reach the Angabin Teb team, you can contact us through the site's support section, email or social media. We respond to your messages as quickly as possible." }
 }

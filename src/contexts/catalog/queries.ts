@@ -1,7 +1,7 @@
 import "server-only";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { providers, practitioners, services, locations, serviceCategories, translations, diagnosticServices } from "@/db/schema";
+import { providers, practitioners, services, locations, serviceCategories, translations, diagnosticServices, contents } from "@/db/schema";
 import { overlayTranslations } from "@/lib/translate";
 import type { SearchResult, DoctorCard, ServiceCard } from "./model";
 
@@ -53,6 +53,17 @@ export async function searchAll(term: string, locale: string): Promise<SearchRes
   const localizedServices = overlayTranslations("service", svc, overrides, locale, ["name"]);
   const localizedDocs = overlayTranslations("provider", docs, docOverrides, locale, ["name"]);
 
+  const cnt = await db
+    .select({ id: contents.id, slug: contents.slug, title: contents.title })
+    .from(contents)
+    .where(and(
+      sql`to_tsvector('simple', ${contents.title}) @@ ${q}`,
+      eq(contents.status, "published"),
+    ))
+    .limit(10);
+
+  const contentOverrides = await fetchOverrides("content", cnt.map((r) => r.id));
+
   const results: SearchResult[] = [
     ...localizedServices.map((s) => ({
       type: "service" as const,
@@ -67,6 +78,13 @@ export async function searchAll(term: string, locale: string): Promise<SearchRes
       title: d.name as string,
       subtitle: (d.bio as string) ?? (d.specialtyName as string) ?? "",
       href: `/doctors/${d.id}`,
+    })),
+    ...overlayTranslations("content", cnt, contentOverrides, locale, ["title"]).map((c) => ({
+      type: "content" as const,
+      id: c.id,
+      title: c.title as string,
+      subtitle: "Article",
+      href: `/articles/${c.slug}`,
     })),
   ];
   return results.sort((a, b) => a.title.localeCompare(b.title, locale));

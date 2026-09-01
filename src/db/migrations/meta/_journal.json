@@ -43,6 +43,13 @@
       "when": 1788246672528,
       "tag": "0005_fat_skrulls",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788249312920,
+      "tag": "0006_boring_gateway",
+      "breakpoints": true
     }
   ]
 }

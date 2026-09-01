@@ -69,6 +69,21 @@ export async function getContent(slug: string, locale: string): Promise<ContentD
   return overlayTranslations("content", [row], overrides, locale, ["title", "body"])[0] as ContentDetail;
 }
 
+export async function listContentAdmin() {
+  return db
+    .select({
+      id: contents.id,
+      kind: contents.kind,
+      slug: contents.slug,
+      title: contents.title,
+      status: contents.status,
+      createdAt: contents.createdAt,
+    })
+    .from(contents)
+    .orderBy(desc(contents.createdAt))
+    .limit(100);
+}
+
 export async function listTopics(locale: string): Promise<TopicCard[]> {
   const rows = await db
     .select({

@@ -16,6 +16,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <a href="/admin/scheduling">Scheduling</a>
           <a href="/admin/foods">Foods</a>
           <a href="/admin/diet-programs">Diet programs</a>
+          <a href="/admin/content">Content</a>
+          <a href="/admin/topics">Topics</a>
+          <a href="/admin/settings">Settings</a>
           <a href="/admin/support">Support</a>
         </nav>
         <div className="mt-8"><LocaleSwitcher /></div>

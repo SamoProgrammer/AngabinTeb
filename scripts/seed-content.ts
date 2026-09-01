@@ -6,6 +6,7 @@ import {
   conditions,
   contentTopics,
   translations,
+  settings,
 } from "../src/db/schema";
 
 // Ruling 3: topic slugs/names pinned (J-005 e2e hardcodes /fa/topics/diabetes).
@@ -73,6 +74,16 @@ async function upsertTranslation(entityType: string, entityId: string, locale: s
     });
 }
 
+// F-026 integration registry: empty url = not configured; footer/table render only non-empty.
+const SETTINGS: Array<{ id: string; key: string }> = [
+  { id: "setting-regim24", key: "regim24" },
+  { id: "setting-nobat24", key: "nobat24" },
+  { id: "setting-aparat", key: "aparat" },
+  { id: "setting-leaflet", key: "leaflet" },
+  { id: "setting-enamad", key: "enamad" },
+  { id: "setting-social", key: "social" },
+];
+
 async function main() {
   for (const t of TOPICS) {
     await db.insert(topics).values(t).onConflictDoUpdate({ target: topics.id, set: { slug: t.slug, name: t.name } });
@@ -104,11 +115,18 @@ async function main() {
     await db.insert(conditions).values(cond).onConflictDoUpdate({ target: conditions.id, set: { slug: cond.slug, name: cond.name } });
   }
 
+  for (const s of SETTINGS) {
+    await db
+      .insert(settings)
+      .values({ id: s.id, key: s.key, valueJson: { url: "" }, updatedAt: new Date() })
+      .onConflictDoUpdate({ target: settings.id, set: { key: s.key } });
+  }
+
   // Ruling 5: prove the translation overlay on the diabetes article title.
   await upsertTranslation("content", "content-diabetes-1", "en", "title", "What is diabetes?");
   await upsertTranslation("content", "content-diabetes-1", "ar", "title", "ما هو مرض السكري؟");
 
-  console.log(`seeded ${TOPICS.length} topics, ${CONTENT.length} contents, ${CONDITIONS.length} conditions`);
+  console.log(`seeded ${TOPICS.length} topics, ${CONTENT.length} contents, ${CONDITIONS.length} conditions, ${SETTINGS.length} settings`);
 }
 
 main().then(() => process.exit(0));
