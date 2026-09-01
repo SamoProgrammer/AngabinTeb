@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { generateMySlots } from "@/contexts/catalog/actions";
 
-type State = { ok?: boolean; reason?: string; count?: number; message?: string };
+type State = { ok?: boolean; reason?: string; count?: number; error?: string };
 
 function toInput(fd: FormData) {
   return {
@@ -14,6 +14,8 @@ function toInput(fd: FormData) {
     endsAt: String(fd.get("end") ?? ""),
     fromDate: String(fd.get("fromDate") ?? ""),
     toDate: String(fd.get("toDate") ?? ""),
+    durationMinutes: 30,
+    capacity: 1,
   };
 }
 
@@ -28,10 +30,9 @@ export function SlotForm({
 }) {
   const [state, formAction] = useActionState<State, FormData>(async (_prev, fd) => {
     try {
-      const input = toInput(fd);
-      return await generateMySlots(providerId, { ...input, durationMinutes: 30, capacity: 1 } as never);
+      return await generateMySlots(providerId, toInput(fd));
     } catch (e) {
-      return { ok: false, reason: "error", message: (e as Error).message };
+      return { ok: false, error: (e as Error).message };
     }
   }, {});
   const today = new Date();
@@ -48,7 +49,7 @@ export function SlotForm({
       )}
       {state.ok === false && (
         <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-          {state.reason === "error" ? state.message : state.reason}
+          {state.error ?? state.reason ?? "Something went wrong."}
         </p>
       )}
       <label className="block space-y-1 text-sm">

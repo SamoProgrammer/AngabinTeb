@@ -335,10 +335,21 @@ export async function updateMyService(providerId: string, serviceId: string, inp
   return { ok: true as const };
 }
 
-export async function generateMySlots(providerId: string, input: z.infer<typeof generateSlotsSchema>) {
+const generateMySlotsSchema = z.object({
+  serviceId: z.string().min(1),
+  weekday: z.number().int().min(0).max(6),
+  startsAt: z.string().regex(/^\d{2}:\d{2}$/),
+  endsAt: z.string().regex(/^\d{2}:\d{2}$/),
+  durationMinutes: z.number().int().positive(),
+  capacity: z.number().int().min(1),
+  fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  toDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+export async function generateMySlots(providerId: string, input: z.infer<typeof generateMySlotsSchema>) {
   const { providerRow } = await requireProvider();
   if (providerRow.id !== providerId) return { ok: false as const, reason: "forbidden" };
-  const parsed = parseOrError(generateSlotsSchema, input);
+  const parsed = parseOrError(generateMySlotsSchema, input);
   if (!parsed.ok) return parsed;
   const data = parsed.data;
   const starts = expandPattern({
@@ -348,7 +359,7 @@ export async function generateMySlots(providerId: string, input: z.infer<typeof 
   });
   return db.transaction(async (tx) => {
     const [svc] = await tx.select().from(services).where(eq(services.id, data.serviceId)).for("update");
-    if (!svc || svc.providerId !== data.providerId) {
+    if (!svc || svc.providerId !== providerId) {
       return { ok: false as const, reason: "provider_mismatch" };
     }
     const existing = await tx.select().from(availabilitySlots)
@@ -364,7 +375,7 @@ export async function generateMySlots(providerId: string, input: z.infer<typeof 
     await tx.insert(availabilitySlots).values(
       starts.map((s) => ({
         id: randomUUID(),
-        providerId: data.providerId,
+        providerId,
         serviceId: data.serviceId,
         startsAt: s,
         endsAt: new Date(s.getTime() + data.durationMinutes * 60_000),
