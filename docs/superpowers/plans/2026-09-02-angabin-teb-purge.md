@@ -68,11 +68,11 @@ modify:  OPEN_QUESTIONS.md                                      # trim to retain
 - Consumes: nothing — deletions only.
 - Produces: `BookingStatus = "confirmed" | "cancelled" | "completed" | "no_show"` again; `canCancel(status)` = `status==="confirmed"` only; `bookAppointment` inserts `status:"confirmed"` unconditionally.
 
-- [ ] **Step 1: Delete payment files**
+- [x] **Step 1: Delete payment files**
 
 Remove the 5 files above. If a directory becomes empty, leave it (git ignores empty dirs).
 
-- [ ] **Step 2: Strip kernel to pre-payments**
+- [x] **Step 2: Strip kernel to pre-payments**
 
 `src/contexts/booking/kernel.ts` — revert to:
 ```ts
@@ -83,7 +83,7 @@ export function canCancel(status: BookingStatus): boolean {
 ```
 Delete the `pending` member, `nextPaymentState` function, and its `BookingStatus` import widening. Keep `holdExpired`, `canBook`, `reschedulePlan`, `validatePartySize` untouched.
 
-- [ ] **Step 3: Strip booking actions**
+- [x] **Step 3: Strip booking actions**
 
 `src/contexts/booking/actions.ts`:
 - Imports: drop `inArray` if only used for the pending widening; restore `eq` alone on that line. Drop `dispatchRecords`/`initialDispatchStatus` are not this task — keep. Drop `nextPaymentState` import (gone).
@@ -91,15 +91,15 @@ Delete the `pending` member, `nextPaymentState` function, and its `BookingStatus
 - `bookAppointmentWithUser` — delete the `status: process.env.PAYMENT_GATEWAY && Number(svc.basePrice)>0 ? "pending" : "confirmed"` ternary; restore insert `status` omitted (defaults to "confirmed" via schema) or explicit `"confirmed"`. Delete the `Number()` guard.
 - No other branches touched.
 
-- [ ] **Step 4: Schema comment**
+- [x] **Step 4: Schema comment**
 
 `src/db/schema/booking.ts` — appointment `status` comment reverts to `// confirmed | cancelled | completed | no_show` (drop pending), `paymentStatus` comment to `// unpaid | paid_at_location | refunded` (drop pending/paid_online note). No column change — do NOT run `db:generate` for this task.
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run: `bunx tsc --noEmit` (expect exit 0) and `bun run lint` (only pre-existing no-await-in-loop warnings).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A
@@ -118,11 +118,11 @@ git commit -m "chore: purge appointment online payments (manager scope)"
 - Consumes: `homeCareServices` table definition stays (harmless, no behavior).
 - Produces: `bookAppointment` no longer branches on `serviceType==="home_care"`; `appointments` loses `home_city_id`/`home_address_line`.
 
-- [ ] **Step 1: Delete address module + tests**
+- [x] **Step 1: Delete address module + tests**
 
 Remove the 2 files.
 
-- [ ] **Step 2: Drop columns + migration**
+- [x] **Step 2: Drop columns + migration**
 
 `src/db/schema/booking.ts` — delete the two columns:
 ```ts
@@ -132,7 +132,7 @@ homeAddressLine: text("home_address_line"),
 ```
 Run: `bun run db:generate` — expect migration `0010_*` dropping both columns.
 
-- [ ] **Step 3: Strip booking actions**
+- [x] **Step 3: Strip booking actions**
 
 `src/contexts/booking/actions.ts`:
 - Imports: drop `homeCareServices`, `isServiceable`.
@@ -140,22 +140,22 @@ Run: `bun run db:generate` — expect migration `0010_*` dropping both columns.
 - Inside `bookAppointmentWithUser` tx — delete the entire `if (svc.serviceType==="home_care") { ... }` block (the pre-UPDATE branch).
 - Insert values — delete `homeCityId`/`homeAddressLine`.
 
-- [ ] **Step 4: Strip catalog query + slot-picker + book page**
+- [x] **Step 4: Strip catalog query + slot-picker + book page**
 
 `src/contexts/catalog/queries.ts` — delete `homeCareInfo` function.
 `src/components/booking/slot-picker.tsx` — delete `homeCare` prop type, address City/Address UI block, `homeAddress` building, `not_serviceable`/`address_required` error branches, and the try/catch added for the short-address guard. Restore `confirm()` to the pre-Task-4.1 shape (serviceId/slotId/partySize/idempotencyKey only).
 `src/app/[locale]/(booking)/services/[slug]/book/page.tsx` — delete `homeCareInfo` import/call and the `homeCare` prop passed to SlotPicker.
 
-- [ ] **Step 5: Seed + setup**
+- [x] **Step 5: Seed + setup**
 
 `scripts/seed.ts` — delete the `svc-home-1` block (category `cat-home`, provider `prov-home-1`, `homeCareServices` row, `slot-home-test-1`). Keep `prov-heart-1`/`svc-ecg-1`/slot-test-1/2 untouched.
 `src/app/api-test/setup/route.ts` — delete the `slot-home-test-1` DELETE + reinsert block.
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 `bunx tsc --noEmit` + `bun run lint`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -174,34 +174,34 @@ git commit -m "chore: purge home-care serviceability (plain service)"
 - Consumes: none.
 - Produces: no `dispatch_record` table; no dispatch insert; ambulance remains a plain `service_type`.
 
-- [ ] **Step 1: Delete files**
+- [x] **Step 1: Delete files**
 
 Remove the 4 file groups above.
 
-- [ ] **Step 2: Drop table + migration**
+- [x] **Step 2: Drop table + migration**
 
 `src/db/schema/index.ts` — delete `export * from "./ambulance"`.
 Run: `bun run db:generate` — expect migration `0011_*` dropping `dispatch_record` table.
 
-- [ ] **Step 3: Strip booking actions**
+- [x] **Step 3: Strip booking actions**
 
 `src/contexts/booking/actions.ts` — delete the `if (svc.serviceType==="ambulance") { await tx.insert(dispatchRecords)... }` block and its `dispatchRecords`/`initialDispatchStatus` imports. Delete the `cancelAppointment` dispatch cancel line added in the final fix wave (`tx.update(dispatchRecords).set({status:"cancelled"})`).
 
-- [ ] **Step 4: Strip catalog filter added for ambulance**
+- [x] **Step 4: Strip catalog filter added for ambulance**
 
 `src/contexts/catalog/queries.ts` — `listServices(locale, categoryId?, cityId?, serviceType?)` → `listServices(locale, categoryId?, cityId?)` (drop the 4th param and its `eq(services.serviceType, serviceType)` clause).
 `src/app/[locale]/(discovery)/services/page.tsx` — `searchParams` loses `serviceType`, call reverts to `listServices(locale, category, city)`.
 
-- [ ] **Step 5: Messages + seed**
+- [x] **Step 5: Messages + seed**
 
 `messages/{fa,en,ar}.json` — delete `ambulance.title`/`ambulance.body`/`ambulance.book` keys.
 `scripts/seed.ts` — delete `svc-amb-1` block (`ambulanceServices` row + `slot-amb-test-1`).
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 `bunx tsc --noEmit` + `bun run lint`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -220,26 +220,26 @@ git commit -m "chore: purge ambulance dispatch subsystem (plain service)"
 - Consumes: none.
 - Produces: no `requireProvider`; no scoped catalog actions; roles `patient/admin` only via existing `requireAdmin` path.
 
-- [ ] **Step 1: Delete portal pages**
+- [x] **Step 1: Delete portal pages**
 
 Remove both `provider` and `provider-claim` route groups entirely.
 
-- [ ] **Step 2: Strip identity + catalog**
+- [x] **Step 2: Strip identity + catalog**
 
 `src/contexts/identity/actions.ts` — delete `requireProvider` function and its `providers`/`eq`/`db` imports (keep `requireUser`/`requireAdmin`).
 `src/contexts/catalog/queries.ts` — delete `listMyServices` + `listMySlots`.
 `src/contexts/catalog/actions.ts` — delete `updateMyService` + `generateMySlots` (+ its local schema) + `deactivateSlot`. Keep `generateSlots` (admin) untouched.
 
-- [ ] **Step 3: Strip e2e fixtures**
+- [x] **Step 3: Strip e2e fixtures**
 
 `src/app/api-test/login/route.ts` — delete the `?role=provider` branch (keep default test-patient block only; remove the `role` searchParam read and the `test-provider` upsert).
 `scripts/seed.ts` — delete `prov-portal-1`/`loc-portal-1`/`svc-provider-1` block.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 `bunx tsc --noEmit` + `bun run lint`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -259,29 +259,29 @@ git commit -m "chore: purge provider portal (admin-only)"
 
 **Decision gate:** `priority` column existed pre-purge — keep it as a column (no migration) but remove the UI that manages it beyond display. `assignee_user_id` is new in Phase 4 — drop it.
 
-- [ ] **Step 1: Drop column + migration**
+- [x] **Step 1: Drop column + migration**
 
 `src/db/schema/support.ts` — delete `assigneeUserId: text("assignee_user_id").references(() => users.id),` line.
 Run: `bun run db:generate` — expect migration `0012_*` dropping the column + FK. Keep `priority` column.
 
-- [ ] **Step 2: Strip support actions/queries**
+- [x] **Step 2: Strip support actions/queries**
 
 `src/contexts/support/actions.ts` — delete `assignRequest`, `updateRequestPriority`, and the `users` import added for the role check. Keep `updateRequestStatus` + `markNotificationsRead`.
 `src/contexts/support/queries.ts` — delete `listAdminUsers`; revert `listRequests(status?, priority?)` → `listRequests(status?)` (single optional status, `where(eq(supportRequests.status, status))`).
 
-- [ ] **Step 3: Strip queue page**
+- [x] **Step 3: Strip queue page**
 
 `src/app/[locale]/admin/support/page.tsx` — delete priority filter select (GET form), per-row assignee select + Assign button, per-row priority select + Set button, and the `assigneeUserId` display. Keep the status select + Update button. Call reverts to `listRequests("open")` (hardcoded, status-only). Keep `Badge` for `r.kind`/`r.priority` display (priority badge stays read-only).
 
-- [ ] **Step 4: Seed**
+- [x] **Step 4: Seed**
 
 `scripts/seed.ts` — delete `admin-seed-2` block. Keep `admin-seed` (single admin).
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 `bunx tsc --noEmit` + `bun run lint`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A
@@ -300,19 +300,19 @@ git commit -m "chore: purge support assignment/priority (status-only queue)"
 - Consumes: all prior purges.
 - Produces: no extended.spec; OPEN_QUESTIONS trimmed to retained scope.
 
-- [ ] **Step 1: Delete extended spec**
+- [x] **Step 1: Delete extended spec**
 
 Remove `e2e/extended.spec.ts` (its fixtures are gone — home-care unserviceable city + provider schedule — and its assertions target deleted code).
 
-- [ ] **Step 2: Trim OPEN_QUESTIONS**
+- [x] **Step 2: Trim OPEN_QUESTIONS**
 
 `OPEN_QUESTIONS.md` — delete sections `Live tracking` (if you want to keep as deferred — manager didn't mention it, keep only if desired; recommended: keep as out-of-scope note, single line), `Emergency dispatch` (ambulance is now plain — remove), `Reschedule vs payment state` (payment system gone — remove or reword to "Reschedule UI deferred — no payment state involved"). Keep `Insurance handling`, `Calendar integrations`, `Refunds` (reword to "downloadable content refund policy, not appointment refund"), `No-show policy enforcement`. One sentence per remaining item.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 `bunx tsc --noEmit` + `bun run lint` + `bun run build` (human-owned, but run as gate if you have the env — otherwise tsc+lint only and note build deferred).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A

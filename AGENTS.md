@@ -59,12 +59,12 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
 
 ## Current state
 
-- **HEAD:** `8500181` (purge plan committed, not yet executed)
-- **Last shipped:** Phase 4 at `d4f69fd` — home-care branch, rehab seed, ambulance dispatch, payments, provider portal, support assignment, e2e. Whole-branch review clean.
-- **Next:** Purge — `docs/superpowers/specs/2026-09-02-angabin-teb-purge-design.md` + `docs/superpowers/plans/2026-09-02-angabin-teb-purge.md`. Deletes 5 subsystems to match manager vision (plain services only).
+- **HEAD:** `e486750` (purge executed and whole-branch review clean; 6 commits)
+- **Last shipped:** Purge — 5 subsystems deleted to match manager vision (plain services only): appointment payments, home-care serviceability, ambulance dispatch, provider portal, support assignment. Migrations 0010, 0011, 0012 emitted. Booking kernel, nutrition, content, i18n, admin intact.
+- **Next:** Human deferred verification (R10) — `docker compose up -d` → `db:migrate` → all `db:seed*` → `tsc` → `lint` → `test` → `build` → `playwright test`.
 - **Manager vision (simplified):** booking for doctors/clinics/services (by specialty/type), rehab/home-care/ambulance as plain `service_type` rows, nutrition body→calorie/nutrient + diet, food/educational blog (article/video/pamphlet/FAQ), 3 locales, accounts/appointments. Paid = downloadable content, not appointment charge.
-- **Purge deletes:** appointment payments (`pending`/`paid_online`), home-care `home_city_id`+serviceability, ambulance `dispatch_record`, provider portal, support `assignee_user_id`. Keeps: booking kernel, nutrition, content, i18n, admin. Migrations 0010+ drop the columns/tables.
-- **R10 active:** no docker/dev/vitest/playwright/build runs during implementation — gate on `tsc` + `lint` only; human owns verification. Never commit `.superpowers/`.
+- **Purge deleted:** appointment payments (`pending`/`paid_online`), home-care `home_city_id`+serviceability, ambulance `dispatch_record`, provider portal, support `assignee_user_id`. Keeps: booking kernel, nutrition, content, i18n, admin. Migrations 0010+ drop the columns/tables.
+- **R10 status:** implementation complete; human owns verification. Never commit `.superpowers/`.
 
 ## Specs & plans
 
