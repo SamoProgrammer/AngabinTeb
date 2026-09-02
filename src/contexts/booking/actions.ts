@@ -4,10 +4,9 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { appointments, services, notifications, dispatchRecords } from "@/db/schema";
+import { appointments, services, notifications } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 import { canCancel, validatePartySize, type BookingStatus } from "./kernel";
-import { initialDispatchStatus } from "./ambulance";
 
 const bookSchema = z.object({
   serviceId: z.string().min(1),
@@ -70,14 +69,6 @@ export async function bookAppointmentWithUser(
       title: "Appointment confirmed",
       body: `Your booking is confirmed (${appointmentId}).`,
     });
-    if (svc.serviceType === "ambulance") {
-      await tx.insert(dispatchRecords).values({
-        id: randomUUID(),
-        ambulanceServiceId: data.serviceId,
-        appointmentId,
-        status: initialDispatchStatus("confirmed"),
-      });
-    }
     return { ok: true as const, appointmentId };
   });
 }
@@ -96,7 +87,6 @@ export async function cancelAppointment(id: string) {
       .set({ status: "cancelled" })
       .where(and(eq(appointments.id, id), eq(appointments.status, "confirmed")));
     if (upd.count === 0) return { ok: false as const, reason: "not_cancellable" };
-    await tx.update(dispatchRecords).set({ status: "cancelled" }).where(eq(dispatchRecords.appointmentId, id));
     await tx.execute(
       sql`UPDATE availability_slot
             SET booked_count = GREATEST(booked_count - ${row.partySize}, 0)
