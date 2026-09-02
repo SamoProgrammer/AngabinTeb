@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Angabin Teb — انگبین طب
 
-## Getting Started
+Persian health platform — booking (doctors/clinics/services by type), nutrition (body→calorie + food diary + diet), content (articles/videos/FAQ by topic). 3 locales (fa/en/ar), phone-OTP auth.
 
-First, run the development server:
+> **For AI agents:** read `AGENTS.md` first — it is the handoff. Specs live in `docs/superpowers/specs/`.
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
+cp .env.example .env          # set DATABASE_URL
+docker compose up -d          # Postgres 17
+bun run db:migrate
+bun run db:seed               # + bun run db:seed:nutrition / :content / :rehab
+bun run dev                   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Docs
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Product (what): `angabin-teb-product-spec.md`
+- Design (how): `docs/superpowers/specs/2026-08-31-angabin-teb-design.md` + purge delta `2026-09-02-angabin-teb-purge-design.md`
+- Plans: `docs/superpowers/plans/`
+- Decisions deferred: `OPEN_QUESTIONS.md`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Commands
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`bun run dev` · `bun run db:generate` · `bun run db:migrate` · `bun run db:seed` · `bunx tsc --noEmit` · `bun run lint` · `bun run test` · `bunx playwright test`
