@@ -1,7 +1,7 @@
 import "server-only";
-import { sql, eq, and, gte, lte } from "drizzle-orm";
+import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { providers, practitioners, services, locations, serviceCategories, translations, diagnosticServices, contents, availabilitySlots } from "@/db/schema";
+import { providers, practitioners, services, locations, serviceCategories, translations, diagnosticServices, contents } from "@/db/schema";
 import { overlayTranslations } from "@/lib/translate";
 import type { SearchResult, DoctorCard, ServiceCard } from "./model";
 
@@ -191,40 +191,4 @@ export async function getPrepInfo(serviceId: string) {
     .from(diagnosticServices)
     .where(eq(diagnosticServices.serviceId, serviceId));
   return row ?? null;
-}
-
-export async function listMyServices(providerId: string) {
-  return db
-    .select({
-      id: services.id,
-      name: services.name,
-      serviceType: services.serviceType,
-      durationMinutes: services.durationMinutes,
-      basePrice: services.basePrice,
-    })
-    .from(services)
-    .where(and(eq(services.providerId, providerId), eq(services.isActive, true)))
-    .orderBy(services.name);
-}
-
-export async function listMySlots(providerId: string, from: Date, to: Date) {
-  return db
-    .select({
-      id: availabilitySlots.id,
-      startsAt: availabilitySlots.startsAt,
-      endsAt: availabilitySlots.endsAt,
-      capacity: availabilitySlots.capacity,
-      bookedCount: availabilitySlots.bookedCount,
-      isActive: availabilitySlots.isActive,
-      serviceId: availabilitySlots.serviceId,
-      serviceName: services.name,
-    })
-    .from(availabilitySlots)
-    .leftJoin(services, eq(services.id, availabilitySlots.serviceId))
-    .where(and(
-      eq(availabilitySlots.providerId, providerId),
-      gte(availabilitySlots.startsAt, from),
-      lte(availabilitySlots.startsAt, to),
-    ))
-    .orderBy(availabilitySlots.startsAt);
 }

@@ -100,25 +100,6 @@ async function main() {
     capacity: 1,
   }).onConflictDoNothing();
 
-  // Portal fixture (Task 4.5): distinct provider for the provider-portal e2e (Task 4.7); no slots (the e2e generates them via the portal)
-  const PORTAL_PROVIDER_ID = "prov-portal-1";
-  const PORTAL_LOC_ID = "loc-portal-1";
-  const PORTAL_SERVICE_ID = "svc-provider-1";
-  await db.insert(providers).values({
-    id: PORTAL_PROVIDER_ID, kind: "person", name: "پرتال نمونه", phone: "09120000002",
-  }).onConflictDoUpdate({ target: providers.id, set: { name: "پرتال نمونه" } });
-  await db.insert(practitioners).values({
-    providerId: PORTAL_PROVIDER_ID, specialtyId: CATEGORY_ID, bio: "پرتال نمونه",
-  }).onConflictDoUpdate({ target: practitioners.providerId, set: { bio: "پرتال نمونه" } });
-  await db.insert(locations).values({
-    id: PORTAL_LOC_ID, providerId: PORTAL_PROVIDER_ID, label: "مطب نمونه", cityId: "1",
-  }).onConflictDoUpdate({ target: locations.id, set: { label: "مطب نمونه" } });
-  await db.insert(services).values({
-    id: PORTAL_SERVICE_ID, providerId: PORTAL_PROVIDER_ID, categoryId: CATEGORY_ID, serviceType: "therapy",
-    locationId: PORTAL_LOC_ID, name: "ویزیت عمومی", durationMinutes: 30, basePrice: "300000",
-  }).onConflictDoUpdate({ target: services.id, set: { name: "ویزیت عمومی" } });
-  await upsertTranslation("service", PORTAL_SERVICE_ID, "en", "name", "General Visit");
-
   console.log("seed complete");
 }
 

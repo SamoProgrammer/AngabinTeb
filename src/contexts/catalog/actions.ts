@@ -5,7 +5,7 @@ import { sql, and, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { db } from "@/db";
 import { providers, practitioners, diagnosticServices, services, availabilitySlots, serviceCategories, locations, translations } from "@/db/schema";
-import { requireAdmin, requireProvider } from "@/contexts/identity/actions";
+import { requireAdmin } from "@/contexts/identity/actions";
 
 function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
   const r = schema.safeParse(input);
@@ -314,84 +314,4 @@ export async function availabilityForService(serviceId: string, date: string) {
       sql`(${availabilitySlots.heldUntil} IS NULL OR ${availabilitySlots.heldUntil} < now())`,
     ))
     .orderBy(availabilitySlots.startsAt);
-}
-
-const updateMyServiceSchema = z.object({
-  nameFa: z.string().min(1),
-  durationMinutes: z.number().int().positive(),
-  basePrice: z.string().regex(/^\d+$/),
-});
-
-export async function updateMyService(providerId: string, serviceId: string, input: z.infer<typeof updateMyServiceSchema>) {
-  const { providerRow } = await requireProvider();
-  if (providerRow.id !== providerId) return { ok: false as const, reason: "forbidden" };
-  const parsed = parseOrError(updateMyServiceSchema, input);
-  if (!parsed.ok) return parsed;
-  const data = parsed.data;
-  await db
-    .update(services)
-    .set({ name: data.nameFa, durationMinutes: data.durationMinutes, basePrice: data.basePrice })
-    .where(and(eq(services.id, serviceId), eq(services.providerId, providerId)));
-  return { ok: true as const };
-}
-
-const generateMySlotsSchema = z.object({
-  serviceId: z.string().min(1),
-  weekday: z.number().int().min(0).max(6),
-  startsAt: z.string().regex(/^\d{2}:\d{2}$/),
-  endsAt: z.string().regex(/^\d{2}:\d{2}$/),
-  durationMinutes: z.number().int().positive(),
-  capacity: z.number().int().min(1),
-  fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  toDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-});
-
-export async function generateMySlots(providerId: string, input: z.infer<typeof generateMySlotsSchema>) {
-  const { providerRow } = await requireProvider();
-  if (providerRow.id !== providerId) return { ok: false as const, reason: "forbidden" };
-  const parsed = parseOrError(generateMySlotsSchema, input);
-  if (!parsed.ok) return parsed;
-  const data = parsed.data;
-  const starts = expandPattern({
-    weekday: data.weekday, startsAt: data.startsAt, endsAt: data.endsAt,
-    durationMinutes: data.durationMinutes,
-    from: new Date(`${data.fromDate}T00:00:00Z`), to: new Date(`${data.toDate}T23:59:59Z`),
-  });
-  return db.transaction(async (tx) => {
-    const [svc] = await tx.select().from(services).where(eq(services.id, data.serviceId)).for("update");
-    if (!svc || svc.providerId !== providerId) {
-      return { ok: false as const, reason: "provider_mismatch" };
-    }
-    const existing = await tx.select().from(availabilitySlots)
-      .where(eq(availabilitySlots.serviceId, data.serviceId));
-    const overlap = starts.filter((s) =>
-      existing.some((e) =>
-        s < e.endsAt && new Date(s.getTime() + data.durationMinutes * 60_000) > e.startsAt,
-      ),
-    );
-    if (overlap.length > 0) {
-      return { ok: false as const, reason: "overlap", count: overlap.length };
-    }
-    await tx.insert(availabilitySlots).values(
-      starts.map((s) => ({
-        id: randomUUID(),
-        providerId,
-        serviceId: data.serviceId,
-        startsAt: s,
-        endsAt: new Date(s.getTime() + data.durationMinutes * 60_000),
-        capacity: data.capacity,
-      })),
-    );
-    return { ok: true as const, count: starts.length };
-  });
-}
-
-export async function deactivateSlot(slotId: string, providerId: string) {
-  const { providerRow } = await requireProvider();
-  if (providerRow.id !== providerId) return { ok: false as const, reason: "forbidden" };
-  await db
-    .update(availabilitySlots)
-    .set({ isActive: false })
-    .where(and(eq(availabilitySlots.id, slotId), eq(availabilitySlots.providerId, providerId)));
-  return { ok: true as const };
 }
