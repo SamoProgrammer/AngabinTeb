@@ -13,7 +13,6 @@ export const supportRequests = pgTable(
     body: text("body").notNull(),
     status: text("status").notNull().default("open"), // open | in_progress | resolved | closed
     priority: text("priority").notNull().default("normal"), // normal | high
-    assigneeUserId: text("assignee_user_id").references(() => users.id),
     appointmentId: text("appointment_id").references(() => appointments.id),
     serviceId: text("service_id").references(() => services.id),
     providerId: text("provider_id").references(() => providers.id),

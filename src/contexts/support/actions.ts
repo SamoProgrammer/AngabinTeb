@@ -4,7 +4,7 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { supportRequests, notifications, users } from "@/db/schema";
+import { supportRequests, notifications } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 
 function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
@@ -56,39 +56,6 @@ export async function updateRequestStatus(id: string, status: "open" | "in_progr
     });
     return { ok: true as const };
   });
-}
-
-export async function assignRequest(id: string, assigneeUserId: string) {
-  const user = await requireUser();
-  if (user.role !== "admin") return { ok: false as const, reason: "forbidden" };
-  if (!id || !assigneeUserId) return { ok: false as const, reason: "bad_input" };
-  const [assignee] = await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, assigneeUserId));
-  if (!assignee || assignee.role !== "admin") return { ok: false as const, reason: "bad_assignee" };
-  return db.transaction(async (tx) => {
-    await tx
-      .update(supportRequests)
-      .set({ assigneeUserId, updatedAt: new Date() })
-      .where(eq(supportRequests.id, id));
-    await tx.insert(notifications).values({
-      id: randomUUID(),
-      userId: assigneeUserId,
-      kind: "support_reply",
-      title: "Request assigned",
-      body: `A support request was assigned to you.`,
-    });
-    return { ok: true as const };
-  });
-}
-
-export async function updateRequestPriority(id: string, priority: "normal" | "high") {
-  const user = await requireUser();
-  if (user.role !== "admin") return { ok: false as const, reason: "forbidden" };
-  if (priority !== "normal" && priority !== "high") return { ok: false as const, reason: "bad_priority" };
-  await db
-    .update(supportRequests)
-    .set({ priority, updatedAt: new Date() })
-    .where(eq(supportRequests.id, id));
-  return { ok: true as const };
 }
 
 export async function markNotificationsRead(_formData: FormData) {

@@ -1,7 +1,7 @@
 import "server-only";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { supportRequests, notifications, users } from "@/db/schema";
+import { supportRequests, notifications } from "@/db/schema";
 
 export async function myRequests(userId: string) {
   return db
@@ -12,19 +12,10 @@ export async function myRequests(userId: string) {
     .limit(100);
 }
 
-export async function listRequests(status?: string, priority?: string) {
+export async function listRequests(status?: string) {
   const q = db.select().from(supportRequests);
-  if (status && priority) q.where(and(eq(supportRequests.status, status), eq(supportRequests.priority, priority)));
-  else if (status) q.where(eq(supportRequests.status, status));
+  if (status) q.where(eq(supportRequests.status, status));
   return q.orderBy(desc(supportRequests.createdAt)).limit(100);
-}
-
-export async function listAdminUsers() {
-  return db
-    .select({ id: users.id, name: users.name })
-    .from(users)
-    .where(eq(users.role, "admin"))
-    .orderBy(users.name);
 }
 
 export async function listNotifications(userId: string) {
