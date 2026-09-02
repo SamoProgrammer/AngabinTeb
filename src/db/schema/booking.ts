@@ -15,8 +15,6 @@ export const appointments = pgTable(
     paymentStatus: text("payment_status").notNull().default("unpaid"), // unpaid | paid_at_location | refunded
     price: numeric("price", { precision: 12, scale: 0 }).notNull(),
     notes: text("notes"),
-    homeCityId: text("home_city_id"),
-    homeAddressLine: text("home_address_line"),
     idempotencyKey: text("idempotency_key").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

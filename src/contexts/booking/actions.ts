@@ -4,16 +4,10 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { appointments, services, notifications, homeCareServices, dispatchRecords } from "@/db/schema";
+import { appointments, services, notifications, dispatchRecords } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 import { canCancel, validatePartySize, type BookingStatus } from "./kernel";
-import { isServiceable } from "./address";
 import { initialDispatchStatus } from "./ambulance";
-
-const homeAddressSchema = z.object({
-  cityId: z.string().min(1),
-  addressLine: z.string().min(5).max(300),
-});
 
 const bookSchema = z.object({
   serviceId: z.string().min(1),
@@ -21,7 +15,6 @@ const bookSchema = z.object({
   partySize: z.number(),
   notes: z.string().max(500).optional(),
   idempotencyKey: z.string().min(8).max(64),
-  homeAddress: homeAddressSchema.optional(),
 });
 
 class RescheduleCapacityError extends Error {}
@@ -43,16 +36,6 @@ export async function bookAppointmentWithUser(
   return db.transaction(async (tx) => {
     const [svc] = await tx.select().from(services).where(eq(services.id, data.serviceId));
     if (!svc) return { ok: false as const, reason: "capacity_exceeded" }; // stale/deleted service
-    if (svc.serviceType === "home_care") {
-      const [satellite] = await tx
-        .select()
-        .from(homeCareServices)
-        .where(eq(homeCareServices.serviceId, data.serviceId));
-      if (!data.homeAddress) return { ok: false as const, reason: "address_required" };
-      if (!isServiceable(satellite?.serviceableCityIds ?? [], data.homeAddress.cityId)) {
-        return { ok: false as const, reason: "not_serviceable" };
-      }
-    }
     const slotRes = await tx.execute(
       sql`UPDATE availability_slot
             SET booked_count = booked_count + ${data.partySize},
@@ -78,8 +61,6 @@ export async function bookAppointmentWithUser(
       price: svc.basePrice,
       status: "confirmed",
       notes: data.notes ?? null,
-      homeCityId: data.homeAddress?.cityId ?? null,
-      homeAddressLine: data.homeAddress?.addressLine ?? null,
       idempotencyKey: data.idempotencyKey,
     });
     await tx.insert(notifications).values({

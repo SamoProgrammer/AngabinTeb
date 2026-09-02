@@ -8,12 +8,11 @@ export async function POST() {
   await db.execute(sql`DELETE FROM appointment WHERE patient_id = 'test-patient'`);
   await db.execute(sql`DELETE FROM food_intake WHERE user_id = 'test-patient'`);
   await db.execute(sql`DELETE FROM daily_nutrition WHERE user_id = 'test-patient'`);
-  await db.execute(sql`DELETE FROM availability_slot WHERE id IN ('slot-test-1','slot-test-2','slot-home-test-1')`);
+  await db.execute(sql`DELETE FROM availability_slot WHERE id IN ('slot-test-1','slot-test-2')`);
   const tomorrow = new Date(Date.now() + 86400_000);
   const day = Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate());
   const slot1 = new Date(day + 18 * 3_600_000);
   const slot2 = new Date(day + 19 * 3_600_000);
-  const homeSlot = new Date(day + 20 * 3_600_000);
   await db.insert(availabilitySlots).values([
     {
       id: "slot-test-1", providerId: "prov-heart-1", serviceId: "svc-ecg-1",
@@ -22,10 +21,6 @@ export async function POST() {
     {
       id: "slot-test-2", providerId: "prov-heart-1", serviceId: "svc-ecg-1",
       startsAt: slot2, endsAt: new Date(slot2.getTime() + 30 * 60_000), capacity: 1,
-    },
-    {
-      id: "slot-home-test-1", providerId: "prov-home-1", serviceId: "svc-home-1",
-      startsAt: homeSlot, endsAt: new Date(homeSlot.getTime() + 30 * 60_000), capacity: 1,
     },
   ]);
   return NextResponse.json({ slotId1: "slot-test-1", slotId2: "slot-test-2" });

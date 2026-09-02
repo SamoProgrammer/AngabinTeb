@@ -71,6 +71,13 @@
       "when": 1788286863643,
       "tag": "0009_chubby_rumiko_fujikawa",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788370722362,
+      "tag": "0010_redundant_oracle",
+      "breakpoints": true
     }
   ]
 }

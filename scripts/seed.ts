@@ -9,7 +9,6 @@ import {
   locations,
   services,
   diagnosticServices,
-  homeCareServices,
   ambulanceServices,
   availabilitySlots,
 } from "../src/db/schema";
@@ -102,41 +101,11 @@ async function main() {
     capacity: 1,
   }).onConflictDoNothing();
 
-  // Home care fixture (Task 4.1 e2e): city 1/2 serviceable, slot tomorrow 20:00 UTC
-  const HOME_CAT_ID = "cat-home";
-  const HOME_PROVIDER_ID = "prov-home-1";
-  const HOME_LOC_ID = "loc-home-1";
-  const HOME_SERVICE_ID = "svc-home-1";
-  await upsertTranslation("service_category", HOME_CAT_ID, "en", "name", "Home Care");
-  await upsertTranslation("service", HOME_SERVICE_ID, "en", "name", "Home Care Nursing");
-  await db.insert(serviceCategories).values({
-    id: HOME_CAT_ID, slug: "home-care", name: "پرستاری در منزل",
-  }).onConflictDoUpdate({ target: serviceCategories.id, set: { name: "پرستاری در منزل" } });
-  await db.insert(providers).values({
-    id: HOME_PROVIDER_ID, kind: "person", name: "پرستار نمونه", phone: "02122222222",
-  }).onConflictDoUpdate({ target: providers.id, set: { name: "پرستار نمونه" } });
-  await db.insert(locations).values({
-    id: HOME_LOC_ID, providerId: HOME_PROVIDER_ID, label: "خانه", cityId: "1",
-  }).onConflictDoUpdate({ target: locations.id, set: { label: "خانه" } });
-  await db.insert(services).values({
-    id: HOME_SERVICE_ID, providerId: HOME_PROVIDER_ID, categoryId: HOME_CAT_ID, serviceType: "home_care",
-    locationId: null, name: "پرستاری در منزل", durationMinutes: 120, basePrice: "800000",
-  }).onConflictDoUpdate({ target: services.id, set: { name: "پرستاری در منزل" } });
-  await db.insert(homeCareServices).values({
-    serviceId: HOME_SERVICE_ID, requiresPatientAddress: true, serviceableCityIds: ["1", "2"],
-  }).onConflictDoNothing();
-  const homeSlotStart = new Date(Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate(), 20, 0));
-  await db.insert(availabilitySlots).values({
-    id: "slot-home-test-1", providerId: HOME_PROVIDER_ID, serviceId: HOME_SERVICE_ID,
-    startsAt: homeSlotStart, endsAt: new Date(homeSlotStart.getTime() + 30 * 60_000),
-    capacity: 1,
-  }).onConflictDoNothing();
-
   // Ambulance fixture (Task 4.3): scheduled non-emergency transport, slot tomorrow 21:00 UTC
   const AMB_SERVICE_ID = "svc-amb-1";
   await upsertTranslation("service", AMB_SERVICE_ID, "en", "name", "Non-emergency Ambulance");
   await db.insert(services).values({
-    id: AMB_SERVICE_ID, providerId: HOME_PROVIDER_ID, categoryId: HOME_CAT_ID, serviceType: "ambulance",
+    id: AMB_SERVICE_ID, providerId: PROVIDER_ID, categoryId: CATEGORY_ID, serviceType: "ambulance",
     locationId: null, name: "آمبولانس غیر اورژانسی", durationMinutes: 30, basePrice: "1200000",
   }).onConflictDoUpdate({ target: services.id, set: { name: "آمبولانس غیر اورژانسی" } });
   await db.insert(ambulanceServices).values({
@@ -144,7 +113,7 @@ async function main() {
   }).onConflictDoNothing();
   const ambSlotStart = new Date(Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate(), 21, 0));
   await db.insert(availabilitySlots).values({
-    id: "slot-amb-test-1", providerId: HOME_PROVIDER_ID, serviceId: AMB_SERVICE_ID,
+    id: "slot-amb-test-1", providerId: PROVIDER_ID, serviceId: AMB_SERVICE_ID,
     startsAt: ambSlotStart, endsAt: new Date(ambSlotStart.getTime() + 30 * 60_000),
     capacity: 1,
   }).onConflictDoNothing();
@@ -157,13 +126,13 @@ async function main() {
     id: PORTAL_PROVIDER_ID, kind: "person", name: "پرتال نمونه", phone: "09120000002",
   }).onConflictDoUpdate({ target: providers.id, set: { name: "پرتال نمونه" } });
   await db.insert(practitioners).values({
-    providerId: PORTAL_PROVIDER_ID, specialtyId: HOME_CAT_ID, bio: "پرتال نمونه",
+    providerId: PORTAL_PROVIDER_ID, specialtyId: CATEGORY_ID, bio: "پرتال نمونه",
   }).onConflictDoUpdate({ target: practitioners.providerId, set: { bio: "پرتال نمونه" } });
   await db.insert(locations).values({
     id: PORTAL_LOC_ID, providerId: PORTAL_PROVIDER_ID, label: "مطب نمونه", cityId: "1",
   }).onConflictDoUpdate({ target: locations.id, set: { label: "مطب نمونه" } });
   await db.insert(services).values({
-    id: PORTAL_SERVICE_ID, providerId: PORTAL_PROVIDER_ID, categoryId: HOME_CAT_ID, serviceType: "therapy",
+    id: PORTAL_SERVICE_ID, providerId: PORTAL_PROVIDER_ID, categoryId: CATEGORY_ID, serviceType: "therapy",
     locationId: PORTAL_LOC_ID, name: "ویزیت عمومی", durationMinutes: 30, basePrice: "300000",
   }).onConflictDoUpdate({ target: services.id, set: { name: "ویزیت عمومی" } });
   await upsertTranslation("service", PORTAL_SERVICE_ID, "en", "name", "General Visit");
