@@ -63,7 +63,7 @@ export function ArticleCard({
             </div>
           )}
           {category && (
-            <span className="absolute top-3 right-3 bg-secondary text-on-secondary px-2.5 py-0.5 rounded-full text-xs font-medium shadow-xs">
+            <span className="absolute top-3 end-3 bg-secondary text-on-secondary px-2.5 py-0.5 rounded-full text-xs font-medium shadow-xs">
               {category}
             </span>
           )}

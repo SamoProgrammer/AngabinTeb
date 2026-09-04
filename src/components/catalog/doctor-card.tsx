@@ -79,7 +79,7 @@ export function DoctorCard({
       className={`bg-surface-container-lowest p-5 rounded-2xl shadow-tier-1 hover:shadow-tier-2 transition-all duration-300 flex flex-col justify-between text-start relative border border-outline-variant/30 ${className}`}
     >
       {/* Top Rating Pill */}
-      <div className="absolute top-4 left-4 flex items-center gap-1 bg-surface-container-low px-2.5 py-1 rounded-full text-secondary text-xs font-bold shadow-xs">
+      <div className="absolute top-4 end-4 flex items-center gap-1 bg-surface-container-low px-2.5 py-1 rounded-full text-secondary text-xs font-bold shadow-xs">
         <ClinicalIcon
           name="star"
           size={16}
