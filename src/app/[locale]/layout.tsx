@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { locales } from "@/i18n/locales";
 import { vazirmatn, plusJakartaSans } from "@/app/fonts";
+import { ClinicalHeader } from "@/components/layout/clinical-header";
+import { ClinicalFooter } from "@/components/layout/clinical-footer";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import "../globals.css";
 
 export default async function LocaleLayout({
@@ -26,8 +29,13 @@ export default async function LocaleLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${vazirmatn.className} antialiased`}>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+      <body className={`${vazirmatn.className} antialiased bg-surface text-on-surface flex flex-col min-h-screen`}>
+        <NextIntlClientProvider>
+          <ClinicalHeader locale={locale} />
+          <main className="min-h-screen pt-20">{children}</main>
+          <ClinicalFooter locale={locale} />
+          <MobileNav locale={locale} />
+        </NextIntlClientProvider>
       </body>
     </html>
   );
