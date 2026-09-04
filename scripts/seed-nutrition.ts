@@ -101,6 +101,43 @@ const FOODS: Array<{
     ],
   },
   {
+    id: "food-chelo-kateh", name: "چلو کته زعفرانی", category: "rice", mealTypes: ["lunch", "dinner"],
+    per100g: { "n-energy": 140, "n-carbs": 30, "n-protein": 2.7, "n-fat": 1.1, "n-fiber": 0.4, "n-iron": 0.5, "n-calcium": 10, "n-vitc": 0 },
+    servingUnits: [
+      { id: "su-kateh-kafgeer", name: "کفگیر", grams: 70 },
+      { id: "su-kateh-plate", name: "بشقاب", grams: 250 },
+      { id: "su-kateh-gram", name: "گرم", grams: 1 },
+    ],
+  },
+  {
+    id: "food-tahchin", name: "ته‌چین سنتی", category: "rice", mealTypes: ["lunch", "dinner"],
+    per100g: { "n-energy": 210, "n-carbs": 26, "n-protein": 8.5, "n-fat": 8.2, "n-fiber": 0.6, "n-iron": 1.1, "n-calcium": 35, "n-vitc": 1 },
+    servingUnits: [
+      { id: "su-tahchin-slice", name: "برش", grams: 150 },
+      { id: "su-tahchin-plate", name: "بشقاب", grams: 300 },
+      { id: "su-tahchin-gram", name: "گرم", grams: 1 },
+    ],
+  },
+  {
+    id: "food-ghormeh-sabzi", name: "قورمه‌سبزی", category: "stew", mealTypes: ["lunch", "dinner"],
+    per100g: { "n-energy": 165, "n-carbs": 6.5, "n-protein": 11.2, "n-fat": 10.5, "n-fiber": 3.2, "n-iron": 2.8, "n-calcium": 45, "n-vitc": 4 },
+    servingUnits: [
+      { id: "su-ghormeh-bowl", name: "پیاله", grams: 150 },
+      { id: "su-ghormeh-plate", name: "بشقاب", grams: 250 },
+      { id: "su-ghormeh-ladle", name: "ملاقه", grams: 100 },
+      { id: "su-ghormeh-gram", name: "گرم", grams: 1 },
+    ],
+  },
+  {
+    id: "food-mast-khiar", name: "ماست و خیار با نعناع", category: "dairy", mealTypes: ["lunch", "dinner"],
+    per100g: { "n-energy": 65, "n-carbs": 4.5, "n-protein": 3.8, "n-fat": 3.2, "n-fiber": 0.5, "n-iron": 0.2, "n-calcium": 120, "n-vitc": 2 },
+    servingUnits: [
+      { id: "su-mast-bowl", name: "پیاله", grams: 150 },
+      { id: "su-mast-spoon", name: "قاشق", grams: 25 },
+      { id: "su-mast-gram", name: "گرم", grams: 1 },
+    ],
+  },
+  {
     id: "food-barbari", name: "نان بربری", category: "bread", mealTypes: ["breakfast", "lunch", "dinner"],
     per100g: { "n-energy": 260, "n-carbs": 55, "n-protein": 8.5, "n-fat": 1.2, "n-fiber": 2, "n-iron": 1.8, "n-calcium": 30, "n-vitc": 0 },
     servingUnits: [

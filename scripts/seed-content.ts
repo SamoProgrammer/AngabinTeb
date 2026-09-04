@@ -50,6 +50,9 @@ const CONTENT: Array<{
   { id: "content-faq-neuropsychiatric-1", topicSlug: "neuropsychiatric", kind: "faq", title: "اضطراب روزمره چه زمانی نیاز به درمان دارد؟", body: "زمانی که اضطراب در کار، خواب یا روابط اختلال ایجاد کند، مراجعه به روان‌پزشک توصیه می‌شود." },
   { id: "content-cardiovascular-1", topicSlug: "cardiovascular", kind: "article", title: "قلب و عروق: پیشگیری از بیماری‌های قلبی", body: "کنترل فشار خون و چربی خون، تغذیه سالم و تحرک بدنی مهم‌ترین راه‌های پیشگیری از بیماری قلبی هستند." },
   { id: "content-faq-cardiovascular-1", topicSlug: "cardiovascular", kind: "faq", title: "فشار خون بالا چه علائمی دارد؟", body: "فشار خون بالا اغلب بدون علامت است و با اندازه‌گیری منظم فشار خون تشخیص داده می‌شود." },
+  { id: "content-insulin-resistance", topicSlug: "diabetes", kind: "article", title: "راهنمای بالینی مدیریت مقاومت به انسولین و دیابت", body: "مقاومت به انسولین شایع‌ترین اختلال متابولیک در جوامع امروزی است. با اصلاح مصرف نان و برنج سنتی و کاهش ۵ تا ۷ درصدی وزن، حساسیت سلولی به انسولین احیا می‌شود." },
+  { id: "content-fatty-liver", topicSlug: "gi-disease", kind: "article", title: "کنترل کبد چرب گرید ۱ و ۲ در سفره ایرانی", body: "کبد چرب ناشی از تجمع تری‌گلیسرید داخل بافت کبد است. جایگزینی روغن‌های صنعتی با روغن زیتون فرابکر و ورزش منظم روزانه مهم‌ترین رکن درمان است." },
+  { id: "content-persian-rice-calories", topicSlug: "fitness", kind: "article", title: "کالری پلوهای سنتی و راه‌های کاهش بار گلیسمی", body: "ترکیب برنج سنتی با شوید، عدس یا سبوس برنج باعث افزایش نشاسته مقاوم و کاهش قله انسولینی پس از وعده غذایی می‌شود." },
 ];
 
 // Ruling 4: condition row id equals the topic's published article content id
@@ -57,6 +60,7 @@ const CONTENT: Array<{
 const CONDITIONS: Array<{ id: string; slug: string; name: string }> = [
   { id: "content-diabetes-1", slug: "diabetes", name: "دیابت" },
   { id: "content-cardiovascular-1", slug: "cardiovascular", name: "قلب و عروق" },
+  { id: "content-fatty-liver", slug: "fatty-liver", name: "کبد چرب غیرالکلی" },
 ];
 
 async function upsertTranslation(entityType: string, entityId: string, locale: string, field: string, value: string) {
