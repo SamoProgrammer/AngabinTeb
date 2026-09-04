@@ -14,7 +14,21 @@ export function proxy(req: NextRequest) {
   const hasLocale = locales.some(
     (l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`),
   );
-  if (hasLocale) return NextResponse.next();
+
+  if (hasLocale) {
+    for (const l of locales) {
+      const prefix = `/${l}/nutrition/`;
+      if (pathname.startsWith(prefix)) {
+        const sub = pathname.slice(prefix.length);
+        if (["diary", "body", "diet", "foods"].some((s) => sub === s || sub.startsWith(`${s}/`))) {
+          const url = req.nextUrl.clone();
+          url.pathname = `/${l}/${sub}`;
+          return NextResponse.rewrite(url);
+        }
+      }
+    }
+    return NextResponse.next();
+  }
 
   const accept = req.headers.get("accept-language") ?? "";
   const preferred = locales.find((l) => accept.toLowerCase().includes(l));
