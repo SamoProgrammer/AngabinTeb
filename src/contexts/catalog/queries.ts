@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { providers, practitioners, services, locations, serviceCategories, translations, diagnosticServices, contents } from "@/db/schema";
 import { overlayTranslations } from "@/lib/translate";
 import type { SearchResult, DoctorCard, ServiceCard } from "./model";
+export type { SearchResult, DoctorCard, ServiceCard };
 
 export async function fetchOverrides(entityType: string, ids: string[]) {
   if (ids.length === 0) return [];

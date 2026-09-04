@@ -66,7 +66,9 @@ export function ServiceCard({
 
         {/* Service Name */}
         <h3 className="text-base font-bold text-on-surface mb-1.5">
-          {name}
+          <Link href={targetHref} className="hover:text-primary transition-colors">
+            {name}
+          </Link>
         </h3>
 
         {/* Provider Name if available */}

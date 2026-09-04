@@ -111,7 +111,9 @@ export function DoctorCard({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 mb-0.5">
               <h3 className="text-base font-bold text-on-surface truncate">
-                {name}
+                <Link href={targetHref} className="hover:text-primary transition-colors">
+                  {name}
+                </Link>
               </h3>
               {isVerified && (
                 <ClinicalIcon
