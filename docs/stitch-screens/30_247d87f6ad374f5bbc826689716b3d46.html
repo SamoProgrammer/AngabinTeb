@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="fa"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn,+Plus+Jakarta+Sans,+system-ui,+sans-serif:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-tertiary-fixed-variant": "#005047", "surface-tint": "#006b56", "outline-variant": "#bdc9c3", "on-error": "#ffffff", "primary-container": "#0d7a63", "secondary": "#904d00", "error-container": "#ffdad6", "tertiary-fixed": "#62fae3", "surface-variant": "#dae2fd", "tertiary-container": "#007a6d", "surface-container": "#eaedff", "primary-fixed-dim": "#7cd7bc", "on-secondary": "#ffffff", "surface-container-lowest": "#ffffff", "on-tertiary-fixed": "#00201c", "on-primary-fixed": "#002018", "on-surface-variant": "#3e4945", "secondary-container": "#fe932c", "on-tertiary-container": "#a7ffef", "secondary-fixed-dim": "#ffb77d", "surface-bright": "#faf8ff", "tertiary-fixed-dim": "#3cddc7", "on-secondary-container": "#663500", "on-primary-container": "#a9ffe3", "inverse-primary": "#7cd7bc", "surface-dim": "#d2d9f4", "surface-container-highest": "#dae2fd", "on-primary-fixed-variant": "#005140", "on-surface": "#131b2e", "tertiary": "#005f54", "on-secondary-fixed": "#2f1500", "on-background": "#131b2e", "on-secondary-fixed-variant": "#6e3900", "on-tertiary": "#ffffff", "inverse-on-surface": "#eef0ff", "secondary-fixed": "#ffdcc3", "background": "#faf8ff", "on-error-container": "#93000a", "on-primary": "#ffffff", "error": "#ba1a1a", "surface-container-high": "#e2e7ff", "surface": "#faf8ff", "outline": "#6e7a75", "primary-fixed": "#98f4d7", "surface-container-low": "#f2f3ff", "inverse-surface": "#283044", "primary": "#005f4c" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin-desktop": "3rem", "space-md": "1rem", "space-xs": "0.5rem", "gutter-desktop": "1.5rem", "space-3xl": "4rem", "space-xl": "2rem", "space-sm": "0.75rem", "space-2xl": "3rem", "gutter-mobile": "1rem", "margin-mobile": "1rem", "space-xxs": "0.25rem", "space-lg": "1.5rem" }, "fontFamily": { "body-md": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""], "data-metric": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""], "display-hero": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""], "headline-sm": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""], "headline-md": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""], "headline-lg-mobile": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""], "display-hero-mobile": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""], "body-lg": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""], "headline-lg": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""], "label-sm": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""], "title-md": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""], "label-md": ["\"Vazirmatn, Plus Jakarta Sans, system-ui, sans-serif\""] }, "fontSize": { "body-md": ["14px", { "lineHeight": "24px", "fontWeight": "400" }], "data-metric": ["26px", { "lineHeight": "32px", "fontWeight": "700" }], "display-hero": ["40px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800" }], "headline-sm": ["18px", { "lineHeight": "28px", "fontWeight": "600" }], "headline-md": ["22px", { "lineHeight": "34px", "fontWeight": "700" }], "headline-lg-mobile": ["24px", { "lineHeight": "36px", "fontWeight": "700" }], "display-hero-mobile": ["28px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "800" }], "body-lg": ["16px", { "lineHeight": "28px", "fontWeight": "400" }], "headline-lg": ["32px", { "lineHeight": "46px", "fontWeight": "700" }], "label-sm": ["11px", { "lineHeight": "16px", "fontWeight": "500" }], "title-md": ["16px", { "lineHeight": "26px", "fontWeight": "600" }], "label-md": ["13px", { "lineHeight": "20px", "fontWeight": "600" }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 inset-x-0 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 max-w-7xl mx-auto px-gutter-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsLrN1C5Psmzob83jpANDvzFxfSonWKF9AkN1_mjHPmahCcev5UaXdcCXe71Zur5iR-16LOttOPOiINItA6eV2J7oeARDpNwRaIJ57IrNEBUHAdPY4NDch2iOO410Ngfpb05WISMplfYM2Lq04u6QU6KjrEioLCuRSYNdzBgVHB7Dib5FjMo_Bjsb8wnPmLl6pJLuKZ6hd2vz9t0fSQdpkD5kOJ-GAJHUlW_aiHeCcVF_jVdgljn8h"/><div class="flex flex-col text-right"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">انگبین طب | Angabin Teb</span><span class="font-label-sm text-label-sm text-on-surface-variant hidden sm:inline">سامانه جامع سلامت، تغذیه و دسترسی بالینی</span></div></div><nav class="hidden xl:flex items-center gap-space-md" data-active-classes="bg-primary-container text-on-primary-container rounded-lg px-space-xs py-space-xxs"><a aria-current="page" class="font-title-md transition-colors bg-primary-container text-on-primary-container rounded-lg px-space-xs py-space-xxs" data-path="find-doctors" href="#">نوبت‌دهی پزشکان</a><a class="font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-colors py-space-xxs px-space-xs" data-path="healthcare-services" href="#">خدمات درمانی و پاراکلینیک</a><a class="font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-colors py-space-xxs px-space-xs" data-path="nutrition-hub" href="#">پرونده و تغذیه هوشمند</a><a class="font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-colors py-space-xxs px-space-xs" data-path="health-knowledge" href="#">مجله تخصصی سلامت</a><a class="font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-colors py-space-xxs px-space-xs" data-path="about" href="#">درباره ما</a><a class="font-title-md text-title-md text-on-surface-variant hover:text-on-surface transition-colors py-space-xxs px-space-xs" data-path="contact" href="#">تماس با کلینیک‌ها</a></nav><div class="flex items-center gap-space-sm"><div class="hidden md:flex items-center gap-space-xxs bg-surface-container-low px-space-sm py-space-xxs rounded-full text-on-surface-variant font-label-md text-label-md"><span class="text-primary font-bold">FA فارسی</span><span class="opacity-40">/</span><span class="hover:text-on-surface cursor-pointer">EN</span><span class="opacity-40">/</span><span class="hover:text-on-surface cursor-pointer">AR</span></div><div class="hidden lg:flex items-center gap-space-xxs bg-surface-container-low px-space-sm py-space-xxs rounded-full text-on-surface font-label-md text-label-md"><span class="material-symbols-outlined text-secondary text-[18px]">call</span><span>پشتیبانی فوری: ۰۲۱-۸۸۲۲۴۰۰۰</span></div><a class="flex items-center gap-space-xs bg-primary-container text-on-primary font-label-md text-label-md px-space-md py-space-xs rounded-xl shadow-sm hover:bg-primary transition-colors" data-path="login" href="#"><span>ورود بیماران / نوبت‌های من</span></a></div></div></header><main class="w-full pt-20 bg-surface"><div class="flex flex-col w-full">
+<!-- Interactive & Search Notification Scrim -->
+<div class="max-w-7xl mx-auto px-gutter-desktop w-full mt-space-md mb-space-xl">
+<!-- Hero / Lead Section: Clean, Authoritative, RTL-first -->
+<div class="relative bg-surface-container-lowest rounded-3xl p-space-xl md:p-space-2xl shadow-sm overflow-hidden flex flex-col md:flex-row items-center justify-between gap-space-xl">
+<!-- Ambient Glow Decorator -->
+<div class="absolute -top-24 -right-24 w-96 h-96 bg-primary-fixed/20 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-24 -left-24 w-80 h-80 bg-secondary-fixed/25 rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col gap-space-sm max-w-2xl text-right">
+<div class="inline-flex items-center gap-space-xxs bg-surface-container-high px-space-sm py-space-xxs rounded-full self-start text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>دانشنامه بالینی و پرونده‌های استنادی نظام سلامت انگبین</span>
+</div>
+<h1 class="font-display-hero text-display-hero text-on-surface tracking-tight">
+          دایرکتوری جامع موضوعات سلامت و رده‌بندی بالینی
+        </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+          مرجع یکپارچه بیماری‌ها، علائم بالینی، تدابیر تغذیه‌ای تلفیقی و متدهای پیشگیری مورد تایید سازمان نظام پزشکی و متخصصان تراز اول کشور.
+        </p>
+<!-- Fast Stats Indicator -->
+<div class="flex flex-wrap items-center gap-space-lg pt-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-data-metric text-data-metric text-primary">۳۲۰+</span>
+<span class="font-label-md text-label-md text-on-surface-variant">سرفصل مدون بیماری‌ها</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-data-metric text-data-metric text-secondary">۸۵۰+</span>
+<span class="font-label-md text-label-md text-on-surface-variant">پروتکل رژیم بالینی</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-data-metric text-data-metric text-tertiary">۱۰۰٪</span>
+<span class="font-label-md text-label-md text-on-surface-variant">مستند به شواهد بالینی</span>
+</div>
+</div>
+</div>
+<!-- Feature Image with High Trust Persona -->
+<div class="relative z-10 w-full md:w-80 h-64 md:h-72 rounded-2xl overflow-hidden shadow-md flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Close-up professional portrait of an Iranian female clinical dietitian and doctor in an immaculate white medical coat examining organic medicinal herbs and modern tablet reports, soft warm natural morning studio light, emerald teal clinical accents, ultra high fidelity medical editorial photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQqurZm3T68Ao1kq3GvWWyCb0aA_6zbNnK4OVmKD1YOAUAMa9eFs7AEtMPm5b06e7xGpi-kcQ9jRAJCLFFBgvJAOi8mLydpGW0DfV-nIZtG_bbp2Tjn-xHbAtKPilz4uUvWZgJg8wcFC_X9EsH3T5rEH6ikWT9Jb3RWfpatYbN3-WEtbwcwL6PBioQJNkb8uMFoQPBLdM1bJWmYmxy3oBrJ_qBgY3rdhJClKgtw1O5Z8-L4uweH8kX"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/70 via-transparent to-transparent flex items-end p-space-md">
+<div class="text-surface flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-tertiary-fixed">assignment_turned_in</span>
+<span class="font-label-md text-label-md text-surface">شورای علمی بازبینی بالینی</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Live Smart Search Hub -->
+<div class="mt-space-lg relative z-20">
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-md">
+<div class="flex flex-col md:flex-row items-center gap-space-sm">
+<div class="relative flex-1 w-full flex items-center">
+<span class="material-symbols-outlined absolute right-space-md text-outline text-[22px]">search</span>
+<input class="w-full pr-12 pl-space-md py-space-sm bg-surface-container-low rounded-xl font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest transition-all" id="medicalSearchInput" placeholder="جستجوی عنوان بیماری، علامت تشخیصی، دارو، یا متخصص (مانند کبد چرب، متفورمین، تپش قلب)..." type="text"/>
+<button class="hidden absolute left-space-md text-outline hover:text-on-surface p-space-xxs rounded-full transition-colors" id="clearSearchBtn" title="پاک کردن">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="flex items-center gap-space-xs w-full md:w-auto">
+<div class="flex items-center gap-space-xxs bg-surface-container-low px-space-md py-space-sm rounded-xl text-on-surface-variant font-label-md text-label-md flex-1 md:flex-none justify-center">
+<span class="material-symbols-outlined text-[18px] text-primary">filter_alt</span>
+<span>فیلتر شواهد: همه مباحث</span>
+</div>
+<button class="bg-primary hover:bg-primary-container text-on-primary px-space-xl py-space-sm rounded-xl font-label-md text-label-md transition-colors flex items-center justify-center gap-space-xxs shadow-sm">
+<span>جستجو</span>
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+</button>
+</div>
+</div>
+<!-- Trend Tags / Quick Access -->
+<div class="flex flex-wrap items-center gap-space-xs pt-space-sm mt-space-xs">
+<span class="font-label-sm text-label-sm text-outline flex items-center gap-space-xxs">
+<span class="material-symbols-outlined text-[14px]">local_fire_department</span>
+            موضوعات پرتکرار مراجعه:
+          </span>
+<a class="bg-surface-container-low hover:bg-surface-container text-primary font-label-sm text-label-sm px-space-sm py-1 rounded-full transition-colors" href="#diabetes">مقاومت به انسولین</a>
+<a class="bg-surface-container-low hover:bg-surface-container text-primary font-label-sm text-label-sm px-space-sm py-1 rounded-full transition-colors" href="#fatty-liver">گرید ۲ کبد چرب</a>
+<a class="bg-surface-container-low hover:bg-surface-container text-primary font-label-sm text-label-sm px-space-sm py-1 rounded-full transition-colors" href="#cardio">پرفشاری خون اساسی</a>
+<a class="bg-surface-container-low hover:bg-surface-container text-primary font-label-sm text-label-sm px-space-sm py-1 rounded-full transition-colors" href="#nutrition">رژیم فودمپ (IBS)</a>
+<a class="bg-surface-container-low hover:bg-surface-container text-primary font-label-sm text-label-sm px-space-sm py-1 rounded-full transition-colors" href="#mental-health">سندروم خستگی آدرنال</a>
+</div>
+</div>
+</div>
+<!-- Persian Alphabetical Clinical Index (الف تا ی) -->
+<div class="mt-space-xl bg-surface-container-lowest p-space-md md:p-space-lg rounded-2xl shadow-sm">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">sort_by_alpha</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">شاخص الفبایی مباحث سلامت</h2>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">انتخاب سریع بر پایه حرف آغازین</span>
+</div>
+<!-- Alphabet Slider Bar -->
+<div class="flex items-center justify-between overflow-x-auto py-space-xs gap-space-xxs no-scrollbar">
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-headline-sm text-headline-sm text-on-primary bg-primary transition-all flex-shrink-0 shadow-sm" data-letter="all">همه</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="الف">آ - ا</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ب">ب</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="پ">پ</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ت">ت</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ث">ث</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ج">ج</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="چ">چ</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ح">ح</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="خ">خ</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="د">د</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ذ">ذ</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ر">ر</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ز">ز</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="س">س</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ش">ش</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ص">ص</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ض">ض</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ط">ط</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ع">ع</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="غ">غ</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ف">ف</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ق">ق</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ک">ک</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="گ">گ</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ل">ل</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="م">م</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ن">ن</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="و">و</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ه">ه</button>
+<button class="alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0" data-letter="ی">ی</button>
+</div>
+</div>
+<!-- Directory Pillars & Category Mosaics -->
+<div class="mt-space-2xl flex flex-col gap-space-2xl" id="directoryContainer">
+<!-- SECTION 1: دیابت، متابولیسم و غدد -->
+<section class="category-block flex flex-col gap-space-md" data-category="diabetes" data-keywords="دیابت نوع ۲ قند خون انسولین گلوکوز غدد متابولیک" id="diabetes">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[26px]">vital_signs</span>
+</div>
+<div class="flex flex-col text-right">
+<h3 class="font-headline-md text-headline-md text-on-surface">دیابت، متابولیسم و بیماری‌های غدد</h3>
+<span class="font-body-md text-body-md text-on-surface-variant">راهنمای بالینی کنترل قند خون، اختلالات تیروئید و پیشگیری از عوارض ماکروواسکولار</span>
+</div>
+</div>
+<a class="hidden sm:flex items-center gap-space-xxs text-primary font-title-md text-title-md hover:underline" href="#">
+<span>مشاهده ۴۸ زیرموضوع</span>
+<span class="material-symbols-outlined text-[18px]">arrow_left</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Card 1 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">شایع‌ترین سرفصل</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">monitor_weight</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">دیابت نوع ۲ و سندرم متابولیک</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                اصول مدیریت قند ناشتا (FBS) و هموگلوبین گلیکوزیله (HbA1c)، پروتکل تنظیم کربوهیدرات بر اساس شاخص گلیسمی و جلوگیری از نوروپاتی دیابتی.
+              </p>
+<!-- Mini clinical sparkline chart -->
+<div class="mt-space-xs p-space-xs bg-surface-container-low rounded-xl flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm">روند کنترل‌پذیری:</span>
+<svg class="w-24 h-6 text-primary" fill="none" viewbox="0 0 100 25">
+<path d="M0 20 Q 25 5, 50 15 T 100 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+<span class="font-label-sm text-label-sm text-primary font-bold">۸۲٪ اثربخشی</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">stethoscope</span>
+<span>متخصصین مرتبط: ۱۲ پزشک</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>مطالعه پروتکل</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">غدد درون‌ریز</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">science</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">کم‌کاری و پرکاری تیروئید (هاشیموتو)</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                تفسیر فاکتورهای TSH و Anti-TPO، ارتباط هورمون‌های تیروئیدی با چربی خون و الگوی غذایی غنی از سلنیوم و روی در بیماران تحت لئوتیروکسین.
+              </p>
+<div class="mt-space-xs flex flex-wrap gap-space-xxs">
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">آزمایش TSH</span>
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">سلنیوم ارگانیک</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">menu_book</span>
+<span>۱۴ مقاله بازبینی‌شده</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>راهنمای تشخیصی</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-space-xs py-space-xxs rounded-md">مراقبت اختصاصی</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">pregnant_woman</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">دیابت بارداری (GDM) و مقاومت به انسولین</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                غربالگری گلوکوز ۲۴ تا ۲۸ هفتگی (GTT)، پایش سلامت جنین و تنظیم رژیم مادران بدون خطر افت قند خون شبانه (هیپوگلیسمی).
+              </p>
+<div class="mt-space-xs flex flex-wrap gap-space-xxs">
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">تست GTT</span>
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">تغذیه بارداری</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">stethoscope</span>
+<span>متخصصین پریناتولوژی</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>رزرو مشاوره فوری</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+</div>
+</section>
+<!-- SECTION 2: کبد چرب و بیماری‌های گوارش -->
+<section class="category-block flex flex-col gap-space-md" data-category="digestive" data-keywords="کبد چرب گوارش آنزیم های کبدی روده معده ریفلاکس صفرا" id="fatty-liver">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-xl bg-tertiary text-on-tertiary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[26px]">save_as</span>
+</div>
+<div class="flex flex-col text-right">
+<h3 class="font-headline-md text-headline-md text-on-surface">کبد چرب و سلامت دستگاه گوارش</h3>
+<span class="font-body-md text-body-md text-on-surface-variant">ارزیابی درجه‌های کبد چرب (NAFLD)، اختلالات میکروبیوم روده و التهاب‌های گوارشی</span>
+</div>
+</div>
+<a class="hidden sm:flex items-center gap-space-xxs text-primary font-title-md text-title-md hover:underline" href="#">
+<span>مشاهده ۳۶ زیرموضوع</span>
+<span class="material-symbols-outlined text-[18px]">arrow_left</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Card 1 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">بالینی شایع</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">healing</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">کبد چرب غیرالکلی (گرید ۱، ۲ و ۳)</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                تفسیر آنزیم‌های ALT و AST، فیبرواسکن کبد، تدابیر حذف فروکتوز صنعتی، و نقش عصاره کنگر فرنگی و بره موم در معکوس‌سازی کبد چرب.
+              </p>
+<!-- Interactive Visual Metric Badge -->
+<div class="mt-space-xs bg-surface-container-low p-space-xs rounded-xl flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center font-bold font-label-md">
+                  FIB
+                </div>
+<div class="flex flex-col text-right">
+<span class="font-label-sm text-label-sm text-on-surface">پروتکل فیبرواسکن و سونوگرافی</span>
+<span class="font-label-sm text-label-sm text-outline">توصیه شده توسط انجمن گوارش ایران</span>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">stethoscope</span>
+<span>فوق تخصص کبد و گوارش</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>برنامه پاکسازی</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">میکروبیوم و هضم</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">bubble_chart</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">سندرم روده تحریک‌پذیر (IBS) و SIBO</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                مدیریت نفخ، دردهای احشایی و تغییر اجابت مزاج، رژیم گام‌به‌گام Low-FODMAP همراه با پروبیوتیک‌های هدفمند مقاوم به اسید معده.
+              </p>
+<div class="mt-space-xs flex flex-wrap gap-space-xxs">
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">رژیم فودمپ</span>
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">تست تنفسی هیدروژن</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">menu_book</span>
+<span>۲۱ پرونده بالینی</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>مشاهده رژیم</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">اسید و معده</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">valve</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">ریفلاکس گاستروازوفاژیال (GERD) و هلیکوباکتر</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                اصلاح فاکتورهای ترشح اسید، جایگزینی مهارکننده‌های پمپ پروتون (PPI) با صمغ‌های درمانی بومی نظیر سقز، و تست‌های تنفسی اوره.
+              </p>
+<div class="mt-space-xs flex flex-wrap gap-space-xxs">
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">آندوسکوپی دقیق</span>
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">بهداشت مری</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">stethoscope</span>
+<span>نوبت‌دهی آندوسکوپی</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>راهنمای درمان</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+</div>
+</section>
+<!-- Mid-Directory Banner: Verified Medical Guidance -->
+<div class="bg-primary-container text-on-primary rounded-3xl p-space-xl flex flex-col lg:flex-row items-center justify-between gap-space-lg shadow-md relative overflow-hidden">
+<div class="flex items-center gap-space-md max-w-2xl text-right z-10">
+<div class="w-16 h-16 rounded-2xl bg-on-primary/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[36px] text-on-primary-container">clinical_notes</span>
+</div>
+<div class="flex flex-col gap-space-xxs">
+<h4 class="font-headline-sm text-headline-sm font-bold text-on-primary">
+              آیا نیاز به تدوین رژیم درمانی انفرادی بر پایه پرونده آزمایشگاهی دارید؟
+            </h4>
+<p class="font-body-md text-body-md text-on-primary/80">
+              پزشکان متخصص غدد و مشاوران ارشد تغذیه بالینی انگبین طب، نسخه‌های اصلاح سبک زندگی را متناسب با سابقه خانوادگی و آزمایش‌های تخصصی شما تنظیم می‌کنند.
+            </p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm z-10 w-full lg:w-auto justify-end">
+<a class="bg-surface-container-lowest text-primary hover:bg-surface font-title-md text-title-md px-space-lg py-space-sm rounded-xl transition-all shadow-sm text-center flex-1 lg:flex-none" href="#">
+            ارسال آزمایش و مشاوره فوری
+          </a>
+</div>
+</div>
+<!-- SECTION 3: قلب، عروق و فشار خون -->
+<section class="category-block flex flex-col gap-space-md" data-category="cardio" data-keywords="قلب عروق فشار خون چربی خون سکته کلسترول آنژیو گرافی" id="cardio">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[26px]">cardiology</span>
+</div>
+<div class="flex flex-col text-right">
+<h3 class="font-headline-md text-headline-md text-on-surface">قلب، گردش خون و آترواسکلروز</h3>
+<span class="font-body-md text-body-md text-on-surface-variant">پیشگیری از تنگی عروق کرونر، کنترل فشار خون، آریتمی‌ها و تعادل لیپیدهای پلاسما</span>
+</div>
+</div>
+<a class="hidden sm:flex items-center gap-space-xxs text-primary font-title-md text-title-md hover:underline" href="#">
+<span>مشاهده ۲۹ زیرموضوع</span>
+<span class="material-symbols-outlined text-[18px]">arrow_left</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Card 1 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">پرفشاری خون</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">speed</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">فشار خون اولیه و رژیم دش (DASH)</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                اصلاح تعادل سدیم به پتاسیم، پایش هولتر فشار ۲۴ ساعته، اثرات تمرین‌های هوازی و ریزمغذی‌های گشادکننده عروق بر دیواره شریان‌ها.
+              </p>
+<div class="mt-space-xs p-space-xs bg-surface-container-low rounded-xl flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm">محدودیت سدیم:</span>
+<span class="font-label-sm text-label-sm font-bold text-secondary">زیر ۲۳۰۰ میلی‌گرم/روز</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">stethoscope</span>
+<span>فوق تخصص قلب و عروق</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>دستورالعمل DASH</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">لیپوپروتئین‌ها</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">water_drop</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">دیس‌لیپیدمی و کلسترول اکسیدشده (LDL-C)</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                نقش چربی‌های ترانس، استاتین‌ها و مکمل‌های طبیعی نظیر کوآنزیم Q10 و اسیدهای چرب امگا-۳ غلیظ در مهار رسوب پلاک‌های آترومی.
+              </p>
+<div class="mt-space-xs flex flex-wrap gap-space-xxs">
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">آزمایش ApoB</span>
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">تست hs-CRP</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">menu_book</span>
+<span>۱۸ مقاله استنادی</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>تحلیل فاکتورهای چربی</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">ریتم قلب</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">ecg</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">تپش قلب، آریتمی و اضطراب سمپاتیک</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                افتراق حملات پانیک از فیبریلاسیون دهلیزی (AF)، پایش الکترولیت‌های منیزیوم و کلسیم، و پروتکل‌های تنظیم تنفس دیافراگمی واگ.
+              </p>
+<div class="mt-space-xs flex flex-wrap gap-space-xxs">
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">نوار قلب (ECG)</span>
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">تسکین واگ</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">stethoscope</span>
+<span>فوق تخصص الکتروفیزیولوژی</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>تفسیر نوار قلب</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+</div>
+</section>
+<!-- SECTION 4: سلامت روان، نورولوژی و خواب -->
+<section class="category-block flex flex-col gap-space-md" data-category="neuro" data-keywords="روان اعصاب اضطراب افسردگی خواب بی خوابی استرس مغز" id="mental-health">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-xl bg-tertiary-container text-on-tertiary-container flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[26px]">psychology</span>
+</div>
+<div class="flex flex-col text-right">
+<h3 class="font-headline-md text-headline-md text-on-surface">سلامت روان، عصب‌شناسی و اختلالات خواب</h3>
+<span class="font-body-md text-body-md text-on-surface-variant">ارتباط محور روده-مغز (Gut-Brain Axis)، اضطراب فراگیر، خستگی مزمن و بهبود کیفیت خواب عمیق</span>
+</div>
+</div>
+<a class="hidden sm:flex items-center gap-space-xxs text-primary font-title-md text-title-md hover:underline" href="#">
+<span>مشاهده ۳۲ زیرموضوع</span>
+<span class="material-symbols-outlined text-[18px]">arrow_left</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Card 1 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">نوروپلاستی</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">self_improvement</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">اضطراب منتشر (GAD) و محور روده-مغز</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                سنتز سروتونین توسط باکتری‌های همزیست روده، اثرات تغذیه‌ای دمنوش‌های حاوی بادرنجبویه و اسطوخودوس، و رویکرد شناختی-رفتاری (CBT).
+              </p>
+<div class="mt-space-xs flex flex-wrap gap-space-xxs">
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">سایکوبیوتیک‌ها</span>
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">مشاوره CBT</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">stethoscope</span>
+<span>روانپزشکان و روانشناسان</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>تست سنجش اضطراب</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">ریتم شبانه‌روزی</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">bedtime</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">بی‌خوابی و تنظیم ترشح ملاتونین طبیعی</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                بهداشت نور آبی، اصلاح دمای اتاق خواب، مصرف منیزیم گلیسینات و حذف الگوهای استرس‌زای شبانگاهی جهت بازیابی مراحل REM و خواب عمیق.
+              </p>
+<div class="mt-space-xs flex flex-wrap gap-space-xxs">
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">بهداشت چرخه خواب</span>
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">منیزیم گلیسینات</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">menu_book</span>
+<span>۱۶ راهنمای خواب</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>ارزیابی کیفیت خواب</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">سردردهای مزمن</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">bolt</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">میگرن و سردردهای خوشه‌ای ناشی از غذا</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                شناسایی محرک‌های تیرامین، نیترات و گلوتامات در رژیم غذایی، استفاده از ریبوفلاوین (B2) و عصاره بابونه گاوی برای کاهش حملات عروقی سر.
+              </p>
+<div class="mt-space-xs flex flex-wrap gap-space-xxs">
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">دفترچه پایش میگرن</span>
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">فوق تخصص مغز و اعصاب</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">stethoscope</span>
+<span>نوبت‌دهی نورولوژیست</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>پیشگیری از حملات</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+</div>
+</section>
+<!-- SECTION 5: تغذیه بالینی و طب اصلاحی انگبین -->
+<section class="category-block flex flex-col gap-space-md" data-category="nutrition" data-keywords="تغذیه رژیم غذایی لاغری چاقی عسل انگبین ویتامین مکمل گیاهی" id="nutrition">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-xl bg-secondary-container text-on-secondary-container flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[26px]">nutrition</span>
+</div>
+<div class="flex flex-col text-right">
+<h3 class="font-headline-md text-headline-md text-on-surface">تغذیه بالینی، متابولومیکس و طب احیاگر انگبین</h3>
+<span class="font-body-md text-body-md text-on-surface-variant">ترکیب اصول فارماکوگنوزی سنتی ایران با دانش نوین بیوشیمی، روزه‌داری متناوب و رژیم‌های هدفمند درمانی</span>
+</div>
+</div>
+<a class="hidden sm:flex items-center gap-space-xxs text-primary font-title-md text-title-md hover:underline" href="#">
+<span>مشاهده ۵۴ زیرموضوع</span>
+<span class="material-symbols-outlined text-[18px]">arrow_left</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Card 1 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-secondary-fixed text-on-secondary-fixed px-space-xs py-space-xxs rounded-md font-label-sm text-label-sm">اختصاصی انگبین طب</span>
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors text-[20px]">hive</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">انگبین‌ها، مان و فرآورده‌های کندو در بالین</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                خواص ضدالتهابی ژل رویال ارگانیک، بره موم (Propolis) در ترمیم مخاط و نقش عسل خام تک‌گل در تعدیل ایمنی و ترمیم زخم‌های مقاوم.
+              </p>
+<!-- Badge indicator -->
+<div class="mt-space-xs p-space-xs bg-surface-container-low rounded-xl flex items-center gap-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-secondary text-[18px]">workspace_premium</span>
+<span class="font-label-sm text-label-sm">دارای گواهینامه آزمایشگاه ملی کنترل غذا و دارو</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">verified</span>
+<span>فارماکوپه گیاهی ایران</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>مشاهده خواص بالینی</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">طول عمر و اتوفاژی</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">hourglass_empty</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">روزه‌داری متناوب (Intermittent Fasting)</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                پروتکل‌های ۱۶/۸، پاکسازی بقایای سلولی، تحریک هورمون رشد (HGH) و هماهنگ‌سازی زمان‌بندی تغذیه با ساعت بیولوژیک بدن (Circadian Rhythm).
+              </p>
+<div class="mt-space-xs flex flex-wrap gap-space-xxs">
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">اتوفاژی سلولی</span>
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">محاسبه‌گر فستینگ</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">menu_book</span>
+<span>۲۷ مقاله علمی</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>شروع برنامه اصولی</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="topic-card bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-xs text-right">
+<div class="flex items-center justify-between">
+<span class="bg-surface-container px-space-xs py-space-xxs rounded-md text-primary font-label-sm text-label-sm">ریز‌مغذی‌ها</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">medication</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold mt-space-xs">کمبود ویتامین D3، B12 و آهن فرریتین</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">
+                علائم خستگی مفرط، ریزش مو، تداخلات جذب آهن با کلسیم، مصرف همزمان ویتامین K2 با دوزهای بالای D3 و بررسی جهش‌های ژنی MTHFR.
+              </p>
+<div class="mt-space-xs flex flex-wrap gap-space-xxs">
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">بررسی فرریتین سرم</span>
+<span class="bg-surface-container-low text-on-surface-variant text-label-sm px-space-xs py-0.5 rounded">دوزبندی بالینی</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-xxs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">stethoscope</span>
+<span>متخصصین تغذیه بالینی</span>
+</div>
+<a class="text-primary font-label-md text-label-md group-hover:translate-x-[-4px] transition-transform flex items-center gap-space-xxs" href="#">
+<span>تفسیر آزمایش خون</span>
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</a>
+</div>
+</article>
+</div>
+</section>
+<!-- Empty State / No Results Feedback (Dynamic) -->
+<div class="hidden bg-surface-container-lowest rounded-3xl p-space-2xl text-center flex flex-col items-center justify-center gap-space-sm shadow-sm" id="noResultsState">
+<span class="material-symbols-outlined text-[56px] text-outline">search_off</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">مبحث بالینی مورد نظر با این عنوان یافت نشد</h4>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-md">
+          شما می‌توانید از طریق سامانه تریاژ آنلاین انگبین طب با پزشک کشیک در خصوص علائم خود مشورت نمایید یا واژه جستجو را کوتاه‌تر وارد کنید.
+        </p>
+<button class="mt-space-xs bg-surface-container-high hover:bg-surface-container text-primary font-label-md text-label-md px-space-lg py-space-xs rounded-xl transition-colors" id="resetDirectoryBtn">
+          نمایش تمام مباحث دایرکتوری
+        </button>
+</div>
+</div>
+<!-- Clinical Advisory Citation Box -->
+<div class="mt-space-2xl bg-surface-container-low rounded-2xl p-space-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[28px]">policy</span>
+<div class="flex flex-col text-right">
+<span class="font-title-md text-title-md text-on-surface font-bold">استاندارد بازبینی و اعتبارسنجی مقالات</span>
+<span class="font-body-md text-body-md text-on-surface-variant">تمامی پروتکل‌های این دایرکتوری توسط بورد علمی ۳نفره متشکل از پزشک متخصص، داروساز بالینی و کارشناس ارشد تغذیه بازبینی و به‌روزرسانی فصلی می‌شوند.</span>
+</div>
+</div>
+<a class="text-primary font-label-md text-label-md hover:underline flex-shrink-0" href="#">
+        مشاهده اعضای بورد نظارت پزشکی
+      </a>
+</div>
+</div>
+<!-- Inline Script for Reactive Directory Search & Alphabetical Filtering -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('medicalSearchInput');
+      const clearBtn = document.getElementById('clearSearchBtn');
+      const alphabetButtons = document.querySelectorAll('.alphabet-btn');
+      const categoryBlocks = document.querySelectorAll('.category-block');
+      const cards = document.querySelectorAll('.topic-card');
+      const noResults = document.getElementById('noResultsState');
+      const resetBtn = document.getElementById('resetDirectoryBtn');
+
+      let currentQuery = '';
+      let currentLetter = 'all';
+
+      function performFilter() {
+        const query = currentQuery.trim().toLowerCase();
+        let visibleCardsCount = 0;
+
+        cards.forEach(card => {
+          const title = card.querySelector('h4')?.textContent.toLowerCase() || '';
+          const body = card.querySelector('p')?.textContent.toLowerCase() || '';
+          const tags = Array.from(card.querySelectorAll('span')).map(s => s.textContent.toLowerCase()).join(' ');
+          
+          const matchesQuery = query === '' || title.includes(query) || body.includes(query) || tags.includes(query);
+          
+          let matchesLetter = true;
+          if (currentLetter !== 'all') {
+            const cleanTitle = title.trim();
+            if (currentLetter === 'الف') {
+              matchesLetter = cleanTitle.startsWith('ا') || cleanTitle.startsWith('آ') || cleanTitle.startsWith('أ') || cleanTitle.startsWith('إ');
+            } else {
+              matchesLetter = cleanTitle.startsWith(currentLetter);
+            }
+          }
+
+          if (matchesQuery && matchesLetter) {
+            card.style.display = 'flex';
+            visibleCardsCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Hide empty categories
+        categoryBlocks.forEach(section => {
+          const visibleInCat = section.querySelectorAll('.topic-card[style="display: flex;"]').length;
+          // If default state (no explicit style.display set yet)
+          const totalInCat = section.querySelectorAll('.topic-card').length;
+          const actuallyVisible = Array.from(section.querySelectorAll('.topic-card')).filter(c => c.style.display !== 'none').length;
+          
+          if (actuallyVisible === 0) {
+            section.style.display = 'none';
+          } else {
+            section.style.display = 'flex';
+          }
+        });
+
+        // Handle completely empty state
+        if (visibleCardsCount === 0) {
+          noResults.classList.remove('hidden');
+        } else {
+          noResults.classList.add('hidden');
+        }
+
+        // Toggle clear search button
+        if (query.length > 0) {
+          clearBtn.classList.remove('hidden');
+        } else {
+          clearBtn.classList.add('hidden');
+        }
+      }
+
+      // Search input handler with debounce
+      let searchTimeout;
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          currentQuery = e.target.value;
+          performFilter();
+        }, 150);
+      });
+
+      // Clear search button
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        currentQuery = '';
+        performFilter();
+        searchInput.focus();
+      });
+
+      // Reset Directory Button
+      resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        currentQuery = '';
+        currentLetter = 'all';
+        alphabetButtons.forEach(btn => {
+          btn.className = "alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0";
+        });
+        const allBtn = document.querySelector('.alphabet-btn[data-letter="all"]');
+        if (allBtn) {
+          allBtn.className = "alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-headline-sm text-headline-sm text-on-primary bg-primary transition-all flex-shrink-0 shadow-sm";
+        }
+        performFilter();
+      });
+
+      // Alphabet buttons handler
+      alphabetButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          alphabetButtons.forEach(b => {
+            b.className = "alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-title-md text-title-md text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all flex-shrink-0";
+          });
+          btn.className = "alphabet-btn w-9 h-10 flex items-center justify-center rounded-lg font-headline-sm text-headline-sm text-on-primary bg-primary transition-all flex-shrink-0 shadow-sm";
+
+          currentLetter = btn.getAttribute('data-letter');
+          performFilter();
+        });
+      });
+    });
+  </script>
+</div></main><footer class="w-full bg-surface-container-low mt-space-3xl"><div class="bg-error-container text-on-error-container py-space-sm px-gutter-desktop text-center font-label-md text-label-md flex items-center justify-center gap-space-xs"><span class="material-symbols-outlined text-[20px]">emergency</span><span>توجه: انگبین طب سامانه اعزام اورژانس پزشکی حاد نیست. در شرایط بحرانی لطفاً با ۱۱۵ تماس بگیرید.</span></div><div class="bg-surface-container py-space-xs px-gutter-desktop text-center font-label-sm text-label-sm text-on-surface-variant flex items-center justify-center gap-space-xs"><span class="material-symbols-outlined text-[16px] text-primary">verified</span><span>تمامی نوبت‌های پزشکی بدون اخذ کارمزد آنلاین و با پرداخت حضوری در مطب رزرو می‌شوند.</span></div><div class="max-w-7xl mx-auto px-gutter-desktop py-space-2xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-xl text-right"><div class="flex flex-col gap-space-sm"><h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">دسترسی سریع</h3><ul class="flex flex-col gap-space-xs font-body-md text-body-md text-on-surface-variant"><li class="hover:text-primary transition-colors cursor-pointer">جستجوی پزشکان بر اساس تخصص</li><li class="hover:text-primary transition-colors cursor-pointer">پیگیری و کنسلی نوبت‌های ثبت‌شده</li><li class="hover:text-primary transition-colors cursor-pointer">استعلام نسخه الکترونیک بیمه سلامت و تامین</li><li class="hover:text-primary transition-colors cursor-pointer">راهنمای جامع پذیرش بیمار</li></ul></div><div class="flex flex-col gap-space-sm"><h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">خدمات بالینی برگزیده</h3><ul class="flex flex-col gap-space-xs font-body-md text-body-md text-on-surface-variant"><li class="hover:text-primary transition-colors cursor-pointer">کلینیک تخصصی غدد و متابولیسم</li><li class="hover:text-primary transition-colors cursor-pointer">پایش و اصلاح رژیم غذایی بالینی</li><li class="hover:text-primary transition-colors cursor-pointer">خدمات سونوگرافی و تصویربرداری دقیق</li><li class="hover:text-primary transition-colors cursor-pointer">چک‌آپ و آزمایش‌های سلامت سالیانه</li></ul></div><div class="flex flex-col gap-space-sm"><h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">پایگاه دانش و مقالات</h3><ul class="flex flex-col gap-space-xs font-body-md text-body-md text-on-surface-variant"><li class="hover:text-primary transition-colors cursor-pointer">اصول تغذیه و سلامت ارگانیک ایرانی</li><li class="hover:text-primary transition-colors cursor-pointer">راهنمای پیشگیری از دیابت و کبد چرب</li><li class="hover:text-primary transition-colors cursor-pointer">تازه‌های پژوهش بالینی و فارماکولوژی</li><li class="hover:text-primary transition-colors cursor-pointer">پادکست‌های تخصصی پزشکان برگزیده</li></ul></div><div class="flex flex-col gap-space-sm"><h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">مجوزها و اعتبارسنجی بالینی</h3><p class="font-body-md text-body-md text-on-surface-variant">پلتفرم معتمد سلامت زیر نظر سازمان نظام پزشکی جمهوری اسلامی ایران، مجهز به نماد اعتماد الکترونیکی و نشان ملی استاندارد سلامت بالینی.</p><div class="flex items-center gap-space-sm pt-space-xs text-on-surface-variant font-label-sm text-label-sm"><div class="bg-surface px-space-sm py-space-xs rounded-lg shadow-sm flex items-center gap-space-xxs"><span class="material-symbols-outlined text-primary text-[18px]">verified_user</span><span>نظام پزشکی</span></div><div class="bg-surface px-space-sm py-space-xs rounded-lg shadow-sm flex items-center gap-space-xxs"><span class="material-symbols-outlined text-secondary text-[18px]">security</span><span>اینماد بالینی</span></div><div class="bg-surface px-space-sm py-space-xs rounded-lg shadow-sm flex items-center gap-space-xxs"><span class="material-symbols-outlined text-primary text-[18px]">health_and_safety</span><span>سلامت ملی</span></div></div></div></div><div class="max-w-7xl mx-auto px-gutter-desktop py-space-md border-t border-surface-container-high flex flex-col sm:flex-row items-center justify-between text-on-surface-variant font-label-md text-label-md gap-space-xs"><span>کلیه حقوق مادی و معنوی این سامانه متعلق به سامانه پزشکی انگبین طب است.</span><span>طراحی بر پایه استانداردهای هوشمند بالینی و تغذیه سالم</span></div></footer></body></html>
