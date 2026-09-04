@@ -7,7 +7,7 @@ export interface ClinicalFooterProps {
 
 export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
   return (
-    <footer className="w-full bg-surface-container-lowest border-t border-outline-variant/30 text-on-surface">
+    <footer className="w-full bg-surface-container-lowest border-t border-outline-variant/30 text-on-surface pb-16 md:pb-0">
       {/* Emergency disclaimer banner */}
       <div className="bg-error-container/40 border-b border-error/20 px-4 py-3 text-center">
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 text-xs md:text-sm font-semibold text-error">

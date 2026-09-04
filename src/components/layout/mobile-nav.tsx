@@ -14,7 +14,7 @@ export function MobileNav({ locale = "fa" }: MobileNavProps) {
   const items = [
     { label: "خانه", href: `/${locale}`, icon: "home", exact: true },
     { label: "پزشکان", href: `/${locale}/doctors`, icon: "stethoscope", exact: false },
-    { label: "تغذیه", href: `/${locale}/nutrition`, icon: "nutrition", exact: false },
+    { label: "تغذیه", href: `/${locale}/nutrition`, icon: "restaurant", exact: false },
     { label: "نوبت‌ها", href: `/${locale}/appointments`, icon: "calendar_month", exact: false },
     { label: "پشتیبانی", href: `/${locale}/support`, icon: "support_agent", exact: false },
   ];

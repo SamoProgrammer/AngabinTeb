@@ -49,7 +49,7 @@ describe("Global Clinical Chrome", () => {
       expect(html).toContain("/fa/appointments");
     });
 
-    it("renders all clinical navigation links", () => {
+    it("renders all clinical navigation links with tablet breakpoint support", () => {
       const html = renderToString(<ClinicalHeader locale="fa" />);
       expect(html).toContain("نوبت‌دهی پزشکان");
       expect(html).toContain("خدمات درمانی");
@@ -57,6 +57,7 @@ describe("Global Clinical Chrome", () => {
       expect(html).toContain("مجله سلامت");
       expect(html).toContain("درباره ما");
       expect(html).toContain("تماس با ما");
+      expect(html).toContain("hidden md:flex");
     });
   });
 
@@ -85,16 +86,25 @@ describe("Global Clinical Chrome", () => {
       expect(html).toContain("پشتیبانی سامانه: ۰۲۱-۸۸۲۲۴۰۰۰");
       expect(html).toContain("تمامی حقوق این سامانه متعلق به انگبین طب است");
     });
+
+    it("includes mobile navigation clearance padding", () => {
+      const html = renderToString(<ClinicalFooter locale="fa" />);
+      expect(html).toContain("pb-16 md:pb-0");
+    });
   });
 
   describe("MobileNav", () => {
-    it("renders all 5 mobile navigation destinations", () => {
+    it("renders all 5 mobile navigation destinations with valid Material Symbols glyphs", () => {
       const html = renderToString(<MobileNav locale="fa" />);
       expect(html).toContain("خانه");
       expect(html).toContain("پزشکان");
       expect(html).toContain("تغذیه");
       expect(html).toContain("نوبت‌ها");
       expect(html).toContain("پشتیبانی");
+
+      // Verify Material Symbol glyphs: uses valid 'restaurant' glyph and not fallback 'nutrition'
+      expect(html).toContain(">restaurant</span>");
+      expect(html).not.toContain(">nutrition</span>");
     });
 
     it("links to correct localized routes", () => {

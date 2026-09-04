@@ -29,8 +29,8 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-outline-variant/30 bg-surface/90 backdrop-blur-md shadow-tier-1">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Brand logo & Desktop Navigation */}
-        <div className="flex items-center gap-6 xl:gap-8">
+        {/* Brand logo & Desktop/Tablet Navigation */}
+        <div className="flex items-center gap-4 lg:gap-6 xl:gap-8">
           <Link
             href={`/${locale}`}
             className="group flex items-center gap-3 transition-opacity hover:opacity-90"
@@ -48,14 +48,14 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
             </div>
           </Link>
 
-          <nav aria-label="Main Navigation" className="hidden lg:flex items-center gap-1">
+          <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => {
               const active = isItemActive(link.href);
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`rounded-lg px-3 py-2 text-xs xl:text-sm font-medium transition-colors ${
+                  className={`rounded-lg px-2.5 lg:px-3 py-2 text-xs xl:text-sm font-medium transition-colors ${
                     active
                       ? "bg-primary/10 text-primary font-semibold"
                       : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
