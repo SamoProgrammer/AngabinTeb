@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { expandPattern } from "../actions";
+import { expandPattern } from "../scheduling";
 
 describe("expandPattern", () => {
   it("expands a weekly pattern into concrete slots", () => {
