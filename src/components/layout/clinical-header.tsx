@@ -309,15 +309,6 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
 
         {/* Action Buttons & Utilities */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Emergency / Support Hotline */}
-          <a
-            href="tel:02188224000"
-            className="hidden xl:inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
-          >
-            <ClinicalIcon name="support_agent" size={18} className="text-primary" />
-            <span>پشتیبانی فوری: ۰۲۱-۸۸۲۲۴۰۰۰</span>
-          </a>
-
           {/* Locale switcher */}
           <div className="flex items-center rounded-xl border border-outline-variant/50 bg-surface-container-lowest px-2 py-1 text-xs text-on-surface">
             <ClinicalIcon name="language" size={16} className="me-1 text-on-surface-variant" />
@@ -330,7 +321,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
             className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-primary shadow-tier-1 hover:bg-primary-container active:translate-y-px transition-all"
           >
             <ClinicalIcon name="person" size={18} fill />
-            <span>ورود / پرونده من</span>
+            <span>ورود</span>
           </Link>
 
           {/* Mobile Hamburger Menu Button */}

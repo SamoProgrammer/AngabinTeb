@@ -37,15 +37,9 @@ describe("Global Clinical Chrome", () => {
       expect(html).toContain("سامانه سلامت و تغذیه بالینی");
     });
 
-    it("renders emergency hotline label and link", () => {
-      const html = renderToString(<ClinicalHeader locale="fa" />);
-      expect(html).toContain("پشتیبانی فوری: ۰۲۱-۸۸۲۲۴۰۰۰");
-      expect(html).toContain("tel:02188224000");
-    });
-
     it("renders patient authentication CTA", () => {
       const html = renderToString(<ClinicalHeader locale="fa" />);
-      expect(html).toContain("ورود / پرونده من");
+      expect(html).toContain("ورود");
       expect(html).toContain("/fa/appointments");
     });
 
