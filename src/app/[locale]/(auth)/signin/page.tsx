@@ -15,7 +15,10 @@ function SignInForm({ locale }: { locale: string }) {
   const t = useTranslations("auth");
   const searchParams = useSearchParams();
 
-  const returnUrl = searchParams.get("returnUrl") || searchParams.get("callbackUrl") || `/${locale}/appointments`;
+  const rawReturnUrl = searchParams.get("returnUrl") || searchParams.get("callbackUrl");
+  const returnUrl = (rawReturnUrl && !rawReturnUrl.includes("/signin"))
+    ? rawReturnUrl
+    : `/${locale}/appointments`;
 
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -103,9 +106,10 @@ function SignInForm({ locale }: { locale: string }) {
     try {
       const res = await fetch("/api-test/login", { method: "POST" });
       if (!res.ok) throw new Error("Demo login endpoint unavailable");
-      const { token } = await res.json();
-      // Set the better-auth session cookie and redirect
-      document.cookie = `better-auth.session_token=${token}; path=/; max-age=86400; SameSite=Lax`;
+      const { signedCookie } = await res.json();
+      if (signedCookie) {
+        document.cookie = `better-auth.session_token=${encodeURIComponent(signedCookie)}; path=/; max-age=86400; SameSite=Lax`;
+      }
       window.location.href = returnUrl;
     } catch {
       setErrorMessage("خطا در ورود تستی. لطفاً از طریق پیامک وارد شوید.");
