@@ -60,7 +60,9 @@ export function SlotPicker({
         serviceId,
         slotId: selected,
         partySize: 1,
-        notes: notes ? `${patientName ? patientName + " - " : ""}${notes}` : patientName || undefined,
+        patientName: patientName.trim() || undefined,
+        patientPhone: phoneNumber.trim() || undefined,
+        notes: notes || undefined,
         idempotencyKey: key,
       })) as Result;
 
@@ -80,6 +82,57 @@ export function SlotPicker({
     }
   }
 
+  const morningSlots = slots.filter((s) => new Date(s.startsAt).getUTCHours() < 12);
+  const eveningSlots = slots.filter((s) => new Date(s.startsAt).getUTCHours() >= 12);
+
+  const renderSlot = (s: SlotProps) => {
+    const dateObj = new Date(s.startsAt);
+    const rawHour = String(dateObj.getUTCHours()).padStart(2, "0");
+    const rawMinute = String(dateObj.getUTCMinutes()).padStart(2, "0");
+    const timeEng = `${rawHour}:${rawMinute}`;
+    const timeDisplay = toPersianDigits(timeEng);
+
+    const remaining = Math.max(0, s.capacity - s.bookedCount);
+    const isFull = remaining <= 0;
+    const isSelected = selected === s.id;
+
+    return (
+      <li key={s.id}>
+        <button
+          type="button"
+          disabled={isFull || busy}
+          onClick={() => setSelected(s.id)}
+          aria-pressed={isSelected}
+          aria-label={timeEng}
+          className={`w-full p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
+            isFull
+              ? "bg-surface-container-low text-on-surface-variant/40 border-outline-variant/20 cursor-not-allowed line-through"
+              : isSelected
+                ? "border-primary bg-primary/10 text-primary font-bold shadow-xs ring-2 ring-primary/40"
+                : "border-outline-variant/30 bg-surface-container-low text-on-surface hover:border-primary/40 hover:bg-surface-container"
+          }`}
+        >
+          <span className="text-sm font-bold">{timeDisplay}</span>
+          <span
+            className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+              isFull
+                ? "bg-transparent text-outline"
+                : remaining === 1
+                  ? "bg-secondary/10 text-secondary font-bold"
+                  : "bg-primary/10 text-primary font-medium"
+            }`}
+          >
+            {isFull
+              ? "تکمیل"
+              : remaining === 1
+                ? "ظرفیت محدود"
+                : `${toPersianDigits(remaining)} نوبت`}
+          </span>
+        </button>
+      </li>
+    );
+  };
+
   return (
     <div className="mt-6 flex flex-col gap-6" dir="rtl">
       {/* Time Slots Section */}
@@ -87,62 +140,36 @@ export function SlotPicker({
         <div className="flex items-center justify-between">
           <h3 className="text-sm sm:text-base font-bold text-on-surface flex items-center gap-2">
             <ClinicalIcon name="schedule" size={20} className="text-primary" />
-            <span>انتخاب ساعت حضور</span>
+            <span>انتخاب ساعت مراجعه</span>
           </h3>
           <span className="text-xs text-on-surface-variant">
             {toPersianDigits(slots.length)} نوبت در دسترس
           </span>
         </div>
 
-        <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {slots.map((s) => {
-            const dateObj = new Date(s.startsAt);
-            const rawHour = String(dateObj.getUTCHours()).padStart(2, "0");
-            const rawMinute = String(dateObj.getUTCMinutes()).padStart(2, "0");
-            const timeEng = `${rawHour}:${rawMinute}`;
-            const timeDisplay = toPersianDigits(timeEng);
+        {morningSlots.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-semibold text-on-surface-variant flex items-center gap-1.5">
+              <ClinicalIcon name="wb_sunny" size={16} className="text-amber-600" />
+              <span>نوبت‌های صبح</span>
+            </span>
+            <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {morningSlots.map(renderSlot)}
+            </ul>
+          </div>
+        )}
 
-            const remaining = Math.max(0, s.capacity - s.bookedCount);
-            const isFull = remaining <= 0;
-            const isSelected = selected === s.id;
-
-            return (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  disabled={isFull || busy}
-                  onClick={() => setSelected(s.id)}
-                  aria-pressed={isSelected}
-                  aria-label={timeEng}
-                  className={`w-full p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
-                    isFull
-                      ? "bg-surface-container-low text-on-surface-variant/40 border-outline-variant/20 cursor-not-allowed line-through"
-                      : isSelected
-                        ? "border-primary bg-primary/10 text-primary font-bold shadow-xs ring-2 ring-primary/40"
-                        : "border-outline-variant/30 bg-surface-container-low text-on-surface hover:border-primary/40 hover:bg-surface-container"
-                  }`}
-                >
-                  <span className="text-sm font-bold">{timeDisplay}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                      isFull
-                        ? "bg-transparent text-outline"
-                        : remaining === 1
-                          ? "bg-secondary/10 text-secondary font-bold"
-                          : "bg-primary/10 text-primary font-medium"
-                    }`}
-                  >
-                    {isFull
-                      ? "پر شد"
-                      : remaining === 1
-                        ? "ظرفیت محدود"
-                        : `${toPersianDigits(remaining)} نوبت آزاد`}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        {eveningSlots.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-semibold text-on-surface-variant flex items-center gap-1.5">
+              <ClinicalIcon name="dark_mode" size={16} className="text-primary" />
+              <span>نوبت‌های عصر و شب</span>
+            </span>
+            <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {eveningSlots.map(renderSlot)}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Patient Information Form (Screen #8) */}
@@ -153,7 +180,7 @@ export function SlotPicker({
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1 text-right">
+          <div className="flex flex-col gap-1 text-start">
             <label htmlFor="patient_name" className="text-xs font-bold text-on-surface">
               نام و نام خانوادگی بیمار
             </label>
@@ -167,7 +194,7 @@ export function SlotPicker({
             />
           </div>
 
-          <div className="flex flex-col gap-1 text-right">
+          <div className="flex flex-col gap-1 text-start">
             <label htmlFor="phone_number" className="text-xs font-bold text-on-surface">
               شماره تماس همراه (جهت پیامک نوبت)
             </label>
@@ -178,11 +205,11 @@ export function SlotPicker({
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="۰۹۱۲۳۴۵۶۷۸۹"
               dir="ltr"
-              className="bg-surface-container-low px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-on-surface text-right outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-on-surface-variant/50"
+              className="bg-surface-container-low px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-on-surface text-start outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-on-surface-variant/50"
             />
           </div>
 
-          <div className="flex flex-col gap-1 text-right sm:col-span-2">
+          <div className="flex flex-col gap-1 text-start sm:col-span-2">
             <label htmlFor="symptoms_note" className="text-xs font-bold text-on-surface">
               توضیحات یا علت مراجعه (اختیاری)
             </label>
@@ -200,7 +227,7 @@ export function SlotPicker({
 
       {/* Reassurance & Confirmation Strip */}
       <div className="bg-surface-container-lowest p-5 sm:p-6 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex flex-col text-right">
+        <div className="flex flex-col text-start">
           <span className="text-xs sm:text-sm font-bold text-on-surface">
             هزینه مصوب: {formatPrice(price)}
           </span>
@@ -217,10 +244,10 @@ export function SlotPicker({
           className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary py-3 px-8 rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
         >
           {busy ? (
-            <span>در حال پردازش نوبت...</span>
+            <span>در حال ثبت نوبت...</span>
           ) : (
             <>
-              <span>ثبت و تایید نهایی نوبت</span>
+              <span>تایید نهایی نوبت</span>
               <ClinicalIcon name="arrow_left" size={18} />
             </>
           )}

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { getAppointment } from "@/contexts/booking/queries";
 import { ReceiptActions } from "@/components/booking/receipt-actions";
+import { ClinicalIcon } from "@/components/clinical/clinical-icon";
 
 function toPersianDigits(n: string | number): string {
   const farsiDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
@@ -17,39 +19,24 @@ export default async function ConfirmPage({
   const { locale } = await params;
   const { id } = await searchParams;
 
-  let appointmentData = null;
-  if (id) {
-    try {
-      appointmentData = await getAppointment(id);
-    } catch {
-      // fallback
-    }
-  }
+  const appointmentData = id ? await getAppointment(id).catch(() => null) : null;
+  if (!appointmentData) notFound();
 
-  const rawTrackingCode = id || "AT-84920";
-  const displayCode = id
-    ? id.startsWith("AT-")
-      ? id
-      : `AT-${id.slice(0, 6).toUpperCase()}`
-    : "AT-84920";
+  const rawTrackingCode = appointmentData.id;
+  const displayCode = rawTrackingCode.startsWith("AT-")
+    ? rawTrackingCode
+    : `AT-${rawTrackingCode.slice(0, 6).toUpperCase()}`;
 
-  const doctorName =
-    appointmentData?.providerName || "دکتر لیلا سادات هاشمی";
-  const serviceName =
-    appointmentData?.serviceName || "مشاوره و ویزیت تخصصی بالینی";
-  const councilCode = "۷۸۲۳۴";
+  const doctorName = appointmentData.providerName;
+  const serviceName = appointmentData.serviceName;
+  const clinicAddress = appointmentData.addressLine;
 
-  const patientName = "سارا محمدی‌تبار";
-  const clinicAddress =
-    appointmentData?.addressLine ||
-    "تهران، میدان ونک، خیابان ملاصدرا، پلاک ۴۲، ساختمان پزشکان، طبقه ۳، واحد ۱۲";
+  const priceToman = Number(appointmentData.price || 0);
+  const priceDisplay = toPersianDigits(priceToman.toLocaleString("fa-IR"));
 
-  const priceToman = appointmentData?.price ? Number(appointmentData.price) : 250000;
-  const priceDisplay = toPersianDigits((priceToman || 250000).toLocaleString("fa-IR"));
-
-  let dateDisplay = "یکشنبه ۲۵ شهریور ۱۴۰۳";
-  let timeDisplay = "ساعت ۱۰:۳۰ صبح";
-  if (appointmentData?.startsAt) {
+  let dateDisplay = "—";
+  let timeDisplay = "—";
+  if (appointmentData.startsAt) {
     try {
       const d = new Date(appointmentData.startsAt);
       dateDisplay = new Intl.DateTimeFormat("fa-IR", {
@@ -60,29 +47,17 @@ export default async function ConfirmPage({
         minute: "2-digit",
       }).format(d);
     } catch {
-      // fallback
+      // keep placeholder
     }
   }
 
   return (
-    <main className="w-full min-h-screen bg-slate-50/50 py-12 px-4 sm:px-6 lg:px-8">
+    <main className="w-full min-h-screen bg-slate-50/50 py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
       <div className="max-w-3xl mx-auto">
         {/* Top Status Header */}
         <section className="text-center mb-8 flex flex-col items-center">
           <div className="flex items-center justify-center w-20 h-20 mb-4 rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 ring-8 ring-emerald-50">
-            <svg
-              className="w-10 h-10"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
+            <ClinicalIcon name="check" size={40} />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
             نوبت بالینی شما با موفقیت ثبت شد
@@ -108,9 +83,6 @@ export default async function ConfirmPage({
                 <p className="text-sm font-semibold text-emerald-700 mt-0.5">
                   {serviceName}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">
-                  شماره نظام پزشکی: {toPersianDigits(councilCode)}
-                </p>
               </div>
             </div>
 
@@ -132,19 +104,7 @@ export default async function ConfirmPage({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-6 border-b border-slate-100 text-start">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-slate-100 text-emerald-700 flex items-center justify-center shrink-0">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
+                <ClinicalIcon name="calendar_month" size={20} />
               </div>
               <div>
                 <span className="text-xs text-slate-500 block font-medium">
@@ -161,29 +121,24 @@ export default async function ConfirmPage({
 
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-slate-100 text-emerald-700 flex items-center justify-center shrink-0">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
+                <ClinicalIcon name="person" size={20} />
               </div>
               <div>
                 <span className="text-xs text-slate-500 block font-medium">
-                  مشخصات بیمار
+                  نام بیمار
                 </span>
-                <span className="text-sm sm:text-base font-bold text-slate-900 block mt-0.5">
-                  {patientName}
-                </span>
-                <span className="text-xs text-emerald-700 font-semibold mt-0.5 block">
-                  پرونده الکترونیک فعال
+                {appointmentData.patientName ? (
+                  <span className="text-sm sm:text-base font-bold text-slate-900 block mt-0.5">
+                    {appointmentData.patientName}
+                  </span>
+                ) : null}
+                {appointmentData.patientPhone ? (
+                  <span className="text-xs text-slate-600 mt-0.5 block" dir="ltr">
+                    {appointmentData.patientPhone}
+                  </span>
+                ) : null}
+                <span className="text-xs text-slate-600 mt-0.5 block">
+                  {toPersianDigits(appointmentData.partySize)} نفر
                 </span>
               </div>
             </div>
@@ -193,32 +148,14 @@ export default async function ConfirmPage({
           <div className="py-6 border-b border-slate-100 text-start">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-slate-100 text-emerald-700 flex items-center justify-center shrink-0">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
+                <ClinicalIcon name="location_on" size={20} />
               </div>
               <div>
                 <span className="text-xs text-slate-500 block font-medium">
                   آدرس مطب / مرکز درمانی
                 </span>
                 <span className="text-sm font-medium text-slate-800 block mt-0.5 leading-relaxed">
-                  {clinicAddress}
+                  {clinicAddress || "نشانی ثبت نشده است."}
                 </span>
               </div>
             </div>
@@ -240,7 +177,7 @@ export default async function ConfirmPage({
               </div>
             </div>
             <div className="flex items-center gap-2 bg-amber-50 text-amber-900 border border-amber-200/80 px-4 py-2 rounded-2xl">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <ClinicalIcon name="check_circle" size={16} className="text-amber-700" />
               <span className="text-xs font-bold">
                 پرداخت حضوری در محل کلینیک (بدون کارمزد آنلاین)
               </span>
@@ -249,19 +186,7 @@ export default async function ConfirmPage({
 
           {/* Arrival advisory callout */}
           <div className="mt-6 p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100/80 flex items-start gap-3 text-start">
-            <svg
-              className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <ClinicalIcon name="info" size={20} className="text-emerald-700 shrink-0 mt-0.5" />
             <div className="text-xs text-emerald-900 leading-relaxed space-y-1">
               <p className="font-semibold">
                 لطفاً ۱۵ دقیقه پیش از ساعت مقرر در محل حضور داشته باشید.

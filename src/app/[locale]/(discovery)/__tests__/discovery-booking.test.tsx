@@ -230,6 +230,10 @@ describe("Discovery & Booking Subsystem Overhaul (Task 6)", () => {
       expect(html).toContain("رزرو حضوری نوبت");
       expect(html).toContain("پرداخت در مطب");
       expect(html).toContain("/fa/services/svc-1/book");
+
+      // De-slop: no fake pulsing status dots or fake online indicators
+      expect(html).not.toContain("animate-pulse");
+      expect(html).not.toContain("هم‌اکنون آنلاین");
     });
 
     it("renders not-found for unknown doctor slug", async () => {
@@ -271,7 +275,7 @@ describe("Discovery & Booking Subsystem Overhaul (Task 6)", () => {
   });
 
   describe("4. Service Detail & Preparation (Screen #3)", () => {
-    it("renders service details, Preparation warning box, and Book this service CTA", async () => {
+    it("renders service details, Preparation warning box, and Book this service CTA without fake lab table", async () => {
       const jsx = await ServicePage({
         params: Promise.resolve({ locale: "fa", slug: "svc-1" }),
       });
@@ -283,12 +287,22 @@ describe("Discovery & Booking Subsystem Overhaul (Task 6)", () => {
 
       // Playwright journey requirement: "Preparation"
       expect(html).toContain("Preparation");
+      expect(html).toContain("راهنمای آمادگی مراجعه");
+      expect(html).not.toContain("راهنمای آمادگی قبل از خدمت (Preparation)");
 
       // Playwright journey requirement: "Book this service"
       expect(html).toContain("Book this service");
+      expect(html).toContain("رزرو نوبت حضوری");
+      expect(html).not.toContain("رزرو آنلاین نوبت (Book this service)");
 
       // Pay-at-clinic notice
       expect(html).toContain("پرداخت در مطب");
+
+      // De-slop: no indiscriminate fake lab parameters table (FBS, HbA1c, etc.) on ECG
+      expect(html).not.toContain("فهرست ریزفاکتورهای تحلیلی");
+      expect(html).not.toContain("HbA1c");
+      expect(html).not.toContain("HOMA-IR");
+      expect(html).not.toContain("FBS");
     });
   });
 
@@ -344,6 +358,9 @@ describe("Discovery & Booking Subsystem Overhaul (Task 6)", () => {
       // Action buttons
       expect(html).toContain("چاپ یا دریافت فیش نوبت (PDF)");
       expect(html).toContain("مشاهده در پرونده من");
+
+      // De-slop: no pulsing status dots
+      expect(html).not.toContain("animate-pulse");
     });
   });
 
