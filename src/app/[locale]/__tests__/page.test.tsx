@@ -284,9 +284,7 @@ describe("Landing Page SSR (src/app/[locale]/page.tsx)", () => {
     expect(html).toContain("bmr-output");
     expect(html).toContain("tdee-output");
     expect(html).toContain("bmi-output");
-    expect(html).toContain(
-      "ورود به دفترچه تغذیه با سفره ایرانی (کفگیر، پیاله، پرس)"
-    );
+    expect(html).toContain("ثبت در دفترچه تغذیه");
   });
 
   it("6. renders Clinical Knowledge from listContent without invented authors", async () => {

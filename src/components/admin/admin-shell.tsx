@@ -78,7 +78,6 @@ export function AdminShell({ children, activePath = "/admin" }: AdminShellProps)
           </div>
           <div className="pt-2 border-t border-outline-variant/10 flex items-center justify-between">
             <LocaleSwitcher />
-            <span className="text-[10px] text-outline">نسخه بالینی ۱.۰</span>
           </div>
         </div>
       </aside>
@@ -90,9 +89,6 @@ export function AdminShell({ children, activePath = "/admin" }: AdminShellProps)
           <div className="flex items-center gap-2">
             <span className="bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-full">
               مدیر ارشد سامانه
-            </span>
-            <span className="text-xs text-on-surface-variant hidden sm:inline">
-              دسترسی نظارتی و بالینی کامل
             </span>
           </div>
 

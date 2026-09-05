@@ -21,7 +21,7 @@ export default async function AppointmentsPage({
         return (
           <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1">
             <ClinicalIcon name="check_circle" size={14} fill />
-            <span>نوبت تایید شده</span>
+            <span>تایید شده</span>
           </span>
         );
       case "cancelled":
@@ -53,10 +53,6 @@ export default async function AppointmentsPage({
         {/* Header Title & CTA */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6 text-start">
           <div className="flex flex-col gap-1">
-            <div className="inline-flex items-center gap-2 text-primary font-bold text-xs bg-primary/10 px-2.5 py-1 rounded-full self-start">
-              <ClinicalIcon name="calendar_today" size={16} />
-              <span>پرونده سلامت و مراجعات</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">
               نوبت‌های ویزیت و خدمات درمانی من
             </h1>
@@ -103,6 +99,18 @@ export default async function AppointmentsPage({
                         <ClinicalIcon name="schedule" size={15} className="text-primary" />
                         <span>{dateStr}</span>
                       </span>
+                      {a.patientName ? (
+                        <span className="flex items-center gap-1">
+                          <ClinicalIcon name="person" size={15} className="text-primary" />
+                          <span>{a.patientName}</span>
+                        </span>
+                      ) : null}
+                      {a.patientPhone ? (
+                        <span className="flex items-center gap-1">
+                          <ClinicalIcon name="call" size={15} className="text-primary" />
+                          <span dir="ltr">{a.patientPhone}</span>
+                        </span>
+                      ) : null}
                       <span className="flex items-center gap-1">
                         <ClinicalIcon name="group" size={15} className="text-primary" />
                         <span>تعداد مراجعین: {toPersianDigits(a.partySize)} نفر</span>
@@ -115,9 +123,16 @@ export default async function AppointmentsPage({
                   </div>
                 </div>
 
-                {/* Cancel Action Form */}
+                {/* Reschedule + Cancel Actions */}
                 {a.status === "confirmed" && (
                   <div className="flex items-center gap-3 pt-2 sm:pt-0 self-end sm:self-center">
+                    <Link
+                      href={`/${locale}/appointments/${a.id}/reschedule`}
+                      className="px-4 py-2 rounded-xl border border-primary/30 text-primary hover:bg-primary/5 text-xs font-bold transition-colors inline-flex items-center gap-1"
+                    >
+                      <ClinicalIcon name="event_repeat" size={16} />
+                      <span>تغییر نوبت</span>
+                    </Link>
                     <form
                       action={async () => {
                         "use server";

@@ -38,12 +38,22 @@ vi.mock("@/contexts/booking/queries", () => ({
       serviceName: "چکاپ متابولیک و سونوگرافی کبد",
       startsAt: new Date("2026-08-15T14:30:00Z"),
     },
+    {
+      id: "app-3",
+      status: "completed",
+      paymentStatus: "pay_at_clinic",
+      partySize: 1,
+      price: 2500000,
+      serviceName: "سونوگرافی شکم و لگن",
+      startsAt: new Date("2026-07-20T11:00:00Z"),
+    },
   ]),
 }));
 
 // Mock Booking Actions
 vi.mock("@/contexts/booking/actions", () => ({
   cancelAppointment: vi.fn().mockResolvedValue({ ok: true }),
+  rescheduleAppointment: vi.fn().mockResolvedValue({ ok: true }),
 }));
 
 // Mock Support Queries
@@ -84,10 +94,15 @@ describe("Account, Support & Marketing Pages", () => {
 
     expect(html).toContain("نوبت‌های ویزیت و خدمات درمانی من");
     expect(html).toContain("ویزیت تخصصی غدد و دیابت");
-    expect(html).toContain("نوبت تایید شده");
+    expect(html).toContain("تایید شده");
+    expect(html).not.toContain("نوبت تایید شده");
+    expect(html).not.toContain("پرونده سلامت و مراجعات");
+    expect(html).toContain("انجام شده");
     expect(html).toContain("لغو شده");
     expect(html).toContain("پرداخت در مطب");
     expect(html).toContain("لغو نوبت");
+    expect(html).toContain("تغییر نوبت");
+    expect(html).toContain("/fa/appointments/app-1/reschedule");
   });
 
   it("renders NotificationsPage with unread indicators and actions", async () => {
@@ -95,6 +110,9 @@ describe("Account, Support & Marketing Pages", () => {
     const html = renderToString(pageJsx);
 
     expect(html).toContain("اعلان‌ها و یادآوری‌های سلامت");
+    expect(html).not.toContain("مرکز پیام‌های پرونده");
+    expect(html).not.toContain("animate-pulse");
+    expect(html).not.toContain("animate-ping");
     expect(html).toContain("تایید نوبت ویزیت تخصصی");
     expect(html).toContain("یادآوری آزمایش ناشتا");
     expect(html).toContain("علامت‌گذاری همه به عنوان خوانده شده");

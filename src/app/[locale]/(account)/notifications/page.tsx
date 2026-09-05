@@ -28,10 +28,6 @@ export default async function NotificationsPage() {
         {/* Header Title & Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6 text-start">
           <div className="flex flex-col gap-1">
-            <div className="inline-flex items-center gap-2 text-primary font-bold text-xs bg-primary/10 px-2.5 py-1 rounded-full self-start">
-              <ClinicalIcon name="notifications" size={16} />
-              <span>مرکز پیام‌های پرونده</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">
               اعلان‌ها و یادآوری‌های سلامت
             </h1>
