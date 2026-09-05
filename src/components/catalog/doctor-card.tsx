@@ -55,23 +55,23 @@ export function DoctorCard({
     id,
     name,
     specialty = "متخصص بالینی",
-    academicTitle = doctor.credentials ?? "عضو هیئت علمی دانشگاه",
+    academicTitle = doctor.credentials ?? null,
     medicalCouncilCode,
     imageUrl,
-    rating = 4.9,
-    reviewsCount = 120,
-    nextSlot = "فردا ساعت ۱۰:۳۰",
-    clinicAddress = "کلینیک تخصصی ونک، تهران",
-    fee = 250000,
+    rating,
+    reviewsCount,
+    nextSlot,
+    clinicAddress,
+    fee,
     slug,
-    isVerified = true,
+    isVerified = false,
   } = doctor;
 
   const targetHref = href ?? `/${locale}/doctors/${slug || id}`;
-  const displayRating = toPersianDigits(rating);
-  const displayReviews = toPersianDigits(reviewsCount);
-  const displaySlot = toPersianDigits(nextSlot);
-  const displayFee = formatPrice(fee);
+  const displayRating = rating === undefined || rating === null ? null : toPersianDigits(rating);
+  const displayReviews = reviewsCount === undefined || reviewsCount === null ? null : toPersianDigits(reviewsCount);
+  const displaySlot = nextSlot ? toPersianDigits(nextSlot) : null;
+  const displayFee = fee === undefined || fee === null || fee === "" ? null : formatPrice(fee);
 
   return (
     <div
@@ -79,18 +79,22 @@ export function DoctorCard({
       className={`bg-surface-container-lowest p-5 rounded-2xl shadow-tier-1 hover:shadow-tier-2 transition-all duration-300 flex flex-col justify-between text-start relative border border-outline-variant/30 ${className}`}
     >
       {/* Top Rating Pill */}
-      <div className="absolute top-4 end-4 flex items-center gap-1 bg-surface-container-low px-2.5 py-1 rounded-full text-secondary text-xs font-bold shadow-xs">
-        <ClinicalIcon
-          name="star"
-          size={16}
-          fill
-          className="text-secondary shrink-0"
-        />
-        <span>{displayRating}</span>
-        <span className="text-on-surface-variant font-normal">
-          {`(${displayReviews} نظر)`}
-        </span>
-      </div>
+      {displayRating && (
+        <div className="absolute top-4 end-4 flex items-center gap-1 bg-surface-container-low px-2.5 py-1 rounded-full text-secondary text-xs font-bold shadow-xs">
+          <ClinicalIcon
+            name="star"
+            size={16}
+            fill
+            className="text-secondary shrink-0"
+          />
+          <span>{displayRating}</span>
+          {displayReviews && (
+            <span className="text-on-surface-variant font-normal">
+              {`(${displayReviews} نظر)`}
+            </span>
+          )}
+        </div>
+      )}
 
       <div>
         {/* Physician Header (Avatar + Info) */}
@@ -175,25 +179,28 @@ export function DoctorCard({
           )}
 
           {/* Approved Tariff */}
-          <div className="flex items-center justify-between pt-1 border-t border-outline-variant/20">
-            <span className="text-on-surface-variant">حق ویزیت مصوب:</span>
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-on-surface">{displayFee}</span>
-              <span className="bg-primary/10 text-primary text-[10px] font-medium px-1.5 py-0.5 rounded">
-                پرداخت در مطب
-              </span>
+          {displayFee && (
+            <div className="flex items-center justify-between pt-1 border-t border-outline-variant/20">
+              <span className="text-on-surface-variant">حق ویزیت مصوب:</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-on-surface">{displayFee}</span>
+                <span className="bg-primary/10 text-primary text-[10px] font-medium px-1.5 py-0.5 rounded">
+                  پرداخت در مطب
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
       {/* Booking CTA Button */}
       <Link
         href={targetHref}
+        aria-label="رزرو نوبت حضوری"
         className="w-full bg-primary hover:bg-primary-container text-on-primary text-sm font-medium py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm"
       >
         <ClinicalIcon name="calendar_month" size={18} className="shrink-0" />
-        <span>رزرو حضوری (پرداخت در مطب)</span>
+        <span>مشاهده نوبت‌ها</span>
       </Link>
     </div>
   );

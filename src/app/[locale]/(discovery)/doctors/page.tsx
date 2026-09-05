@@ -1,82 +1,37 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { listDoctors } from "@/contexts/catalog/queries";
 import { DoctorCard, type DoctorData, toPersianDigits } from "@/components/catalog/doctor-card";
 import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { EmptyState, ErrorState } from "@/components/clinical/empty-state";
+import faMessages from "../../../../../messages/fa.json";
+
+const faDoctors = faMessages.doctors as Record<string, string>;
+
+const pageSize = 12;
+
+function pageHref(
+  locale: string,
+  specialty: string,
+  city: string,
+  q: string,
+  p: number,
+) {
+  const params = new URLSearchParams();
+  if (specialty) params.set("specialty", specialty);
+  if (city) params.set("city", city);
+  if (q) params.set("q", q);
+  params.set("page", String(p));
+  return `/${locale}/doctors?${params.toString()}`;
+}
 
 const SPECIALTIES = [
-  { id: "all", label: "همه تخصص‌ها", slug: "" },
-  { id: "nutrition", label: "تغذیه و رژیم‌درمانی", slug: "nutrition" },
-  { id: "gastroenterology", label: "گوارش و کبد", slug: "gastroenterology" },
-  { id: "cardiology", label: "قلب و عروق", slug: "cardiology" },
-  { id: "endocrinology", label: "غدد و متابولیسم", slug: "endocrinology" },
-  { id: "gynecology", label: "زنان و زایمان", slug: "gynecology" },
-];
-
-const FALLBACK_DOCTORS: DoctorData[] = [
-  {
-    id: "dr-leila-sadat",
-    slug: "dr-leila-sadat",
-    name: "دکتر لیلا سادات",
-    specialty: "فوق تخصص غدد درون‌ریز، متابولیسم و رشد بالینی",
-    academicTitle: "عضو هیئت علمی دانشگاه علوم پزشکی",
-    medicalCouncilCode: "38921",
-    imageUrl:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCgLHqpdLwi6gKxX4wuTHNQznIImyMJTWAKQWoKKdpyMPZCB-f0hzxodxU2ohqzasdkAcYQLw9m3dPjKTVWpOd-DYOHQt3yvdS0I4SMzfzSEzZgjJm6d0As7zrfsFoqPsPCUk6wJ-Ba3VQTtKBv3E2UAreQZI94OfS3FZ3ftVtdDQb-ewEEf5xjHVlLi-_1g2hc_KRok_uNm8wlyEJiazTNLUWTQWeaSxFg0ReNg9_-ittHh8IqYVcV",
-    rating: 4.9,
-    reviewsCount: 240,
-    nextSlot: "فردا ساعت ۱۰:۳۰",
-    clinicAddress: "تهران، کلینیک تخصصی ونک (ملاصدرا)",
-    fee: 250000,
-    isVerified: true,
-  },
-  {
-    id: "dr-arash-radmanesh",
-    slug: "dr-arash-radmanesh",
-    name: "دکتر آرش رادمنش",
-    specialty: "متخصص تغذیه بالینی و رژیم‌درمانی متابولیک",
-    academicTitle: "فلوشیپ چاقی و متابولیک",
-    medicalCouncilCode: "45120",
-    imageUrl:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCdWGbdCN3f5b2WRWxNcX-tm1xAvJ4a2OO5TVjg3BhQxrWvFp6O53ZTYIrSITla_89ZeERTcCMnW5umXyYPQaENjqhxi9j5NB8ybPjl14gCquQoHqm1izNaBrwwWungtgAsB5DYMblthDADLKb3u5dRfrWSJqlPSa5bWmTzNNtSPq_faQ-rIjlZecYtwGNLbGrMXw7z5I4bFu78vgQyuaO-RHQXuIzq822StTQbYzTJwmiD6GU0_Zqe",
-    rating: 5.0,
-    reviewsCount: 185,
-    nextSlot: "یکشنبه ساعت ۱۴:۰۰",
-    clinicAddress: "تهران، کلینیک فوق‌تخصصی پارس",
-    fee: 220000,
-    isVerified: true,
-  },
-  {
-    id: "dr-sara-mahdavi",
-    slug: "dr-sara-mahdavi",
-    name: "دکتر سارا مهدوی",
-    specialty: "متخصص بیماری‌های قلب، عروق و اکوکاردیوگرافی",
-    academicTitle: "بورد تخصصی قلب و عروق",
-    medicalCouncilCode: "51874",
-    imageUrl:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuA4hmQq4mBeIHIWpk7YkO4OJUUJcm5DSyPABVetMD7_gPH9amJFg4Qq7y_oYd8mViOgeVZeuZUr0XjQjlMlsvHnZFlAKsSGMv83qWApQGVIfwNowq2ZRRbF-j0c7n6SoBh7jbIbj_xsLBofCVWT_xwUjq4mvRpNZnImcWV4YhmpZy93uAIW5kYhnP4xXHPjJsGt7NJsPTLW9uh6h75C5UhNZmem24bYZtKXdTCONI0Y-TZ7ia5jSe4A",
-    rating: 4.8,
-    reviewsCount: 310,
-    nextSlot: "دوشنبه ساعت ۱۱:۱۵",
-    clinicAddress: "تهران، مرکز قلب و کلینیک بهار (آرژانتین)",
-    fee: 260000,
-    isVerified: true,
-  },
-  {
-    id: "dr-payam-bahrami",
-    slug: "dr-payam-bahrami",
-    name: "دکتر پیام بهرامی",
-    specialty: "فوق تخصص گوارش، کبد و آندوسکوپی پیشرفته",
-    academicTitle: "عضو انجمن گوارش ایران",
-    medicalCouncilCode: "29410",
-    imageUrl:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAB0esi-S2ulnr1aewLITrOTzIebt9gUwo8bsISUfYqFiKONKUibrkY53V97pBbU6I_SgnK-Z9A6y5a7U1FUc5MTweuEGnmqaG7Sc2wDgMVfgInB-jlQRP2YFJFGZgn8DTREeH-8wH9qe3oBca_2BqR4-AhznDFyHXww5G7QUJbp6ppUfxRHQWwLTywjTNCuv6RuVUCYtbBrrwAgW9ddWWCR9k0FZJmBVHdPFEASatoyES8vNDBXCXx",
-    rating: 4.9,
-    reviewsCount: 196,
-    nextSlot: "سه‌شنبه ساعت ۱۸:۳۰",
-    clinicAddress: "تهران، کلینیک تخصصی سعادت‌آباد",
-    fee: 270000,
-    isVerified: true,
-  },
+  { id: "all", labelKey: "specialtyAll", slug: "" },
+  { id: "nutrition", labelKey: "specialtyNutrition", slug: "nutrition" },
+  { id: "gastroenterology", labelKey: "specialtyGastroenterology", slug: "gastroenterology" },
+  { id: "cardiology", labelKey: "specialtyCardiology", slug: "cardiology" },
+  { id: "endocrinology", labelKey: "specialtyEndocrinology", slug: "endocrinology" },
+  { id: "gynecology", labelKey: "specialtyGynecology", slug: "gynecology" },
 ];
 
 export default async function DoctorsPage({
@@ -84,41 +39,54 @@ export default async function DoctorsPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ specialty?: string; city?: string; q?: string }>;
+  searchParams: Promise<{ specialty?: string; city?: string; q?: string; page?: string }>;
 }) {
   const { locale } = await params;
-  const { specialty, city, q } = await searchParams;
+  const { specialty, city, q, page } = await searchParams;
+  const p = Number(page ?? 1);
+  const current = Number.isFinite(p) ? Math.max(1, p) : 1;
+  const isEn = locale === "en";
+  const dir = isEn ? "ltr" : "rtl";
+  const fmt = (n: number | string) => (isEn ? String(n) : toPersianDigits(n));
+
+  let t: (key: string, values?: Record<string, string | number>) => string = (
+    key,
+    values,
+  ) => {
+    let out: string = faDoctors[key] ?? key;
+    if (values) {
+      for (const [k, v] of Object.entries(values)) out = out.replaceAll(`{${k}}`, String(v));
+    }
+    return out;
+  };
+  try {
+    const intlT = await getTranslations("doctors");
+    t = (key, values) => intlT(key, values);
+  } catch {
+    // fallback in environments without next-intl server context
+  }
 
   let dbDoctors: DoctorData[] = [];
+  let total = 0;
+  let loadError = false;
   try {
-    const raw = await listDoctors(locale, specialty, city);
-    dbDoctors = raw.map((d) => ({
+    const res = await listDoctors(locale, specialty, city, current, pageSize);
+    total = res.total;
+    dbDoctors = res.rows.map((d) => ({
       id: d.id,
       name: d.name,
-      specialty: d.specialty ?? "متخصص بالینی",
+      specialty: d.specialty ?? t("fallbackSpecialty"),
       cityId: d.cityId,
       imageUrl: d.imageUrl,
       slug: d.id,
-      clinicAddress: "تهران، کلینیک تخصصی ونک (ملاصدرا)",
-      fee: 250000,
-      nextSlot: "فردا ساعت ۱۰:۳۰",
-      rating: 4.9,
-      reviewsCount: 120,
-      isVerified: true,
+      isVerified: false,
     }));
   } catch {
-    dbDoctors = [];
-  }
-
-  // Complement with fallback doctors to ensure a rich clinical catalog
-  let allDoctors = [...dbDoctors];
-  for (const fallback of FALLBACK_DOCTORS) {
-    if (!allDoctors.some((d) => d.id === fallback.id || d.name === fallback.name)) {
-      allDoctors.push(fallback);
-    }
+    loadError = true;
   }
 
   // Filter by query if provided
+  let allDoctors = dbDoctors;
   if (q && q.trim()) {
     const queryStr = q.trim().toLowerCase();
     allDoctors = allDoctors.filter(
@@ -128,26 +96,29 @@ export default async function DoctorsPage({
     );
   }
 
-  const totalCount = allDoctors.length;
+  const totalCount = q?.trim() ? allDoctors.length : total;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const rangeFrom = totalCount === 0 ? 0 : (current - 1) * pageSize + 1;
+  const rangeTo = totalCount === 0 ? 0 : Math.min(totalCount, rangeFrom + allDoctors.length - 1);
   const currentSpecialty = specialty ?? "";
 
   return (
-    <main className="w-full bg-surface" dir="rtl">
+    <main className="w-full bg-surface" dir={dir}>
       {/* Top Clinical Hero Bar */}
       <div className="w-full bg-surface-container-lowest border-b border-outline-variant/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
               <h1 className="text-2xl sm:text-3xl font-bold text-on-surface tracking-tight">
-                نوبت‌دهی آنلاین پزشکان و متخصصان
+                {t("heroTitle")}
               </h1>
               <p className="text-sm sm:text-base text-on-surface-variant">
-                جستجو و دریافت سریع نوبت از پزشکان مجرب با پرداخت حضوری در مطب
+                {t("heroSubtitle")}
               </p>
             </div>
             <div className="flex items-center gap-2 text-primary bg-primary/10 px-4 py-2 rounded-xl w-fit">
               <ClinicalIcon name="verified" size={20} className="text-primary shrink-0" />
-              <span className="text-sm font-medium">نوبت‌دهی بدون هزینه کارمزد آنلاین</span>
+              <span className="text-sm font-medium">{t("heroBadge")}</span>
             </div>
           </div>
         </div>
@@ -175,7 +146,7 @@ export default async function DoctorsPage({
                       : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
                   }`}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               );
             })}
@@ -195,7 +166,7 @@ export default async function DoctorsPage({
                   htmlFor="doctor-search-input"
                   className="text-sm font-bold text-on-surface"
                 >
-                  جستجوی پزشک یا تخصص
+                  {t("searchLabel")}
                 </label>
                 <div className="relative w-full">
                   <input
@@ -203,7 +174,7 @@ export default async function DoctorsPage({
                     name="q"
                     defaultValue={q ?? ""}
                     type="text"
-                    placeholder="نام پزشک، بیماری یا تخصص..."
+                    placeholder={t("searchPlaceholder")}
                     className="w-full bg-surface-container-low text-on-surface text-sm py-2.5 pe-4 ps-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-on-surface-variant/50"
                   />
                   <div className="absolute start-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant/60">
@@ -218,7 +189,7 @@ export default async function DoctorsPage({
                   type="submit"
                   className="bg-primary hover:bg-primary-container text-on-primary text-xs font-medium py-2 px-4 rounded-xl transition-colors self-end"
                 >
-                  اعمال جستجو
+                  {t("searchSubmit")}
                 </button>
               </form>
             </div>
@@ -226,18 +197,18 @@ export default async function DoctorsPage({
             {/* Filter options card */}
             <div className="bg-surface-container-lowest p-5 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-on-surface">فیلترها</span>
+                <span className="text-sm font-bold text-on-surface">{t("filtersTitle")}</span>
                 <Link
                   href={`/${locale}/doctors`}
                   className="text-xs text-primary hover:underline font-medium"
                 >
-                  حذف فیلترها
+                  {t("clearFilters")}
                 </Link>
               </div>
 
               {/* City Filter */}
               <div className="flex flex-col gap-2">
-                <span className="text-xs font-bold text-on-surface">شهر</span>
+                <span className="text-xs font-bold text-on-surface">{t("cityLabel")}</span>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <Link
                     href={`/${locale}/doctors?city=tehran${specialty ? `&specialty=${specialty}` : ""}`}
@@ -247,7 +218,7 @@ export default async function DoctorsPage({
                         : "border-outline-variant/30 bg-surface-container-low text-on-surface hover:bg-surface-container"
                     }`}
                   >
-                    <span>تهران</span>
+                    <span>{t("cityTehran")}</span>
                   </Link>
                   <Link
                     href={`/${locale}/doctors?city=other${specialty ? `&specialty=${specialty}` : ""}`}
@@ -257,21 +228,21 @@ export default async function DoctorsPage({
                         : "border-outline-variant/30 bg-surface-container-low text-on-surface hover:bg-surface-container"
                     }`}
                   >
-                    <span>سایر شهرها</span>
+                    <span>{t("cityOther")}</span>
                   </Link>
                 </div>
               </div>
 
               {/* Admission Capacity Checkbox */}
               <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/20">
-                <span className="text-xs font-bold text-on-surface">زمان پذیرش</span>
+                <span className="text-xs font-bold text-on-surface">{t("timeLabel")}</span>
                 <label className="flex items-center gap-2 cursor-pointer text-xs text-on-surface">
                   <input
                     type="checkbox"
                     defaultChecked
                     className="accent-primary w-4 h-4 rounded cursor-pointer"
                   />
-                  <span>نوبت‌های دارای ظرفیت خالی</span>
+                  <span>{t("availableOnly")}</span>
                 </label>
               </div>
             </div>
@@ -283,37 +254,90 @@ export default async function DoctorsPage({
             <div className="bg-surface-container-lowest p-4 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <ClinicalIcon name="sort" size={20} className="text-primary shrink-0" />
-                <span className="text-xs sm:text-sm font-bold text-on-surface">مرتب‌سازی:</span>
+                <span className="text-xs sm:text-sm font-bold text-on-surface">{t("sortLabel")}</span>
                 <div className="flex items-center gap-1 bg-surface-container-low p-1 rounded-xl text-xs">
                   <span className="px-3 py-1 rounded-lg bg-surface-container-lowest text-primary shadow-xs font-bold">
-                    نزدیک‌ترین نوبت خالی
+                    {t("sortSoonest")}
                   </span>
                   <span className="px-3 py-1 text-on-surface-variant hover:text-on-surface">
-                    بیشترین رضایت
+                    {t("sortTopRated")}
                   </span>
                 </div>
               </div>
 
               <span className="text-xs text-on-surface-variant">
-                نمایش ۱ تا {toPersianDigits(allDoctors.length)} از{" "}
-                <strong className="text-on-surface font-bold">
-                  {toPersianDigits(totalCount)}
-                </strong>{" "}
-                متخصص آماده پذیرش
+                {t("showingRange", {
+                  from: fmt(rangeFrom),
+                  count: fmt(rangeTo),
+                  total: fmt(totalCount),
+                })}
               </span>
             </div>
 
             {/* Doctors Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {allDoctors.map((doc) => (
-                <DoctorCard
-                  key={doc.id}
-                  doctor={doc}
-                  locale={locale}
-                  href={`/${locale}/doctors/${doc.slug || doc.id}`}
-                />
-              ))}
-            </div>
+            {loadError ? (
+              <ErrorState
+                title={t("errorTitle")}
+                hint={t("errorHint")}
+              />
+            ) : allDoctors.length === 0 ? (
+              <EmptyState
+                title={t("emptyTitle")}
+                hint={t("emptyHint")}
+                actionHref={`/${locale}/doctors`}
+                actionLabel={t("clearFilters")}
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {allDoctors.map((doc) => (
+                  <DoctorCard
+                    key={doc.id}
+                    doctor={doc}
+                    locale={locale}
+                    href={`/${locale}/doctors/${doc.slug || doc.id}`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Pagination Navigation */}
+            {!loadError && totalPages > 1 && (
+              <nav
+                aria-label={t("pageOf", { current, pages: totalPages })}
+                className="bg-surface-container-lowest p-4 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex items-center justify-between gap-2"
+              >
+                {current > 1 ? (
+                  <Link
+                    href={pageHref(locale, specialty ?? "", city ?? "", q ?? "", current - 1)}
+                    className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
+                  >
+                    <ClinicalIcon name="chevron_right" size={16} />
+                    <span>{t("pagePrev")}</span>
+                  </Link>
+                ) : (
+                  <div />
+                )}
+
+                <span className="text-xs font-semibold text-on-surface-variant">
+                  {t("pageOf", {
+                    current: fmt(current),
+                    pages: fmt(totalPages),
+                  })}
+                </span>
+
+                {current < totalPages ? (
+                  <Link
+                    href={pageHref(locale, specialty ?? "", city ?? "", q ?? "", current + 1)}
+                    className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
+                  >
+                    <span>{t("pageNext")}</span>
+                    <ClinicalIcon name="chevron_left" size={16} />
+                  </Link>
+                ) : (
+                  <div />
+                )}
+              </nav>
+            )}
 
             {/* Triage Hotline Support Banner */}
             <div className="mt-4 p-6 rounded-2xl bg-gradient-to-l from-primary/10 via-surface-container to-surface-container-lowest border border-primary/20 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -323,10 +347,10 @@ export default async function DoctorsPage({
                 </div>
                 <div className="flex flex-col gap-1 text-start">
                   <h3 className="text-sm sm:text-base font-bold text-on-surface">
-                    به راهنمایی برای انتخاب پزشک مناسب نیاز دارید؟
+                    {t("triageTitle")}
                   </h3>
                   <p className="text-xs text-on-surface-variant leading-relaxed">
-                    کارشناسان تریاژ تلفنی انگبین طب آماده راهنمایی و تعیین نوبت متناسب با علائم بالینی شما هستند.
+                    {t("triageDesc")}
                   </p>
                 </div>
               </div>
@@ -335,7 +359,7 @@ export default async function DoctorsPage({
                 className="shrink-0 px-5 py-2.5 rounded-xl bg-secondary hover:bg-secondary/90 text-on-secondary text-xs sm:text-sm font-medium shadow-sm transition-colors flex items-center gap-2"
               >
                 <ClinicalIcon name="phone_in_talk" size={18} />
-                <span>تماس با مشاوره رایگان پذیرش</span>
+                <span>{t("triageCta")}</span>
               </a>
             </div>
           </section>

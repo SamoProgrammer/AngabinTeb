@@ -33,20 +33,20 @@ export function ServiceCard({
   const {
     id,
     name,
-    category = service.serviceType ?? "آزمایشگاه و پاراکلینیک",
+    category = service.serviceType ?? null,
     providerName,
-    description = "شامل بررسی شاخص‌های بالینی و ارزیابی جامع با تجهیزات پیشرفته تشخیصی.",
+    description,
     fastingHours,
     prepInstructions,
-    durationMinutes = 30,
-    price = 480000,
+    durationMinutes,
+    price,
     slug,
     iconName = "science",
   } = service;
 
   const targetHref = href ?? `/${locale}/services/${slug || id}`;
-  const displayDuration = toPersianDigits(durationMinutes);
-  const displayPrice = formatPrice(price);
+  const displayDuration = durationMinutes === undefined || durationMinutes === null ? null : toPersianDigits(durationMinutes);
+  const displayPrice = price === undefined || price === null || price === "" ? null : formatPrice(price);
 
   return (
     <div
@@ -56,9 +56,13 @@ export function ServiceCard({
       <div>
         {/* Top Header: Category Pill & Icon */}
         <div className="flex items-center justify-between mb-3">
-          <span className="bg-secondary/10 text-secondary px-2.5 py-0.5 rounded-full text-xs font-bold">
-            {category}
-          </span>
+          {category ? (
+            <span className="bg-secondary/10 text-secondary px-2.5 py-0.5 rounded-full text-xs font-bold">
+              {category}
+            </span>
+          ) : (
+            <span />
+          )}
           <span className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
             <ClinicalIcon name={iconName} size={20} />
           </span>
@@ -79,9 +83,11 @@ export function ServiceCard({
         )}
 
         {/* Description */}
-        <p className="text-xs text-on-surface-variant leading-relaxed line-clamp-2 mb-4">
-          {description}
-        </p>
+        {description && (
+          <p className="text-xs text-on-surface-variant leading-relaxed line-clamp-2 mb-4">
+            {description}
+          </p>
+        )}
 
         {/* Guidelines / Preparation and Duration Chips */}
         <div className="space-y-2 text-xs text-on-surface-variant mb-4 bg-surface-container-low/60 p-3 rounded-xl border border-outline-variant/20">
@@ -106,30 +112,34 @@ export function ServiceCard({
           )}
 
           {/* Duration Pill */}
-          <div className="flex items-center gap-1.5">
-            <ClinicalIcon
-              name="schedule"
-              size={16}
-              className="text-on-surface-variant shrink-0"
-            />
-            <span>{`زمان انجام: ${displayDuration} دقیقه`}</span>
-          </div>
+          {displayDuration && (
+            <div className="flex items-center gap-1.5">
+              <ClinicalIcon
+                name="schedule"
+                size={16}
+                className="text-on-surface-variant shrink-0"
+              />
+              <span>{`زمان انجام: ${displayDuration} دقیقه`}</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Footer: Price Display and Booking CTA */}
       <div>
-        <div className="flex items-baseline justify-between mb-3 pt-2 border-t border-outline-variant/20">
-          <span className="text-xs text-on-surface-variant">هزینه مصوب:</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-base font-bold text-primary">
-              {displayPrice}
-            </span>
-            <span className="bg-surface-container text-on-surface-variant text-[10px] px-1.5 py-0.5 rounded font-medium">
-              پرداخت حضوری
-            </span>
+        {displayPrice && (
+          <div className="flex items-baseline justify-between mb-3 pt-2 border-t border-outline-variant/20">
+            <span className="text-xs text-on-surface-variant">هزینه مصوب:</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-base font-bold text-primary">
+                {displayPrice}
+              </span>
+              <span className="bg-surface-container text-on-surface-variant text-[10px] px-1.5 py-0.5 rounded font-medium">
+                پرداخت حضوری
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         <Link
           href={targetHref}

@@ -84,7 +84,7 @@ describe("Shared Clinical Primitives & Universal Search", () => {
       isVerified: true,
     };
 
-    it("renders physician avatar, verified badge, name, specialty, and title", () => {
+    it("renders physician avatar, verified badge, name, specialty, and title without decorative static badges", () => {
       const html = renderToString(<DoctorCard doctor={mockDoctor} locale="fa" />);
       expect(html).toContain("دکتر آرش رادمنش");
       expect(html).toContain("متخصص تغذیه بالینی و رژیم‌درمانی");
@@ -92,6 +92,8 @@ describe("Shared Clinical Primitives & Universal Search", () => {
       expect(html).toContain("https://example.com/avatar.jpg");
       expect(html).toContain(">verified</span>");
       expect(html).toContain("نظام پزشکی: ۱۲۳۴۵");
+      expect(html).not.toContain("پزشک تایید شده");
+      expect(html).not.toContain("تایید بالینی");
     });
 
     it("renders star rating pill with Persian digits and review count", () => {
@@ -125,7 +127,9 @@ describe("Shared Clinical Primitives & Universal Search", () => {
     it("renders booking CTA button with link to physician profile", () => {
       const html = renderToString(<DoctorCard doctor={mockDoctor} locale="fa" />);
       expect(html).toContain('href="/fa/doctors/dr-arash-radmanesh"');
-      expect(html).toContain("رزرو حضوری (پرداخت در مطب)");
+      expect(html).toContain("مشاهده نوبت‌ها");
+      expect(html).toContain('aria-label="رزرو نوبت حضوری"');
+      expect(html).not.toContain("رزرو حضوری (پرداخت در مطب)");
       expect(html).toContain(">calendar_month</span>");
     });
 
@@ -185,6 +189,13 @@ describe("Shared Clinical Primitives & Universal Search", () => {
       const html = renderToString(<ServiceCard service={mockService} locale="fa" />);
       expect(html).toContain('href="/fa/services/metabolic-checkup"');
       expect(html).toContain("رزرو نوبت آزمایش");
+    });
+
+    it("does not render redundant decorative badges like «خدمت تخصصی» or «تاییدیه بالینی»", () => {
+      const html = renderToString(<ServiceCard service={mockService} locale="fa" />);
+      expect(html).not.toContain("خدمت تخصصی");
+      expect(html).not.toContain("خدمت دارای تاییدیه بالینی");
+      expect(html).not.toContain("تاییدیه بالینی");
     });
 
     it("renders 'بدون نیاز به آمادگی خاص' when fastingHours is omitted", () => {
