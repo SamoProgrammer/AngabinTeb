@@ -26,15 +26,255 @@ export interface ClinicalHeaderProps {
   locale?: string;
 }
 
-export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
-  const pathname = usePathname();
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileExpandedHub, setMobileExpandedHub] = useState<string | null>("booking");
-  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const headerRef = useRef<HTMLElement>(null);
+function getNavHubs(locale: string): NavHub[] {
+  if (locale === "en") {
+    return [
+      {
+        id: "booking",
+        label: "Appointments & Services",
+        href: `/${locale}/doctors`,
+        icon: "stethoscope",
+        items: [
+          {
+            label: "Doctors & Specialists",
+            href: `/${locale}/doctors`,
+            description: "Search and book board-certified physicians and clinics",
+            icon: "stethoscope",
+          },
+          {
+            label: "Clinical & Diagnostic Services",
+            href: `/${locale}/services`,
+            description: "Ultrasound, ECG, laboratory tests, and routine checkups",
+            icon: "medical_services",
+          },
+          {
+            label: "360° Health Topics",
+            href: `/${locale}/topics`,
+            description: "Integrated care pathways for diabetes, cardiovascular, fatty liver",
+            icon: "hub",
+          },
+        ],
+      },
+      {
+        id: "nutrition",
+        label: "Nutrition & Records",
+        href: `/${locale}/nutrition`,
+        icon: "restaurant",
+        items: [
+          {
+            label: "Metabolic Dashboard & BMR",
+            href: `/${locale}/nutrition`,
+            description: "Calculate BMR/TDEE, target weight, and daily calorie targets",
+            icon: "calculate",
+          },
+          {
+            label: "Daily Food Diary",
+            href: `/${locale}/diary`,
+            description: "Log meals with traditional and metric portion measurements",
+            icon: "edit_note",
+            badge: "Active",
+          },
+          {
+            label: "Clinical Diet Plans",
+            href: `/${locale}/diet`,
+            description: "Nutritional protocols for glucose control, fatty liver, weight loss",
+            icon: "menu_book",
+          },
+          {
+            label: "Nutritional Food Database",
+            href: `/${locale}/foods`,
+            description: "Macro and micronutrient nutritional values for Iranian foods",
+            icon: "restaurant",
+          },
+        ],
+      },
+      {
+        id: "content",
+        label: "Health Knowledge",
+        href: `/${locale}/articles`,
+        icon: "menu_book",
+        items: [
+          {
+            label: "Clinical Articles",
+            href: `/${locale}/articles`,
+            description: "Latest peer-reviewed medical articles and clinical research",
+            icon: "article",
+          },
+          {
+            label: "Videos & Webinars",
+            href: `/${locale}/videos`,
+            description: "Visual consultations and educational self-care video guides",
+            icon: "videocam",
+          },
+          {
+            label: "Conditions & Symptoms",
+            href: `/${locale}/conditions/diabetes`,
+            description: "Clinical root causes, warning signs, and recommended labs",
+            icon: "vital_signs",
+          },
+        ],
+      },
+      {
+        id: "support",
+        label: "Support & Guide",
+        href: `/${locale}/faq`,
+        icon: "help",
+        items: [
+          {
+            label: "Frequently Asked Questions",
+            href: `/${locale}/faq`,
+            description: "Instant answers about insurances, in-clinic payment, and bookings",
+            icon: "quiz",
+            badge: "Instant",
+          },
+          {
+            label: "Support Center & Tickets",
+            href: `/${locale}/support`,
+            description: "Submit messages, follow up care requests, and connect with staff",
+            icon: "support_agent",
+          },
+          {
+            label: "Contact & Locations",
+            href: `/${locale}/contact`,
+            description: "Clinic addresses, branch phone numbers, and reception desks",
+            icon: "location_on",
+          },
+          {
+            label: "About Us",
+            href: `/${locale}/about`,
+            description: "Clinical mission, medical ethics charter, and advisory council",
+            icon: "info",
+          },
+        ],
+      },
+    ];
+  }
 
-  const navHubs: NavHub[] = [
+  if (locale === "ar") {
+    return [
+      {
+        id: "booking",
+        label: "المواعيد والخدمات",
+        href: `/${locale}/doctors`,
+        icon: "stethoscope",
+        items: [
+          {
+            label: "الأطباء والاستشاريون",
+            href: `/${locale}/doctors`,
+            description: "البحث وحجز المواعيد مع كبار الأطباء والمراكز",
+            icon: "stethoscope",
+          },
+          {
+            label: "الخدمات السريرية والتشخيصية",
+            href: `/${locale}/services`,
+            description: "الموجات فوق الصوتية، تخطيط القلب، والتحاليل الدورية",
+            icon: "medical_services",
+          },
+          {
+            label: "محاور الصحة ۳۶۰°",
+            href: `/${locale}/topics`,
+            description: "مسارات الرعاية الشاملة للسكري، القلب والكبد الدهني",
+            icon: "hub",
+          },
+        ],
+      },
+      {
+        id: "nutrition",
+        label: "الملف والتغذية",
+        href: `/${locale}/nutrition`,
+        icon: "restaurant",
+        items: [
+          {
+            label: "لوحة الأيض والسعرات",
+            href: `/${locale}/nutrition`,
+            description: "حساب معدل الأيض الأساسي BMR/TDEE والوزن المثالي",
+            icon: "calculate",
+          },
+          {
+            label: "سجل الوجبات اليومي",
+            href: `/${locale}/diary`,
+            description: "تسجيل الأطعمة وتتبع الوجبات الغذائية بمقاييس دقيقة",
+            icon: "edit_note",
+            badge: "عملي",
+          },
+          {
+            label: "برامج الحمية العلاجية",
+            href: `/${locale}/diet`,
+            description: "بروتوكولات تغذية لضبط السكر، الكبد وتخفيف الوزن",
+            icon: "menu_book",
+          },
+          {
+            label: "قاعدة بيانات الأغذية",
+            href: `/${locale}/foods`,
+            description: "معلومات السعرات والقيم الغذائية للوجبات الإيرانية",
+            icon: "restaurant",
+          },
+        ],
+      },
+      {
+        id: "content",
+        label: "مجلة الصحة",
+        href: `/${locale}/articles`,
+        icon: "menu_book",
+        items: [
+          {
+            label: "المقالات الطبية المتخصصة",
+            href: `/${locale}/articles`,
+            description: "أحدث المقالات السريرية والأبحاث الطبية المعتمدة",
+            icon: "article",
+          },
+          {
+            label: "الفيديوهات والندوات",
+            href: `/${locale}/videos`,
+            description: "استشارات مرئية وفيديوهات تعليمية للرعاية الذاتية",
+            icon: "videocam",
+          },
+          {
+            label: "الأعراض والأمراض",
+            href: `/${locale}/conditions/diabetes`,
+            description: "استكشاف الأسباب السريرية، مؤشرات الخطر والفحوصات المقترحة",
+            icon: "vital_signs",
+          },
+        ],
+      },
+      {
+        id: "support",
+        label: "الدليل والدعم",
+        href: `/${locale}/faq`,
+        icon: "help",
+        items: [
+          {
+            label: "الأسئلة الشائعة (FAQ)",
+            href: `/${locale}/faq`,
+            description: "إجابات فورية حول التأمين، الدفع في العيادة والحجوزات",
+            icon: "quiz",
+            badge: "فوري",
+          },
+          {
+            label: "مركز الدعم والتذاكر",
+            href: `/${locale}/support`,
+            description: "إرسال الاستفسارات ومتابعة الطلبات مع فريق الدعم",
+            icon: "support_agent",
+          },
+          {
+            label: "اتصل بنا والفروع",
+            href: `/${locale}/contact`,
+            description: "عناوين المراكز وأرقام الهواتف وخطوط الاستقبال",
+            icon: "location_on",
+          },
+          {
+            label: "عن انگبین طب",
+            href: `/${locale}/about`,
+            description: "الرسالة الطبية، الميثاق الأخلاقي واللجنة الاستشارية",
+            icon: "info",
+          },
+        ],
+      },
+    ];
+  }
+
+  // Default Persian
+  return [
     {
       id: "booking",
       label: "نوبت‌دهی و خدمات",
@@ -154,6 +394,27 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
       ],
     },
   ];
+}
+
+export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
+  const pathname = usePathname();
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileExpandedHub, setMobileExpandedHub] = useState<string | null>("booking");
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const headerRef = useRef<HTMLElement>(null);
+
+  const navHubs = getNavHubs(locale);
+
+  const brandTitle = locale === "en" ? "Angabin Teb" : "انگبین طب";
+  const brandSubtitle =
+    locale === "en"
+      ? "Clinical Health & Nutrition"
+      : locale === "ar"
+        ? "منصة الصحة والتغذية السريرية"
+        : "سامانه سلامت و تغذیه بالینی";
+
+  const loginLabel = locale === "en" ? "Sign In" : locale === "ar" ? "تسجيل الدخول" : "ورود";
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -195,7 +456,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
   return (
     <header
       ref={headerRef}
-      dir="rtl"
+      dir={locale === "en" ? "ltr" : "rtl"}
       className="sticky top-0 z-50 w-full border-b border-outline-variant/30 bg-surface/95 backdrop-blur-md shadow-tier-1 transition-all"
     >
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -210,10 +471,10 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
             </div>
             <div className="flex flex-col text-start">
               <span className="text-base sm:text-lg font-extrabold text-on-surface leading-tight tracking-tight">
-                انگبین طب
+                {brandTitle}
               </span>
               <span className="text-[11px] text-on-surface-variant font-medium leading-tight hidden sm:inline">
-                سامانه سلامت و تغذیه بالینی
+                {brandSubtitle}
               </span>
             </div>
           </Link>
@@ -295,8 +556,17 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                           onClick={() => setActiveDropdown(null)}
                           className="hover:underline flex items-center gap-1"
                         >
-                          <span>مشاهده همه بخش‌های {hub.label}</span>
-                          <ClinicalIcon name="arrow_back" size={14} />
+                          <span>
+                            {locale === "en"
+                              ? `View all in ${hub.label}`
+                              : locale === "ar"
+                                ? `عرض جميع أقسام ${hub.label}`
+                                : `مشاهده همه بخش‌های ${hub.label}`}
+                          </span>
+                          <ClinicalIcon
+                            name={locale === "en" ? "arrow_forward" : "arrow_back"}
+                            size={14}
+                          />
                         </Link>
                       </div>
                     </div>
@@ -315,20 +585,20 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
             <LocaleSwitcher />
           </div>
 
-          {/* Patient Auth CTA */}
+          {/* Patient Auth CTA — links to signin page */}
           <Link
-            href={`/${locale}/appointments`}
+            href={`/${locale}/signin`}
             className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-primary shadow-tier-1 hover:bg-primary-container active:translate-y-px transition-all"
           >
             <ClinicalIcon name="person" size={18} fill />
-            <span>ورود</span>
+            <span>{loginLabel}</span>
           </Link>
 
           {/* Mobile Hamburger Menu Button */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="منوی گزینه‌ها"
+            aria-label={locale === "en" ? "Toggle menu" : "منوی گزینه‌ها"}
             className="md:hidden p-2 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors"
           >
             <ClinicalIcon name={mobileMenuOpen ? "close" : "menu"} size={24} />

@@ -1,5 +1,5 @@
 import "server-only";
-import { sql, eq, and, desc } from "drizzle-orm";
+import { sql, eq, and, desc, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { contents, topics, conditions, translations } from "@/db/schema";
 import { overlayTranslations } from "@/lib/translate";
@@ -48,7 +48,7 @@ export async function listContent(
           .from(translations)
           .where(and(
             eq(translations.entityType, "content"),
-            sql`${translations.entityId} = any(${rows.map((r) => r.id)}::text[])`,
+            inArray(translations.entityId, rows.map((r) => r.id)),
           ));
   return {
     rows: overlayTranslations("content", rows, overrides, locale, ["title"]) as ContentCard[],
@@ -103,7 +103,7 @@ export async function listTopics(locale: string): Promise<TopicCard[]> {
           .from(translations)
           .where(and(
             eq(translations.entityType, "topic"),
-            sql`${translations.entityId} = any(${rows.map((r) => r.id)}::text[])`,
+            inArray(translations.entityId, rows.map((r) => r.id)),
           ));
   return overlayTranslations("topic", rows, overrides, locale, ["name"]).map((r) => ({ ...r, count: r.count ?? 0 })) as TopicCard[];
 }
@@ -134,7 +134,7 @@ export async function getTopicHub(topicSlug: string, locale: string): Promise<To
           .from(translations)
           .where(and(
             eq(translations.entityType, "condition"),
-            sql`${translations.entityId} = any(${conditionRows.map((r) => r.id)}::text[])`,
+            inArray(translations.entityId, conditionRows.map((r) => r.id)),
           ));
   const related = await searchAll(topic.name, locale);
 

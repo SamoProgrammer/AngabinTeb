@@ -1,8 +1,146 @@
 {
-  "nav": { "home": "Home", "doctors": "Doctors", "services": "Services", "admin": "Admin" },
-  "home": { "heroTitle": "Angabin Teb", "heroSubtitle": "Care, nutrition and health knowledge" },
-  "locale": { "switch": "Change language" },
-  "search": { "placeholder": "Search services and doctors", "submit": "Search", "empty": "No results found" },
-  "about": { "body": "Angabin Teb is an Iranian health platform bringing medical services, nutrition and health knowledge together in one place. Our goal is to provide easy and trustworthy access to health care for everyone." },
-  "contact": { "body": "To reach the Angabin Teb team, you can contact us through the site's support section, email or social media. We respond to your messages as quickly as possible." }
+  "nav": {
+    "home": "Home",
+    "doctors": "Doctors & Specialists",
+    "services": "Clinical & Diagnostic Services",
+    "nutrition": "Nutrition & Metabolism",
+    "articles": "Clinical Articles",
+    "videos": "Videos & Webinars",
+    "faq": "FAQ",
+    "support": "Support Center & Tickets",
+    "contact": "Contact & Locations",
+    "about": "About Angabin Teb",
+    "signin": "Sign In",
+    "appointments": "My Appointments",
+    "admin": "Admin Dashboard",
+    "topics": "360° Health Topics",
+    "conditions": "Conditions & Symptoms",
+    "diary": "Food Diary",
+    "body": "Body Analysis & BMR",
+    "diet": "Clinical Diet Plans",
+    "foods": "Nutritional Database"
+  },
+  "hubs": {
+    "booking": {
+      "title": "Appointments & Services",
+      "description": "Book board-certified physicians and diagnostic paraclinical services",
+      "doctors": "Doctors & Specialists",
+      "doctorsDesc": "Search and book board-certified physicians and clinics",
+      "services": "Clinical & Diagnostic Services",
+      "servicesDesc": "Ultrasound, ECG, blood panels, and routine checkups",
+      "topics": "360° Health Topics",
+      "topicsDesc": "Integrated care pathways for diabetes, cardiovascular, fatty liver"
+    },
+    "nutrition": {
+      "title": "Nutrition & Metabolism",
+      "description": "Smart metabolic monitoring, food diary, and medical diet programs",
+      "body": "Metabolic Dashboard & BMR",
+      "bodyDesc": "Calculate BMR/TDEE, ideal body weight, and daily calorie targets",
+      "diary": "Daily Food Diary",
+      "diaryDesc": "Log meals with traditional and metric portion measurements",
+      "diet": "Clinical Diet Plans",
+      "dietDesc": "Nutritional protocols for glycemic control, fatty liver, weight loss",
+      "foods": "Nutritional Food Database",
+      "foodsDesc": "Macro and micronutrient nutritional values for Iranian foods"
+    },
+    "content": {
+      "title": "Health Knowledge",
+      "description": "Scientific articles, educational videos, and clinical self-care guides",
+      "articles": "Clinical Articles",
+      "articlesDesc": "Latest peer-reviewed medical articles and clinical research",
+      "videos": "Videos & Webinars",
+      "videosDesc": "Visual consultations and educational self-care video guides",
+      "conditions": "Conditions & Symptoms",
+      "conditionsDesc": "Clinical root causes, danger signs, and recommended laboratory panels"
+    },
+    "support": {
+      "title": "Support & Guide",
+      "description": "Quick answers, expert communication, and clinic branch details",
+      "faq": "Frequently Asked Questions",
+      "faqDesc": "Instant answers about insurances, in-clinic payment, and bookings",
+      "support": "Support Center & Tickets",
+      "supportDesc": "Submit messages, follow up care requests, and connect with staff",
+      "contact": "Contact Us & Locations",
+      "contactDesc": "Clinic addresses, branch phone numbers, and reception desks",
+      "about": "About Us",
+      "aboutDesc": "Clinical mission, medical ethics charter, and advisory council"
+    }
+  },
+  "auth": {
+    "signin": "Patient Sign In",
+    "subtitle": "Enter your mobile phone number to receive a secure one-time verification code.",
+    "phone": "Mobile Phone Number",
+    "phonePlaceholder": "09123456789",
+    "sendOtp": "Send Verification Code",
+    "sendingOtp": "Sending code...",
+    "enterOtp": "SMS Verification Code",
+    "otpSentTo": "Enter the 6-digit code sent to {phone}",
+    "otpPlaceholder": "6-digit code",
+    "verifyOtp": "Verify & Sign In",
+    "verifying": "Verifying...",
+    "changePhone": "Change phone number",
+    "resendOtp": "Resend code",
+    "demoLogin": "Quick Demo Login (Test Patient)",
+    "demoLoggingIn": "Signing in as test patient...",
+    "invalidPhone": "Please enter a valid 11-digit mobile number starting with 09.",
+    "invalidOtp": "Please enter a valid 6-digit verification code.",
+    "authError": "Authentication service error. Please try again.",
+    "backToHome": "Back to Home",
+    "termsAgree": "By signing in, you agree to Angabin Teb's clinical terms of service and patient privacy policy."
+  },
+  "home": {
+    "heroTitle": "Angabin Teb",
+    "heroSubtitle": "Clinical Health & Nutrition Platform",
+    "tagline": "Care, nutrition and health knowledge",
+    "searchPlaceholder": "Search clinical services and specialist doctors...",
+    "searchSubmit": "Search",
+    "featuredDoctors": "Featured Specialists & Physicians",
+    "clinicalServices": "Diagnostic & Clinical Services",
+    "nutritionHub": "Metabolic & Nutrition Clinic",
+    "latestArticles": "Latest Clinical Articles"
+  },
+  "footer": {
+    "emergencyDisclaimer": "Notice: Angabin Teb is not an emergency dispatch service. In critical situations, call 115.",
+    "bookingGuarantee": "All appointments are booked with zero online fees — pay directly at the clinic.",
+    "aboutTitle": "Angabin Teb",
+    "aboutSubtitle": "Clinical Health & Nutrition Platform",
+    "aboutText": "Angabin Teb is the comprehensive platform for booking specialist doctors, diagnostic services, smart metabolic analysis, and clinical medical diets in Iran. All appointments are guaranteed at approved rates with in-clinic payment.",
+    "medicalCouncil": "Member of Iranian Medical Council",
+    "ehrSecurity": "Electronic Health Record Security",
+    "colQuickAccess": "Quick Access",
+    "colClinicalServices": "Clinical Services",
+    "colKnowledgeHub": "Knowledge Hub",
+    "colTrustAccreditation": "Accreditation & Trust",
+    "emergencyCall": "National Emergency: 115",
+    "supportPhone": "Platform Support: +98-21-88224000",
+    "copyright": "All rights reserved for Angabin Teb. Designed according to clinical healthcare standards."
+  },
+  "common": {
+    "search": "Search",
+    "viewAll": "View All",
+    "viewAllHub": "View all sections in {hub}",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Completed successfully",
+    "badgeUseful": "Practical",
+    "badgeInstant": "Instant",
+    "clinicPayment": "Pay at clinic",
+    "freeBooking": "No online fee",
+    "login": "Sign In"
+  },
+  "locale": {
+    "switch": "Language",
+    "fa": "فارسی",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "about": {
+    "body": "Angabin Teb is an Iranian health platform bringing medical services, nutrition and health knowledge together in one place. Our goal is to provide easy and trustworthy access to health care for everyone."
+  },
+  "contact": {
+    "body": "To reach the Angabin Teb team, you can contact us through the site's support section, email or social media. We respond to your messages as quickly as possible."
+  }
 }

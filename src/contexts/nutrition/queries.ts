@@ -1,5 +1,5 @@
 import "server-only";
-import { sql, eq, and, gte, lt } from "drizzle-orm";
+import { sql, eq, and, gte, lt, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, translations, providers } from "@/db/schema";
 import { overlayTranslations } from "@/lib/translate";
@@ -11,7 +11,7 @@ async function fetchDietOverrides(entityType: string, ids: string[]) {
   return db
     .select()
     .from(translations)
-    .where(and(eq(translations.entityType, entityType), sql`${translations.entityId} = any(${ids}::text[])`));
+    .where(and(eq(translations.entityType, entityType), inArray(translations.entityId, ids)));
 }
 
 export async function getPhysiology(userId: string) {

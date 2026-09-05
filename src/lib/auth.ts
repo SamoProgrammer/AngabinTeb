@@ -17,6 +17,10 @@ export const auth = betterAuth({
       sendOTP: async ({ phoneNumber, code }) => {
         await sendSms(phoneNumber, `Angabin Teb: code ${code}`);
       },
+      signUpOnVerification: {
+        getTempEmail: (phone) => `${phone}@angabinteb.local`,
+        getTempName: (phone) => `Patient ${phone.slice(-4)}`,
+      },
     }),
   ],
 });

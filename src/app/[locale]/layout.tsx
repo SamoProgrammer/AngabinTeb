@@ -1,4 +1,5 @@
 import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { locales } from "@/i18n/locales";
@@ -7,6 +8,10 @@ import { ClinicalHeader } from "@/components/layout/clinical-header";
 import { ClinicalFooter } from "@/components/layout/clinical-footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import "../globals.css";
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
 
 export default async function LocaleLayout({
   children,
@@ -17,6 +22,10 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
   if (!hasLocale(locales, locale)) notFound();
+
+  setRequestLocale(locale);
+  const messages = await getMessages();
+
   return (
     <html
       lang={locale}
@@ -29,8 +38,12 @@ export default async function LocaleLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${vazirmatn.className} antialiased bg-surface text-on-surface flex flex-col min-h-screen`}>
-        <NextIntlClientProvider>
+      <body
+        className={`${
+          locale === "en" ? plusJakartaSans.className : vazirmatn.className
+        } antialiased bg-surface text-on-surface flex flex-col min-h-screen`}
+      >
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <ClinicalHeader locale={locale} />
           <main className="min-h-screen pt-20">{children}</main>
           <ClinicalFooter locale={locale} />

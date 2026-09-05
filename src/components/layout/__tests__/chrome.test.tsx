@@ -37,10 +37,10 @@ describe("Global Clinical Chrome", () => {
       expect(html).toContain("سامانه سلامت و تغذیه بالینی");
     });
 
-    it("renders patient authentication CTA", () => {
+    it("renders patient authentication CTA linking to signin", () => {
       const html = renderToString(<ClinicalHeader locale="fa" />);
       expect(html).toContain("ورود");
-      expect(html).toContain("/fa/appointments");
+      expect(html).toContain("/fa/signin");
     });
 
     it("renders all 4 clinical navigation hubs with tablet/desktop breakpoint support", () => {
@@ -50,6 +50,25 @@ describe("Global Clinical Chrome", () => {
       expect(html).toContain("مجله سلامت");
       expect(html).toContain("راهنما و پشتیبانی");
       expect(html).toContain("hidden md:flex");
+    });
+
+    it("renders English header when locale is en", () => {
+      const html = renderToString(<ClinicalHeader locale="en" />);
+      expect(html).toContain("Angabin Teb");
+      expect(html).toContain("Clinical Health &amp; Nutrition");
+      expect(html).toContain("Sign In");
+      expect(html).toContain("/en/signin");
+      expect(html).toContain("Appointments &amp; Services");
+      expect(html).toContain("dir=\"ltr\"");
+    });
+
+    it("renders Arabic header when locale is ar", () => {
+      const html = renderToString(<ClinicalHeader locale="ar" />);
+      expect(html).toContain("انگبین طب");
+      expect(html).toContain("تسجيل الدخول");
+      expect(html).toContain("/ar/signin");
+      expect(html).toContain("المواعيد والخدمات");
+      expect(html).toContain("dir=\"rtl\"");
     });
   });
 
@@ -79,6 +98,26 @@ describe("Global Clinical Chrome", () => {
       expect(html).toContain("تمامی حقوق این سامانه متعلق به انگبین طب است");
     });
 
+    it("renders English footer when locale is en", () => {
+      const html = renderToString(<ClinicalFooter locale="en" />);
+      expect(html).toContain("Quick Access");
+      expect(html).toContain("Clinical Services");
+      expect(html).toContain("Knowledge Hub");
+      expect(html).toContain("Accreditation &amp; Trust");
+      expect(html).toContain("National Emergency: 115");
+      expect(html).toContain("dir=\"ltr\"");
+    });
+
+    it("renders Arabic footer when locale is ar", () => {
+      const html = renderToString(<ClinicalFooter locale="ar" />);
+      expect(html).toContain("وصول سريع");
+      expect(html).toContain("الخدمات السريرية");
+      expect(html).toContain("قاعدة المعرفة");
+      expect(html).toContain("الاعتمادات والموثوقية");
+      expect(html).toContain("رقم الطوارئ الوطني: 115");
+      expect(html).toContain("dir=\"rtl\"");
+    });
+
     it("includes mobile navigation clearance padding", () => {
       const html = renderToString(<ClinicalFooter locale="fa" />);
       expect(html).toContain("pb-16 md:pb-0");
@@ -106,6 +145,26 @@ describe("Global Clinical Chrome", () => {
       expect(html).toContain('href="/fa/nutrition"');
       expect(html).toContain('href="/fa/appointments"');
       expect(html).toContain('href="/fa/support"');
+    });
+
+    it("renders localized English destinations when locale is en", () => {
+      const html = renderToString(<MobileNav locale="en" />);
+      expect(html).toContain("Home");
+      expect(html).toContain("Doctors");
+      expect(html).toContain("Nutrition");
+      expect(html).toContain("Appointments");
+      expect(html).toContain("Support");
+      expect(html).toContain('href="/en/doctors"');
+    });
+
+    it("renders localized Arabic destinations when locale is ar", () => {
+      const html = renderToString(<MobileNav locale="ar" />);
+      expect(html).toContain("الرئيسية");
+      expect(html).toContain("الأطباء");
+      expect(html).toContain("التغذية");
+      expect(html).toContain("المواعيد");
+      expect(html).toContain("الدعم");
+      expect(html).toContain('href="/ar/doctors"');
     });
   });
 });

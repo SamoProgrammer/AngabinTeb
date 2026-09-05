@@ -1,5 +1,5 @@
 import "server-only";
-import { sql, eq, and } from "drizzle-orm";
+import { sql, eq, and, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { providers, practitioners, services, locations, serviceCategories, translations, diagnosticServices, contents } from "@/db/schema";
 import { overlayTranslations } from "@/lib/translate";
@@ -11,7 +11,7 @@ export async function fetchOverrides(entityType: string, ids: string[]) {
   return db
     .select()
     .from(translations)
-    .where(and(eq(translations.entityType, entityType), sql`${translations.entityId} = any(${ids}::text[])`));
+    .where(and(eq(translations.entityType, entityType), inArray(translations.entityId, ids)));
 }
 
 export async function searchAll(term: string, locale: string): Promise<SearchResult[]> {

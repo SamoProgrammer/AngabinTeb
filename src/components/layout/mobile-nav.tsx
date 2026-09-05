@@ -11,17 +11,42 @@ export interface MobileNavProps {
 export function MobileNav({ locale = "fa" }: MobileNavProps) {
   const pathname = usePathname();
 
+  const labels = {
+    en: {
+      home: "Home",
+      doctors: "Doctors",
+      nutrition: "Nutrition",
+      appointments: "Appointments",
+      support: "Support",
+    },
+    ar: {
+      home: "الرئيسية",
+      doctors: "الأطباء",
+      nutrition: "التغذية",
+      appointments: "المواعيد",
+      support: "الدعم",
+    },
+    fa: {
+      home: "خانه",
+      doctors: "پزشکان",
+      nutrition: "تغذیه",
+      appointments: "نوبت‌ها",
+      support: "پشتیبانی",
+    },
+  }[locale === "en" ? "en" : locale === "ar" ? "ar" : "fa"];
+
   const items = [
-    { label: "خانه", href: `/${locale}`, icon: "home", exact: true },
-    { label: "پزشکان", href: `/${locale}/doctors`, icon: "stethoscope", exact: false },
-    { label: "تغذیه", href: `/${locale}/nutrition`, icon: "restaurant", exact: false },
-    { label: "نوبت‌ها", href: `/${locale}/appointments`, icon: "calendar_month", exact: false },
-    { label: "پشتیبانی", href: `/${locale}/support`, icon: "support_agent", exact: false },
+    { label: labels.home, href: `/${locale}`, icon: "home", exact: true },
+    { label: labels.doctors, href: `/${locale}/doctors`, icon: "stethoscope", exact: false },
+    { label: labels.nutrition, href: `/${locale}/nutrition`, icon: "restaurant", exact: false },
+    { label: labels.appointments, href: `/${locale}/appointments`, icon: "calendar_month", exact: false },
+    { label: labels.support, href: `/${locale}/support`, icon: "support_agent", exact: false },
   ];
 
   return (
     <nav
       aria-label="Mobile Navigation"
+      dir={locale === "en" ? "ltr" : "rtl"}
       className="fixed bottom-0 inset-x-0 z-50 md:hidden border-t border-outline-variant/30 bg-surface/95 backdrop-blur-md shadow-tier-2"
     >
       <div className="flex h-16 items-center justify-around px-2">
