@@ -20,6 +20,15 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
+let mockSessionData: { user: { id: string; name: string; phoneNumber?: string; role?: string }; session: { id: string } } | null = null;
+
+vi.mock("@/lib/auth-client", () => ({
+  authClient: {
+    useSession: () => ({ data: mockSessionData, isPending: false }),
+    signOut: vi.fn(),
+  },
+}));
+
 describe("Global Clinical Chrome", () => {
   describe("ClinicalIcon", () => {
     it("renders Material Symbols Outlined glyph correctly", () => {
@@ -69,6 +78,45 @@ describe("Global Clinical Chrome", () => {
       expect(html).toContain("/ar/signin");
       expect(html).toContain("المواعيد والخدمات");
       expect(html).toContain("dir=\"rtl\"");
+    });
+
+    it("renders authenticated user account trigger and links when session exists", () => {
+      mockSessionData = {
+        user: {
+          id: "test-patient",
+          name: "بیمار آزمایشی",
+          phoneNumber: "09120000001",
+          role: "admin",
+        },
+        session: { id: "s1" },
+      };
+      const html = renderToString(<ClinicalHeader locale="fa" />);
+      expect(html).toContain("بیمار آزمایشی");
+      expect(html).toContain("09120000001");
+      expect(html).toContain("مدیر سامانه");
+      expect(html).toContain("/fa/appointments");
+      expect(html).toContain("/fa/notifications");
+      expect(html).toContain("/fa/admin");
+      expect(html).toContain("خروج از حساب");
+      mockSessionData = null; // reset
+    });
+
+    it("renders English authenticated user account trigger when locale is en", () => {
+      mockSessionData = {
+        user: {
+          id: "test-patient",
+          name: "John Doe",
+          phoneNumber: "+123456789",
+          role: "patient",
+        },
+        session: { id: "s1" },
+      };
+      const html = renderToString(<ClinicalHeader locale="en" />);
+      expect(html).toContain("John Doe");
+      expect(html).toContain("/en/appointments");
+      expect(html).toContain("/en/notifications");
+      expect(html).toContain("Sign Out");
+      mockSessionData = null; // reset
     });
   });
 

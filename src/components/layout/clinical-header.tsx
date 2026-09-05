@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { authClient } from "@/lib/auth-client";
 
 export interface SubNavItem {
   label: string;
@@ -398,11 +399,63 @@ function getNavHubs(locale: string): NavHub[] {
 
 export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
   const pathname = usePathname();
+  const { data: session } = authClient.useSession();
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileExpandedHub, setMobileExpandedHub] = useState<string | null>("booking");
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const headerRef = useRef<HTMLElement>(null);
+
+  const user = session?.user;
+  const isAuthenticated = Boolean(user);
+  const isAdmin = (user as { role?: string })?.role === "admin";
+
+  const userMenuLabels = {
+    fa: {
+      account: "حساب کاربری",
+      appointments: "نوبت‌های من",
+      appointmentsDesc: "پیگیری، سوابق و جزئیات نوبت‌های رزرو شده",
+      notifications: "پیام‌ها و اعلان‌ها",
+      notificationsDesc: "یادآوری نوبت و وضعیت پرونده",
+      admin: "پنل مدیریت",
+      adminDesc: "مدیریت پزشکان، خدمات و گزارش‌ها",
+      signOut: "خروج از حساب",
+      adminBadge: "مدیر سامانه",
+    },
+    en: {
+      account: "My Account",
+      appointments: "My Appointments",
+      appointmentsDesc: "Track and manage bookings",
+      notifications: "Notifications",
+      notificationsDesc: "Reminders and health alerts",
+      admin: "Admin Dashboard",
+      adminDesc: "Manage providers, services, and reports",
+      signOut: "Sign Out",
+      adminBadge: "Administrator",
+    },
+    ar: {
+      account: "حسابي",
+      appointments: "مواعيدي",
+      appointmentsDesc: "متابعة وإدارة المواعيد المحجوزة",
+      notifications: "الإشعارات",
+      notificationsDesc: "تنبيهات المواعيد وتحديثات الملف",
+      admin: "لوحة الإدارة",
+      adminDesc: "إدارة الأطباء والخدمات والتقارير",
+      signOut: "تسجيل الخروج",
+      adminBadge: "مدير النظام",
+    },
+  }[locale as "fa" | "en" | "ar"] || {
+    account: "حساب کاربری",
+    appointments: "نوبت‌های من",
+    appointmentsDesc: "پیگیری، سوابق و جزئیات نوبت‌های رزرو شده",
+    notifications: "پیام‌ها و اعلان‌ها",
+    notificationsDesc: "یادآوری نوبت و وضعیت پرونده",
+    admin: "پنل مدیریت",
+    adminDesc: "مدیریت پزشکان، خدمات و گزارش‌ها",
+    signOut: "خروج از حساب",
+    adminBadge: "مدیر سامانه",
+  };
 
   const navHubs = getNavHubs(locale);
 
@@ -416,11 +469,21 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
 
   const loginLabel = locale === "en" ? "Sign In" : locale === "ar" ? "تسجيل الدخول" : "ورود";
 
-  // Close dropdown on click outside
+  const handleSignOut = async () => {
+    try {
+      await authClient.signOut();
+    } catch (err) {
+      console.error("Sign out error:", err);
+    }
+    window.location.href = `/${locale}`;
+  };
+
+  // Close dropdowns and menus on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
         setActiveDropdown(null);
+        setUserMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -431,6 +494,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
   useEffect(() => {
     setActiveDropdown(null);
     setMobileMenuOpen(false);
+    setUserMenuOpen(false);
   }, [pathname]);
 
   const handleMouseEnter = (id: string) => {
@@ -585,14 +649,143 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
             <LocaleSwitcher />
           </div>
 
-          {/* Patient Auth CTA — links to signin page */}
-          <Link
-            href={`/${locale}/signin`}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-primary shadow-tier-1 hover:bg-primary-container active:translate-y-px transition-all"
-          >
-            <ClinicalIcon name="person" size={18} fill />
-            <span>{loginLabel}</span>
-          </Link>
+          {/* Patient Auth CTA / User Account Menu */}
+          {isAuthenticated ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                aria-expanded={userMenuOpen}
+                aria-haspopup="menu"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary/10 hover:bg-primary/15 border border-primary/25 px-3 py-2 text-xs sm:text-sm font-bold text-primary transition-all cursor-pointer shadow-xs active:scale-95"
+              >
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
+                  <ClinicalIcon name="person" size={16} fill />
+                </div>
+                <span className="max-w-[120px] truncate">
+                  {user?.name || userMenuLabels.account}
+                </span>
+                <ClinicalIcon
+                  name="expand_more"
+                  size={16}
+                  className={`transition-transform duration-200 ${
+                    userMenuOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Dropdown Menu */}
+              <div
+                role="menu"
+                className={`absolute top-full end-0 mt-2 w-72 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-tier-2 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-start ${
+                  userMenuOpen ? "block" : "hidden"
+                }`}
+              >
+                {/* User Info Header */}
+                <div className="p-3 rounded-xl bg-surface-container-low/80 mb-1.5 border border-outline-variant/20">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-on-surface truncate">
+                      {user?.name || userMenuLabels.account}
+                    </span>
+                    {isAdmin && (
+                      <span className="bg-primary/15 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                        {userMenuLabels.adminBadge}
+                      </span>
+                    )}
+                  </div>
+                  {user?.phoneNumber && (
+                    <span className="text-[11px] text-on-surface-variant font-mono block mt-0.5" dir="ltr">
+                      {user.phoneNumber}
+                    </span>
+                  )}
+                </div>
+
+                {/* Menu Links */}
+                <div className="flex flex-col gap-1">
+                  <Link
+                    href={`/${locale}/appointments`}
+                    role="menuitem"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
+                      <ClinicalIcon name="event_available" size={18} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
+                        {userMenuLabels.appointments}
+                      </span>
+                      <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1">
+                        {userMenuLabels.appointmentsDesc}
+                      </span>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href={`/${locale}/notifications`}
+                    role="menuitem"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
+                      <ClinicalIcon name="notifications" size={18} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
+                        {userMenuLabels.notifications}
+                      </span>
+                      <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1">
+                        {userMenuLabels.notificationsDesc}
+                      </span>
+                    </div>
+                  </Link>
+
+                  {isAdmin && (
+                    <Link
+                      href={`/${locale}/admin`}
+                      role="menuitem"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
+                        <ClinicalIcon name="admin_panel_settings" size={18} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
+                          {userMenuLabels.admin}
+                        </span>
+                        <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1">
+                          {userMenuLabels.adminDesc}
+                        </span>
+                      </div>
+                    </Link>
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-outline-variant/20 my-1.5" />
+
+                {/* Sign Out Button */}
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2.5 w-full p-2 rounded-xl text-error hover:bg-error-container/20 text-xs sm:text-sm font-semibold transition-colors cursor-pointer text-start"
+                >
+                  <ClinicalIcon name="logout" size={18} />
+                  <span>{userMenuLabels.signOut}</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <Link
+              href={`/${locale}/signin`}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-primary shadow-tier-1 hover:bg-primary-container active:translate-y-px transition-all"
+            >
+              <ClinicalIcon name="person" size={18} fill />
+              <span>{loginLabel}</span>
+            </Link>
+          )}
 
           {/* Mobile Hamburger Menu Button */}
           <button
@@ -609,6 +802,83 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
       {/* Mobile Drawer (When hamburger clicked on phones) */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-outline-variant/30 bg-surface-container-lowest p-4 shadow-tier-2 animate-in slide-in-from-top-3 duration-200 text-start">
+          {/* Authenticated user mobile card OR login button */}
+          <div className="mb-4">
+            {isAuthenticated ? (
+              <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-low/70 p-3.5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-on-primary">
+                      <ClinicalIcon name="person" size={20} fill />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs sm:text-sm font-bold text-on-surface">
+                        {user?.name || userMenuLabels.account}
+                      </span>
+                      {user?.phoneNumber && (
+                        <span className="text-[11px] text-on-surface-variant font-mono" dir="ltr">
+                          {user.phoneNumber}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {isAdmin && (
+                    <span className="bg-primary/15 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {userMenuLabels.adminBadge}
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-outline-variant/20">
+                  <Link
+                    href={`/${locale}/appointments`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors"
+                  >
+                    <ClinicalIcon name="event_available" size={16} className="text-primary" />
+                    <span>{userMenuLabels.appointments}</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/notifications`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors"
+                  >
+                    <ClinicalIcon name="notifications" size={16} className="text-primary" />
+                    <span>{userMenuLabels.notifications}</span>
+                  </Link>
+                </div>
+
+                {isAdmin && (
+                  <Link
+                    href={`/${locale}/admin`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs font-bold text-primary hover:bg-primary/15 transition-colors"
+                  >
+                    <ClinicalIcon name="admin_panel_settings" size={16} />
+                    <span>{userMenuLabels.admin}</span>
+                  </Link>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-error hover:bg-error-container/20 text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  <ClinicalIcon name="logout" size={16} />
+                  <span>{userMenuLabels.signOut}</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                href={`/${locale}/signin`}
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-on-primary text-xs sm:text-sm font-semibold shadow-tier-1 hover:bg-primary-container transition-all"
+              >
+                <ClinicalIcon name="person" size={18} fill />
+                <span>{loginLabel}</span>
+              </Link>
+            )}
+          </div>
           <div className="flex flex-col gap-3">
             {navHubs.map((hub) => {
               const isExpanded = mobileExpandedHub === hub.id;

@@ -108,7 +108,7 @@ function SignInForm({ locale }: { locale: string }) {
       if (!res.ok) throw new Error("Demo login endpoint unavailable");
       const { signedCookie } = await res.json();
       if (signedCookie) {
-        document.cookie = `better-auth.session_token=${encodeURIComponent(signedCookie)}; path=/; max-age=86400; SameSite=Lax`;
+        document.cookie = `better-auth.session_token=${signedCookie}; path=/; max-age=86400; SameSite=Lax`;
       }
       window.location.href = returnUrl;
     } catch {
