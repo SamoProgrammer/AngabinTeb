@@ -22,28 +22,22 @@ export interface TrustMetricsProps {
 
 const DEFAULT_METRICS: MetricItem[] = [
   {
-    value: "+۱۲۰",
+    value: "بیش از ۵۰",
     label: "پزشک متخصص",
     subtext: "دارای پروانه معتبر نظام پزشکی",
     colorClass: "text-primary",
   },
   {
-    value: "+۴۵k",
-    label: "نوبت موفق",
-    subtext: "بدون کنسلی یا اتلاف وقت مراجع",
-    colorClass: "text-secondary",
-  },
-  {
-    value: "+۸۰۰",
-    label: "بانک اطلاعات غذایی",
-    subtext: "با جدول آنالیز درشت‌مغذی‌ها",
-    colorClass: "text-primary",
-  },
-  {
     value: "۱۰۰٪",
-    label: "پرداخت در مطب",
-    subtext: "بدون هرگونه کارمزد پنهان آنلاین",
+    label: "پرداخت مستقیم در مطب",
+    subtext: "بدون هرگونه کارمزد آنلاین",
     colorClass: "text-secondary",
+  },
+  {
+    value: "۲۴ ساعته",
+    label: "پشتیبانی روزانه بیماران",
+    subtext: "پاسخگویی به سوالات و راهنمایی مراجعان",
+    colorClass: "text-primary",
   },
 ];
 
@@ -79,8 +73,8 @@ export function TrustMetrics({
   return (
     <section className={`w-full ${className}`} dir="rtl" aria-label="شاخص‌های اعتماد و شفافیت بالینی">
       <div className="bg-surface-container-low rounded-3xl p-6 sm:p-8 md:p-10 border border-outline-variant/30">
-        {/* 4 Clinical Counter Badges */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-8">
+        {/* Clinical Counter Badges */}
+        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 text-center mb-8`}>
           {metrics.map((item, idx) => (
             <div
               key={idx}

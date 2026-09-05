@@ -202,20 +202,14 @@ describe("Shared Clinical Primitives & Universal Search", () => {
   });
 
   describe("TrustMetrics", () => {
-    it("renders all 4 clinical counter badges", () => {
+    it("renders clinical counter badges", () => {
       const html = renderToString(<TrustMetrics />);
-      // 4 counter values & labels
-      expect(html).toContain("+۱۲۰");
+      // Counter values & labels
+      expect(html).toContain("بیش از ۵۰");
       expect(html).toContain("پزشک متخصص");
-
-      expect(html).toContain("+۴۵k");
-      expect(html).toContain("نوبت موفق");
-
-      expect(html).toContain("+۸۰۰");
-      expect(html).toContain("بانک اطلاعات غذایی");
-
-      expect(html).toContain("۱۰۰٪");
-      expect(html).toContain("پرداخت در مطب");
+      expect(html).toContain("پرداخت مستقیم در مطب");
+      expect(html).toContain("پشتیبانی روزانه بیماران");
+      expect(html).not.toContain("+۴۵k");
     });
 
     it("renders 3 trust pillar cards with required headings and descriptions", () => {
