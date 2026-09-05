@@ -49,14 +49,12 @@ describe("Global Clinical Chrome", () => {
       expect(html).toContain("/fa/appointments");
     });
 
-    it("renders all clinical navigation links with tablet breakpoint support", () => {
+    it("renders all 4 clinical navigation hubs with tablet/desktop breakpoint support", () => {
       const html = renderToString(<ClinicalHeader locale="fa" />);
-      expect(html).toContain("نوبت‌دهی پزشکان");
-      expect(html).toContain("خدمات درمانی");
+      expect(html).toContain("نوبت‌دهی و خدمات");
       expect(html).toContain("پرونده و تغذیه");
       expect(html).toContain("مجله سلامت");
-      expect(html).toContain("درباره ما");
-      expect(html).toContain("تماس با ما");
+      expect(html).toContain("راهنما و پشتیبانی");
       expect(html).toContain("hidden md:flex");
     });
   });
