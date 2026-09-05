@@ -6,11 +6,11 @@ import { toPersianDigits } from "@/components/catalog/doctor-card";
 
 const pageSize = 12;
 
-function pageHref(page: number, topic?: string) {
+function pageHref(locale: string, page: number, topic?: string) {
   const params = new URLSearchParams();
   params.set("page", String(page));
   if (topic) params.set("topic", topic);
-  return `/articles?${params.toString()}`;
+  return `/${locale}/articles?${params.toString()}`;
 }
 
 export default async function ArticlesPage({
@@ -34,6 +34,7 @@ export default async function ArticlesPage({
     selectedTopic?.id,
     undefined,
     current,
+    pageSize,
   );
 
   // Filter in-memory if query string provided
@@ -47,11 +48,7 @@ export default async function ArticlesPage({
     <div dir="rtl" className="w-full bg-surface min-h-screen py-6 sm:py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8">
         {/* Header Title & Intro */}
-        <div className="flex flex-col gap-3 text-start">
-          <div className="flex items-center gap-2 text-primary text-sm font-semibold">
-            <ClinicalIcon name="menu_book" size={20} />
-            <span>پایگاه دانش و مقالات سلامت بالینی</span>
-          </div>
+        <div className="flex flex-col gap-2 text-start">
           <h1 className="text-2xl sm:text-4xl font-extrabold text-on-surface tracking-tight">
             مجله سلامت و پژوهش‌های پزشکی
           </h1>
@@ -65,7 +62,7 @@ export default async function ArticlesPage({
           <div className="flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
             <div className="flex items-center gap-2 shrink-0">
               <Link
-                href="/articles"
+                href={`/${locale}/articles`}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                   !topicSlug
                     ? "bg-primary text-on-primary shadow-xs"
@@ -79,7 +76,7 @@ export default async function ArticlesPage({
                 return (
                   <Link
                     key={t.id}
-                    href={`/articles?topic=${t.slug}`}
+                    href={`/${locale}/articles?topic=${t.slug}`}
                     className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
                       isActive
                         ? "bg-primary text-on-primary shadow-xs"
@@ -92,7 +89,7 @@ export default async function ArticlesPage({
               })}
             </div>
             <Link
-              href="/topics"
+              href={`/${locale}/topics`}
               className="hidden sm:flex items-center gap-1 text-primary text-xs sm:text-sm font-bold hover:underline shrink-0 pe-2"
             >
               <span>همه دسته‌بندی‌ها</span>
@@ -105,17 +102,16 @@ export default async function ArticlesPage({
         <section aria-label="فهرست مقالات">
           {displayRows.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayRows.map((article, idx) => (
+              {displayRows.map((article) => (
                 <ArticleCard
                   key={article.id}
                   article={{
                     id: article.id,
                     slug: article.slug,
                     title: article.title,
+                    summary: article.body,
                     publishedAt: article.publishedAt,
-                    category: selectedTopic?.name ?? (idx % 2 === 0 ? "دیابت و متابولیسم" : "تغذیه بالینی"),
-                    authorName: idx % 3 === 0 ? "دکتر لیلا سادات" : idx % 3 === 1 ? "دکتر فرهاد مرادی" : "دکتر آرش رادمنش",
-                    readingTimeMinutes: 5 + (idx % 6),
+                    ...(selectedTopic ? { category: selectedTopic.name } : {}),
                   }}
                   locale={locale}
                 />
@@ -127,7 +123,7 @@ export default async function ArticlesPage({
               <p className="text-base font-bold text-on-surface">مقاله‌ای در این دسته‌بندی یافت نشد</p>
               <p className="text-xs text-on-surface-variant">می‌توانید موضوعات دیگر را بررسی کنید یا همه مقالات را مشاهده فرمایید.</p>
               <Link
-                href="/articles"
+                href={`/${locale}/articles`}
                 className="mt-2 inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-xl text-xs font-semibold"
               >
                 بازگشت به همه مقالات
@@ -141,7 +137,7 @@ export default async function ArticlesPage({
           <nav aria-label="صفحه‌بندی" className="flex items-center justify-center gap-2 pt-6">
             {current > 1 && (
               <Link
-                href={pageHref(current - 1, topicSlug)}
+                href={pageHref(locale, current - 1, topicSlug)}
                 className="px-4 py-2 rounded-xl bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-xs sm:text-sm font-medium flex items-center gap-1"
               >
                 <ClinicalIcon name="arrow_forward" size={16} />
@@ -156,7 +152,7 @@ export default async function ArticlesPage({
             </div>
             {current < pages && (
               <Link
-                href={pageHref(current + 1, topicSlug)}
+                href={pageHref(locale, current + 1, topicSlug)}
                 className="px-4 py-2 rounded-xl bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-xs sm:text-sm font-medium flex items-center gap-1"
               >
                 <span>بعدی</span>

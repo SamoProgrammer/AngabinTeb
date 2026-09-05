@@ -1,7 +1,6 @@
 import { getContent, listContent } from "@/contexts/content/queries";
 import type { ContentDetail } from "@/contexts/content/model";
 import { FaqClient } from "./faq-client";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
 
 export default async function FaqPage({
   params,
@@ -18,11 +17,7 @@ export default async function FaqPage({
     <div dir="rtl" className="w-full bg-surface min-h-screen py-8 sm:py-12">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-10">
         {/* Header Hero (Screen #29) */}
-        <section className="text-center flex flex-col items-center gap-3 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 text-primary font-bold text-xs sm:text-sm bg-primary/10 px-3 py-1.5 rounded-full">
-            <ClinicalIcon name="help" size={18} />
-            <span>راهنمای جامع بیماران و مراجعین</span>
-          </div>
+        <section className="text-center flex flex-col items-center gap-2 max-w-3xl mx-auto">
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-on-surface tracking-tight">
             پرسش‌های متداول و راهنمای مراجعین
           </h1>

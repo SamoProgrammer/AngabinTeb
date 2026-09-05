@@ -25,28 +25,42 @@ export default async function TopicHubPage({
           <span className="text-on-surface font-semibold">{hub.topic.name}</span>
         </nav>
 
-        {/* Hero Banner & Status Anchor (Screen #28) */}
+        {/* Hero Banner — Natural Topic Pathway (Screen #28) */}
         <section className="relative w-full bg-gradient-to-b from-primary/10 via-surface-container-low/40 to-surface rounded-3xl p-6 sm:p-10 border border-outline-variant/30 overflow-hidden text-start">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-7 flex flex-col gap-4">
-              <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-bold">
-                <ClinicalIcon name="health_and_safety" size={18} />
-                <span>مرکز جامع مراقبت ۳۶۰ درجه بالینی</span>
-              </div>
-              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-on-surface tracking-tight leading-tight">
-                {hub.topic.name}
-              </h1>
-              <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed text-justify">
-                پایگاه تخصصی راهنماهای بالینی، پروتکل‌های سبک زندگی، آزمایش‌های پایش دوره‌ای و معرفی پزشکان فوق‌تخصص همکار در حوزه {hub.topic.name}.
-              </p>
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <Link
-                  href={`/articles?topic=${hub.topic.slug}`}
-                  className="inline-flex items-center gap-2 bg-primary text-on-primary text-xs sm:text-sm font-bold px-4 sm:px-5 py-2.5 rounded-xl shadow-xs hover:bg-primary-container transition-all"
+          <div className="flex flex-col gap-4 max-w-3xl">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-on-surface tracking-tight leading-tight">
+              {hub.topic.name}
+            </h1>
+            <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed text-justify">
+              پایگاه تخصصی راهنماهای بالینی، پروتکل‌های سبک زندگی، آزمایش‌های پایش دوره‌ای و معرفی پزشکان فوق‌تخصص همکار در حوزه {hub.topic.name}.
+            </p>
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <Link
+                href={`/${locale}/articles?topic=${hub.topic.slug}`}
+                className="inline-flex items-center gap-2 bg-primary text-on-primary text-xs sm:text-sm font-bold px-4 sm:px-5 py-2.5 rounded-xl shadow-xs hover:bg-primary-container transition-all"
+              >
+                <ClinicalIcon name="menu_book" size={18} />
+                <span>مقالات تخصصی {hub.topic.name}</span>
+              </Link>
+              {hub.conditions.length > 0 && (
+                <a
+                  href="#conditions"
+                  className="inline-flex items-center gap-2 bg-surface-container-high text-on-surface text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-surface-container transition-all"
                 >
-                  <ClinicalIcon name="menu_book" size={18} />
-                  <span>مقالات تخصصی {hub.topic.name}</span>
-                </Link>
+                  <ClinicalIcon name="vital_signs" size={18} />
+                  <span>بیماری‌های مرتبط</span>
+                </a>
+              )}
+              {hub.relatedServices.length > 0 && (
+                <a
+                  href="#services"
+                  className="inline-flex items-center gap-2 bg-surface-container-high text-on-surface text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-surface-container transition-all"
+                >
+                  <ClinicalIcon name="medical_services" size={18} />
+                  <span>خدمات و آزمایش‌ها</span>
+                </a>
+              )}
+              {hub.relatedDoctors.length > 0 && (
                 <a
                   href="#doctors"
                   className="inline-flex items-center gap-2 bg-surface-container-high text-on-surface text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-surface-container transition-all"
@@ -54,38 +68,7 @@ export default async function TopicHubPage({
                   <ClinicalIcon name="stethoscope" size={18} />
                   <span>پزشکان متخصص</span>
                 </a>
-              </div>
-            </div>
-
-            {/* Clinical Target Indicators (Screen #28) */}
-            <div className="lg:col-span-5">
-              <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs flex flex-col gap-4">
-                <div className="flex items-center justify-between pb-3 border-b border-outline-variant/20">
-                  <div className="flex items-center gap-2">
-                    <ClinicalIcon name="vital_signs" size={20} className="text-primary" />
-                    <span className="font-bold text-sm text-on-surface">شاخص‌های هدف بالینی</span>
-                  </div>
-                  <span className="bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-full">
-                    استاندارد مراقبت
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-surface-container-low p-4 rounded-xl flex flex-col items-center text-center gap-1">
-                    <span className="text-xs text-outline">پایش منظم روزانه</span>
-                    <span className="text-lg sm:text-xl font-extrabold text-primary">بهینه</span>
-                    <span className="text-[11px] text-on-surface-variant">الگوی غذایی متوازن</span>
-                  </div>
-                  <div className="bg-surface-container-low p-4 rounded-xl flex flex-col items-center text-center gap-1">
-                    <span className="text-xs text-outline">چکاپ دوره‌ای</span>
-                    <span className="text-lg sm:text-xl font-extrabold text-primary">هر ۳ الی ۶ ماه</span>
-                    <span className="text-[11px] text-on-surface-variant">ویزیت و آزمایشگاه</span>
-                  </div>
-                </div>
-                <p className="text-xs text-on-surface-variant flex items-center gap-1.5 pt-1">
-                  <ClinicalIcon name="check_circle" size={16} className="text-primary shrink-0" />
-                  <span>با اصلاح هوشمند سفره و پایش مداوم، کنترل کامل سلامت امکان‌پذیر است.</span>
-                </p>
-              </div>
+              )}
             </div>
           </div>
         </section>
@@ -102,7 +85,7 @@ export default async function TopicHubPage({
               </p>
             </div>
             <Link
-              href={`/articles?topic=${hub.topic.slug}`}
+              href={`/${locale}/articles?topic=${hub.topic.slug}`}
               className="text-xs sm:text-sm text-primary font-bold hover:underline inline-flex items-center gap-1 self-start sm:self-auto"
             >
               <span>مشاهده همه مقالات {hub.topic.name}</span>
@@ -112,17 +95,16 @@ export default async function TopicHubPage({
 
           {hub.content.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hub.content.map((c, idx) => (
+              {hub.content.map((c) => (
                 <ArticleCard
                   key={c.id}
                   article={{
                     id: c.id,
                     slug: c.slug,
                     title: c.title,
+                    summary: c.body,
                     publishedAt: c.publishedAt,
                     category: hub.topic.name,
-                    authorName: idx % 2 === 0 ? "دکتر لیلا سادات" : "دکتر آرش رادمنش",
-                    readingTimeMinutes: 6,
                   }}
                   locale={locale}
                 />
@@ -151,7 +133,7 @@ export default async function TopicHubPage({
               {hub.conditions.map((c) => (
                 <Link
                   key={c.id}
-                  href={`/conditions/${c.slug}`}
+                  href={`/${locale}/conditions/${c.slug}`}
                   className="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant/30 shadow-xs hover:border-primary/50 hover:shadow-tier-1 transition-all flex items-center justify-between group"
                 >
                   <div className="flex items-center gap-3">
@@ -188,7 +170,7 @@ export default async function TopicHubPage({
               {hub.relatedServices.map((s) => (
                 <Link
                   key={s.id}
-                  href={s.href}
+                  href={s.href.startsWith(`/${locale}`) ? s.href : `/${locale}${s.href.startsWith("/") ? s.href : "/" + s.href}`}
                   className="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant/30 shadow-xs hover:border-primary/50 hover:shadow-tier-1 transition-all flex flex-col justify-between group"
                 >
                   <div>
@@ -228,7 +210,7 @@ export default async function TopicHubPage({
               {hub.relatedDoctors.map((d) => (
                 <Link
                   key={d.id}
-                  href={d.href}
+                  href={d.href.startsWith(`/${locale}`) ? d.href : `/${locale}${d.href.startsWith("/") ? d.href : "/" + d.href}`}
                   className="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant/30 shadow-xs hover:border-primary/50 hover:shadow-tier-1 transition-all flex flex-col justify-between group"
                 >
                   <div>

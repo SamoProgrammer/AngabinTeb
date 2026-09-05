@@ -39,6 +39,7 @@ vi.mock("@/contexts/content/queries", () => ({
             id: "vid-1",
             slug: "diabetes-video-guide",
             title: "راهنمای تصویری کنترل قند خون ناشتا",
+            body: "آموزش تصویری اندازه‌گیری قند خون و تفسیر نتایج.",
             videoUrl: "https://example.com/videos/diabetes.mp4",
             publishedAt: new Date("2026-05-10T10:00:00Z"),
           },
@@ -53,6 +54,7 @@ vi.mock("@/contexts/content/queries", () => ({
             id: "faq-db-1",
             slug: "faq-booking-steps",
             title: "آیا برای رزرو آنلاین نوبت هزینه‌ای دریافت می‌شود؟",
+            body: "خیر، رزرو نوبت در انگبین طب کاملاً رایگان است.",
             videoUrl: null,
             publishedAt: new Date("2026-05-10T10:00:00Z"),
           },
@@ -66,6 +68,7 @@ vi.mock("@/contexts/content/queries", () => ({
           id: "art-1",
           slug: "insulin-resistance-guide",
           title: "راهنمای بالینی مدیریت مقاومت به انسولین و دیابت",
+          body: "مقاومت به انسولین شایع‌ترین اختلال متابولیک زیربنایی در جامعه ایرانی امروز است.",
           videoUrl: null,
           publishedAt: new Date("2026-05-10T10:00:00Z"),
         },
@@ -73,6 +76,7 @@ vi.mock("@/contexts/content/queries", () => ({
           id: "art-2",
           slug: "fatty-liver-diet",
           title: "رژیم غذایی کبد چرب گرید ۱ و ۲ در سفره ایرانی",
+          body: "اصلاح الگوی غذایی سفره ایرانی رکن اصلی مدیریت کبد چرب است.",
           videoUrl: null,
           publishedAt: new Date("2026-05-12T10:00:00Z"),
         },
@@ -112,6 +116,7 @@ vi.mock("@/contexts/content/queries", () => ({
           id: "art-1",
           slug: "insulin-resistance-guide",
           title: "راهنمای بالینی مدیریت مقاومت به انسولین و دیابت",
+          body: "مقاومت به انسولین شایع‌ترین اختلال متابولیک زیربنایی در جامعه ایرانی امروز است.",
           videoUrl: null,
           publishedAt: new Date("2026-05-10T10:00:00Z"),
         },
@@ -150,8 +155,30 @@ vi.mock("@/contexts/content/queries", () => ({
   }),
 }));
 
+// Mock Catalog Queries (for ConditionPage linked services & doctors)
+vi.mock("@/contexts/catalog/queries", () => ({
+  searchAll: vi.fn().mockImplementation(() => {
+    return Promise.resolve([
+      {
+        id: "srv-cond-1",
+        type: "service",
+        title: "چکاپ تخصصی و آزمایش قند خون",
+        subtitle: "پایش آزمایشگاهی متابولیک",
+        href: "/services/blood-sugar-test",
+      },
+      {
+        id: "doc-cond-1",
+        type: "doctor",
+        title: "دکتر مریم شریفی",
+        subtitle: "فوق تخصص غدد و متابولیسم",
+        href: "/doctors/dr-sharifi",
+      },
+    ]);
+  }),
+}));
+
 describe("Content Hub SSR Pages", () => {
-  it("renders ArticlesPage with category pills and article cards", async () => {
+  it("renders ArticlesPage with category pills and stored article cards", async () => {
     const pageJsx = await ArticlesPage({
       params: Promise.resolve({ locale: "fa" }),
       searchParams: Promise.resolve({}),
@@ -163,9 +190,18 @@ describe("Content Hub SSR Pages", () => {
     expect(html).toContain("دیابت و متابولیسم");
     expect(html).toContain("سلامت قلب و عروق");
     expect(html).toContain("راهنمای بالینی مدیریت مقاومت به انسولین و دیابت");
+    // Stored excerpt renders; no index-derived authors, topics, or reading times
+    expect(html).toContain("شایع‌ترین اختلال متابولیک");
+    expect(html).not.toContain("دکتر لیلا سادات");
+    expect(html).not.toContain("دکتر فرهاد مرادی");
+    expect(html).not.toContain("دکتر آرش رادمنش");
+    expect(html).not.toContain("دقیقه مطالعه");
+    // Redundant kicker badge above headings removed
+    expect(html).not.toContain("دانشنامه سلامت");
+    expect(html).not.toContain("پایگاه دانش و مقالات سلامت بالینی");
   });
 
-  it("renders ArticlePage reader with breadcrumbs, author metadata, and sticky sidebar", async () => {
+  it("renders ArticlePage reader with breadcrumbs and stored body only", async () => {
     const pageJsx = await ArticlePage({
       params: Promise.resolve({ locale: "fa", slug: "insulin-resistance-guide" }),
     });
@@ -173,9 +209,13 @@ describe("Content Hub SSR Pages", () => {
 
     expect(html).toContain("مجله سلامت");
     expect(html).toContain("راهنمای بالینی مدیریت مقاومت به انسولین و دیابت");
-    expect(html).toContain("دکتر لیلا سادات");
-    expect(html).toContain("نسخه صوتی مقاله");
-    expect(html).toContain("نکته کلیدی بالینی");
+    expect(html).toContain("مقاومت به انسولین شایع‌ترین اختلال متابولیک");
+    // No hardcoded author, audio banner, clinical pearl, or takeaways
+    expect(html).not.toContain("دکتر لیلا سادات");
+    expect(html).not.toContain("نسخه صوتی مقاله");
+    expect(html).not.toContain("نکته کلیدی بالینی");
+    expect(html).not.toContain("دقیقه مطالعه");
+    expect(html).not.toContain("دانشنامه سلامت");
     expect(html).toContain("دریافت نوبت ویزیت با پزشک");
   });
 
@@ -192,7 +232,7 @@ describe("Content Hub SSR Pages", () => {
     expect(html).toContain("پایگاه ۳۶۰°");
   });
 
-  it("renders TopicHubPage with topic heading, links, target indicators, and related care", async () => {
+  it("renders TopicHubPage with topic heading, links, and related care without fake telemetry", async () => {
     const pageJsx = await TopicHubPage({
       params: Promise.resolve({ locale: "fa", slug: "diabetes" }),
     });
@@ -204,13 +244,17 @@ describe("Content Hub SSR Pages", () => {
     // links match /دیابت/
     expect(html).toMatch(/<a[^>]*href="[^"]*"[^>]*>[\s\S]*?دیابت[\s\S]*?<\/a>/);
     expect(html).toContain("دیابت و متابولیسم");
-    expect(html).toContain("شاخص‌های هدف بالینی");
+    // Fake static telemetry card removed
+    expect(html).not.toContain("شاخص‌های هدف بالینی");
+    expect(html).not.toContain("پایش منظم روزانه");
+    expect(html).not.toContain("چکاپ دوره‌ای");
+    // Care pathway links intact
     expect(html).toContain("دیابت نوع ۲");
     expect(html).toContain("چکاپ متابولیک و قند سه ماهه HbA1c");
     expect(html).toContain("دکتر لیلا سادات");
   });
 
-  it("renders VideosPage with video cards and duration pills", async () => {
+  it("renders VideosPage with stored video cards and no repetitive badges or invented speakers", async () => {
     const pageJsx = await VideosPage({
       params: Promise.resolve({ locale: "fa" }),
     });
@@ -218,22 +262,31 @@ describe("Content Hub SSR Pages", () => {
 
     expect(html).toContain("ویدیوها و وبینارهای تخصصی پزشکی");
     expect(html).toContain("راهنمای تصویری کنترل قند خون ناشتا");
+    expect(html).toContain("آموزش تصویری اندازه‌گیری قند خون");
     expect(html).toContain("تماشای ویدیو");
+    expect(html).not.toContain("ویدیوی تایید شده");
+    expect(html).not.toContain("آموزش تصویری سلامت و نکات بالینی");
+    expect(html).not.toContain("دکتر لیلا سادات");
+    expect(html).not.toContain("دکتر احسان آریا");
   });
 
-  it("renders ConditionPage with clinical profile and diagnostic tests", async () => {
+  it("renders ConditionPage with tailored pathway, linked services, and doctors without copy-paste boxes", async () => {
     const pageJsx = await ConditionPage({
       params: Promise.resolve({ locale: "fa", slug: "type-2-diabetes" }),
     });
     const html = renderToString(pageJsx);
 
     expect(html).toContain("دیابت نوع ۲");
-    expect(html).toContain("پروفایل بالینی اختلال");
-    expect(html).toContain("علائم شایع و هشدار دهنده");
-    expect(html).toContain("آزمایش‌های تشخیصی پیشنهادی");
+    // Duplicate copy-pasted diagnostic boxes removed
+    expect(html).not.toContain("علائم شایع و هشدار دهنده");
+    expect(html).not.toContain("آزمایش‌های تشخیصی پیشنهادی");
+    expect(html).not.toContain("احساس خستگی مفرط، تغییرات وزنی بی‌دلیل");
+    // Tailored linked services and doctors rendered
+    expect(html).toContain("چکاپ تخصصی و آزمایش قند خون");
+    expect(html).toContain("دکتر مریم شریفی");
   });
 
-  it("renders FaqPage and FaqClient with questions and categories", async () => {
+  it("renders FaqPage with live entries and no hardcoded defaults", async () => {
     const pageJsx = await FaqPage({
       params: Promise.resolve({ locale: "fa" }),
     });
@@ -241,15 +294,41 @@ describe("Content Hub SSR Pages", () => {
 
     expect(html).toContain("پرسش‌های متداول و راهنمای مراجعین");
     expect(html).toContain("آیا برای رزرو آنلاین نوبت هزینه‌ای دریافت می‌شود؟");
-    expect(html).toContain("نوبت‌دهی و لغو نوبت");
-    expect(html).toContain("بیمه‌ها و پرداخت");
     expect(html).toContain("ارتباط با پشتیبانی مراجعین");
+    // Default hardcoded list deleted: insurance/privacy defaults never render
+    expect(html).not.toContain("تحت پوشش بیمه‌های پایه و تکمیلی");
+    expect(html).not.toContain("اطلاعات پرونده و آزمایش‌های من");
+    expect(html).not.toContain("نوبت‌دهی و لغو نوبت");
   });
 
-  it("renders FaqClient directly and shows default questions", () => {
+  it("renders FaqClient with live entries only", () => {
+    const html = renderToString(
+      <FaqClient
+        locale="fa"
+        dbFaqs={[{ id: "faq-1", title: "سوال زنده؟", body: "پاسخ زنده." }]}
+      />,
+    );
+    expect(html).toContain("سوال زنده؟");
+    expect(html).not.toContain("تحت پوشش بیمه‌های پایه و تکمیلی");
+  });
+
+  it("renders FaqClient empty state when no live entries exist", () => {
     const html = renderToString(<FaqClient locale="fa" />);
-    expect(html).toContain("همه سوالات");
-    expect(html).toContain("حریم خصوصی پرونده");
-    expect(html).toContain("اطلاعات پرونده و آزمایش‌های من نزد چه کسانی محفوظ است؟");
+    expect(html).toContain("هنوز پرسش متداولی ثبت نشده است.");
+  });
+
+  it("renders FaqClient with category tabs when categories are present", () => {
+    const html = renderToString(
+      <FaqClient
+        locale="fa"
+        dbFaqs={[
+          { id: "faq-1", title: "نوبت‌دهی چگونه است؟", body: "به سادگی از سایت رزرو کنید.", category: "نوبت‌دهی" },
+          { id: "faq-2", title: "بیمه تکمیلی پذیرفته می‌شود؟", body: "بله، فاکتور صادر می‌شود.", category: "بیمه" },
+        ]}
+      />,
+    );
+    expect(html).toContain("همه موارد");
+    expect(html).toContain("نوبت‌دهی");
+    expect(html).toContain("بیمه");
   });
 });

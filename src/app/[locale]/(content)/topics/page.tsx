@@ -39,11 +39,7 @@ export default async function KnowledgePage({
     <div dir="rtl" className="w-full bg-surface min-h-screen py-8 sm:py-12">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-10">
         {/* Header Hero */}
-        <div className="flex flex-col gap-4 text-start max-w-3xl">
-          <div className="inline-flex items-center gap-2 text-primary font-bold text-xs sm:text-sm bg-primary/10 px-3 py-1.5 rounded-full self-start">
-            <ClinicalIcon name="hub" size={18} />
-            <span>پایگاه جامع موضوعات سلامت بالینی</span>
-          </div>
+        <div className="flex flex-col gap-2 text-start max-w-3xl">
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-on-surface tracking-tight">
             موضوعات و مراکز تخصصی سلامت
           </h1>
@@ -56,11 +52,11 @@ export default async function KnowledgePage({
         <section aria-label="فهرست موضوعات سلامت" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {topics.map((t) => {
             const iconName = getTopicIcon(t.slug);
-            const countText = `${toPersianDigits(Math.max(t.count, 1))} مقاله و راهنمای بالینی`;
+            const countText = `${toPersianDigits(t.count)} مقاله و راهنمای بالینی`;
             return (
               <Link
                 key={t.id}
-                href={`/topics/${t.slug}`}
+                href={`/${locale}/topics/${t.slug}`}
                 className="group bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs hover:shadow-tier-2 hover:border-primary/50 transition-all duration-300 flex flex-col justify-between text-start"
               >
                 <div className="flex items-start justify-between gap-4 mb-4">
