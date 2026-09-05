@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, use } from "react";
+import { useState, useTransition, use, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -11,12 +11,7 @@ interface SignInPageProps {
   params: Promise<{ locale: string }> | { locale: string };
 }
 
-export default function SignInPage({ params }: SignInPageProps) {
-  const resolvedParams =
-    params && typeof (params as Promise<{ locale: string }>).then === "function"
-      ? use(params as Promise<{ locale: string }>)
-      : (params as { locale: string });
-  const locale = resolvedParams.locale;
+function SignInForm({ locale }: { locale: string }) {
   const t = useTranslations("auth");
   const searchParams = useSearchParams();
 
@@ -324,5 +319,25 @@ export default function SignInPage({ params }: SignInPageProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage({ params }: SignInPageProps) {
+  const resolvedParams =
+    params && typeof (params as Promise<{ locale: string }>).then === "function"
+      ? use(params as Promise<{ locale: string }>)
+      : (params as { locale: string });
+  const locale = resolvedParams.locale;
+
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[80vh] flex items-center justify-center">
+          <span className="h-8 w-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <SignInForm locale={locale} />
+    </Suspense>
   );
 }
