@@ -20,7 +20,7 @@ Next 16.3.3 · React 19 · TS 7.0.2 (oxlint only, NO typescript-eslint) · Tailw
 ## Where things live
 
 ```
-src/app/[locale]/          # App Router — (discovery) (booking) (account) (nutrition) (content) (marketing) admin/
+src/app/[locale]/          # App Router — (discovery) (booking) (account) (auth) (nutrition) (content) (marketing) admin/
 src/contexts/{identity,catalog,booking,nutrition,content,support}/  # kernel.ts queries.ts actions.ts model.ts
 src/db/schema/             # one file per context + index.ts barrel
 src/components/ui/         # shadcn (base-ui variant) vendored
@@ -56,11 +56,20 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
 - `bookAppointment` → `bookAppointmentWithUser(user, input)` seam for `/api-test` routes.
 - Slot capacity guarded by conditional `UPDATE ... booked_count + $party <= capacity` — never reimplement with SELECT+check.
 - `generateSlots` uses `SELECT ... FOR UPDATE` on service row to serialize concurrent generation.
+- Auth route `src/app/[locale]/(auth)/signin/page.tsx` lives in `(auth)`, NOT inside `(account)` which requires authentication (`await requireUser()`).
+- Session cookies in `better-auth` are HMAC SHA-256 signed (`${token}.${sig}`); test login endpoints use `makeSignature` from `better-auth/crypto` and raw cookie value (not `encodeURIComponent` to preserve `=` padding).
+- `ClinicalHeader` dynamically subscribes to `authClient.useSession()`, toggling between guest CTA («ورود») and user account dropdown (appointments, notifications, admin, sign-out).
+- `LocaleSwitcher` replaces path prefix (`segments[0] = nextLocale`) and performs full reload for clean RTL/LTR layout and fonts.
 
 ## Current state
 
-- **HEAD:** `e486750` (purge executed and whole-branch review clean; 6 commits)
-- **Last shipped:** Purge — 5 subsystems deleted to match manager vision (plain services only): appointment payments, home-care serviceability, ambulance dispatch, provider portal, support assignment. Migrations 0010, 0011, 0012 emitted. Booking kernel, nutrition, content, i18n, admin intact.
+- **HEAD:** `4a43580` (auth header session menu, signin loop fix, i18n cleanups)
+- **Last shipped:**
+  - Header mega-dropdown navigation: 4 clinical hubs (Appointments, Nutrition, Content, Support) + responsive mobile drawer + reactive user session menu with appointments, notifications, admin panel, and sign-out.
+  - Auth route and demo login: Moved `/signin` to `(auth)` group, eliminating infinite 307 loop from `requireUser()`; HMAC SHA-256 session token signing for instant one-click test login; better-auth baseURL configuration.
+  - Multilingual & routing: Fixed locale switcher preventing dirty URLs like `/en/ar`; completed English (`en`) and Arabic (`ar`) dictionaries; switched Postgres translation queries to Drizzle `inArray`.
+  - Purge of 5 legacy subsystems completed in migrations 0010-0012.
+- **Verification status:** 108 routes built successfully (`next build`), 91 unit tests passing (`vitest`), oxlint 0 errors, tsc 0 errors.
 - **Next:** Human deferred verification (R10) — `docker compose up -d` → `db:migrate` → all `db:seed*` → `tsc` → `lint` → `test` → `build` → `playwright test`.
 - **Manager vision (simplified):** booking for doctors/clinics/services (by specialty/type), rehab/home-care/ambulance as plain `service_type` rows, nutrition body→calorie/nutrient + diet, food/educational blog (article/video/pamphlet/FAQ), 3 locales, accounts/appointments. Paid = downloadable content, not appointment charge.
 - **Purge deleted:** appointment payments (`pending`/`paid_online`), home-care `home_city_id`+serviceability, ambulance `dispatch_record`, provider portal, support `assignee_user_id`. Keeps: booking kernel, nutrition, content, i18n, admin. Migrations 0010+ drop the columns/tables.
