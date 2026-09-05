@@ -41,11 +41,11 @@ describe("Shared Clinical Primitives & Universal Search", () => {
       );
     });
 
-    it("renders search icon, microphone action, and submit button", () => {
+    it("renders search icon, accessible input, and submit button", () => {
       const html = renderToString(<UniversalSearchBar locale="fa" />);
       expect(html).toContain(">search</span>");
-      expect(html).toContain(">mic</span>");
-      expect(html).toContain("جستجوی هوشمند");
+      expect(html).not.toContain(">mic</span>");
+      expect(html).toContain("جستجو");
       expect(html).toContain(">arrow_back</span>");
     });
 

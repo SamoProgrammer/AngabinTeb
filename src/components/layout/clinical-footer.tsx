@@ -196,15 +196,16 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
             <p className="text-xs md:text-sm text-on-surface-variant leading-relaxed max-w-md text-start">
               {content.description}
             </p>
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <div className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant/40 bg-surface px-3 py-1.5 text-xs text-on-surface-variant">
-                <ClinicalIcon name="verified" size={16} className="text-primary" />
+            <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-on-surface-variant">
+              <span className="inline-flex items-center gap-1">
+                <ClinicalIcon name="verified" size={15} className="text-primary" />
                 <span>{content.councilBadge}</span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant/40 bg-surface px-3 py-1.5 text-xs text-on-surface-variant">
-                <ClinicalIcon name="health_and_safety" size={16} className="text-primary" />
+              </span>
+              <span className="text-outline-variant">•</span>
+              <span className="inline-flex items-center gap-1">
+                <ClinicalIcon name="health_and_safety" size={15} className="text-primary" />
                 <span>{content.securityBadge}</span>
-              </div>
+              </span>
             </div>
           </div>
 

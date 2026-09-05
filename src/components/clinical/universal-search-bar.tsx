@@ -28,7 +28,7 @@ const TABS: TabConfig[] = [
     id: "doctors",
     label: "پزشکان و متخصصان",
     icon: "stethoscope",
-    placeholder: "جستجوی نام پزشک، تخصص (مانند گوارش، قلب، غدد)...",
+    placeholder: "جستجوی نام پزشک، تخصص، خدمت درمانی یا مقاله سلامت...",
     routePath: "doctors",
   },
   {
@@ -135,21 +135,13 @@ export function UniversalSearchBar({
               aria-label={currentTab.placeholder}
               className="w-full bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none py-1 pe-2"
             />
-            <button
-              type="button"
-              aria-label="جستجوی صوتی"
-              title="جستجوی صوتی"
-              className="text-on-surface-variant/50 hover:text-on-surface transition-colors p-1 cursor-pointer shrink-0"
-            >
-              <ClinicalIcon name="mic" size={20} />
-            </button>
           </div>
 
           <button
             type="submit"
             className="w-full md:w-auto shrink-0 flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-medium px-6 py-3 rounded-2xl shadow-sm hover:shadow-md transition-all h-12 cursor-pointer"
           >
-            <span>جستجوی هوشمند</span>
+            <span>جستجو</span>
             <ClinicalIcon name="arrow_back" size={20} className="shrink-0" />
           </button>
         </form>

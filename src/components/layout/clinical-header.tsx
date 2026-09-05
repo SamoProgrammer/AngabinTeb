@@ -12,7 +12,6 @@ export interface SubNavItem {
   href: string;
   description: string;
   icon: string;
-  badge?: string;
 }
 
 export interface NavHub {
@@ -27,375 +26,418 @@ export interface ClinicalHeaderProps {
   locale?: string;
 }
 
-function getNavHubs(locale: string): NavHub[] {
-  if (locale === "en") {
-    return [
-      {
-        id: "booking",
-        label: "Appointments & Services",
-        href: `/${locale}/doctors`,
-        icon: "stethoscope",
-        items: [
-          {
-            label: "Doctors & Specialists",
-            href: `/${locale}/doctors`,
-            description: "Search and book board-certified physicians and clinics",
-            icon: "stethoscope",
-          },
-          {
-            label: "Clinical & Diagnostic Services",
-            href: `/${locale}/services`,
-            description: "Ultrasound, ECG, laboratory tests, and routine checkups",
-            icon: "medical_services",
-          },
-          {
-            label: "360° Health Topics",
-            href: `/${locale}/topics`,
-            description: "Integrated care pathways for diabetes, cardiovascular, fatty liver",
-            icon: "hub",
-          },
-        ],
-      },
-      {
-        id: "nutrition",
-        label: "Nutrition & Records",
-        href: `/${locale}/nutrition`,
-        icon: "restaurant",
-        items: [
-          {
-            label: "Metabolic Dashboard & BMR",
-            href: `/${locale}/nutrition`,
-            description: "Calculate BMR/TDEE, target weight, and daily calorie targets",
-            icon: "calculate",
-          },
-          {
-            label: "Daily Food Diary",
-            href: `/${locale}/diary`,
-            description: "Log meals with traditional and metric portion measurements",
-            icon: "edit_note",
-            badge: "Active",
-          },
-          {
-            label: "Clinical Diet Plans",
-            href: `/${locale}/diet`,
-            description: "Nutritional protocols for glucose control, fatty liver, weight loss",
-            icon: "menu_book",
-          },
-          {
-            label: "Nutritional Food Database",
-            href: `/${locale}/foods`,
-            description: "Macro and micronutrient nutritional values for Iranian foods",
-            icon: "restaurant",
-          },
-        ],
-      },
-      {
-        id: "content",
-        label: "Health Knowledge",
-        href: `/${locale}/articles`,
-        icon: "menu_book",
-        items: [
-          {
-            label: "Clinical Articles",
-            href: `/${locale}/articles`,
-            description: "Latest peer-reviewed medical articles and clinical research",
-            icon: "article",
-          },
-          {
-            label: "Videos & Webinars",
-            href: `/${locale}/videos`,
-            description: "Visual consultations and educational self-care video guides",
-            icon: "videocam",
-          },
-          {
-            label: "Conditions & Symptoms",
-            href: `/${locale}/conditions/diabetes`,
-            description: "Clinical root causes, warning signs, and recommended labs",
-            icon: "vital_signs",
-          },
-        ],
-      },
-      {
-        id: "support",
-        label: "Support & Guide",
-        href: `/${locale}/faq`,
-        icon: "help",
-        items: [
-          {
-            label: "Frequently Asked Questions",
-            href: `/${locale}/faq`,
-            description: "Instant answers about insurances, in-clinic payment, and bookings",
-            icon: "quiz",
-            badge: "Instant",
-          },
-          {
-            label: "Support Center & Tickets",
-            href: `/${locale}/support`,
-            description: "Submit messages, follow up care requests, and connect with staff",
-            icon: "support_agent",
-          },
-          {
-            label: "Contact & Locations",
-            href: `/${locale}/contact`,
-            description: "Clinic addresses, branch phone numbers, and reception desks",
-            icon: "location_on",
-          },
-          {
-            label: "About Us",
-            href: `/${locale}/about`,
-            description: "Clinical mission, medical ethics charter, and advisory council",
-            icon: "info",
-          },
-        ],
-      },
-    ];
-  }
+type LocaleKey = "fa" | "en" | "ar";
 
-  if (locale === "ar") {
-    return [
-      {
-        id: "booking",
-        label: "المواعيد والخدمات",
-        href: `/${locale}/doctors`,
-        icon: "stethoscope",
-        items: [
-          {
-            label: "الأطباء والاستشاريون",
-            href: `/${locale}/doctors`,
-            description: "البحث وحجز المواعيد مع كبار الأطباء والمراكز",
-            icon: "stethoscope",
-          },
-          {
-            label: "الخدمات السريرية والتشخيصية",
-            href: `/${locale}/services`,
-            description: "الموجات فوق الصوتية، تخطيط القلب، والتحاليل الدورية",
-            icon: "medical_services",
-          },
-          {
-            label: "محاور الصحة ۳۶۰°",
-            href: `/${locale}/topics`,
-            description: "مسارات الرعاية الشاملة للسكري، القلب والكبد الدهني",
-            icon: "hub",
-          },
-        ],
-      },
-      {
-        id: "nutrition",
-        label: "الملف والتغذية",
-        href: `/${locale}/nutrition`,
-        icon: "restaurant",
-        items: [
-          {
-            label: "لوحة الأيض والسعرات",
-            href: `/${locale}/nutrition`,
-            description: "حساب معدل الأيض الأساسي BMR/TDEE والوزن المثالي",
-            icon: "calculate",
-          },
-          {
-            label: "سجل الوجبات اليومي",
-            href: `/${locale}/diary`,
-            description: "تسجيل الأطعمة وتتبع الوجبات الغذائية بمقاييس دقيقة",
-            icon: "edit_note",
-            badge: "عملي",
-          },
-          {
-            label: "برامج الحمية العلاجية",
-            href: `/${locale}/diet`,
-            description: "بروتوكولات تغذية لضبط السكر، الكبد وتخفيف الوزن",
-            icon: "menu_book",
-          },
-          {
-            label: "قاعدة بيانات الأغذية",
-            href: `/${locale}/foods`,
-            description: "معلومات السعرات والقيم الغذائية للوجبات الإيرانية",
-            icon: "restaurant",
-          },
-        ],
-      },
-      {
-        id: "content",
-        label: "مجلة الصحة",
-        href: `/${locale}/articles`,
-        icon: "menu_book",
-        items: [
-          {
-            label: "المقالات الطبية المتخصصة",
-            href: `/${locale}/articles`,
-            description: "أحدث المقالات السريرية والأبحاث الطبية المعتمدة",
-            icon: "article",
-          },
-          {
-            label: "الفيديوهات والندوات",
-            href: `/${locale}/videos`,
-            description: "استشارات مرئية وفيديوهات تعليمية للرعاية الذاتية",
-            icon: "videocam",
-          },
-          {
-            label: "الأعراض والأمراض",
-            href: `/${locale}/conditions/diabetes`,
-            description: "استكشاف الأسباب السريرية، مؤشرات الخطر والفحوصات المقترحة",
-            icon: "vital_signs",
-          },
-        ],
-      },
-      {
-        id: "support",
-        label: "الدليل والدعم",
-        href: `/${locale}/faq`,
-        icon: "help",
-        items: [
-          {
-            label: "الأسئلة الشائعة (FAQ)",
-            href: `/${locale}/faq`,
-            description: "إجابات فورية حول التأمين، الدفع في العيادة والحجوزات",
-            icon: "quiz",
-            badge: "فوري",
-          },
-          {
-            label: "مركز الدعم والتذاكر",
-            href: `/${locale}/support`,
-            description: "إرسال الاستفسارات ومتابعة الطلبات مع فريق الدعم",
-            icon: "support_agent",
-          },
-          {
-            label: "اتصل بنا والفروع",
-            href: `/${locale}/contact`,
-            description: "عناوين المراكز وأرقام الهواتف وخطوط الاستقبال",
-            icon: "location_on",
-          },
-          {
-            label: "عن انگبین طب",
-            href: `/${locale}/about`,
-            description: "الرسالة الطبية، الميثاق الأخلاقي واللجنة الاستشارية",
-            icon: "info",
-          },
-        ],
-      },
-    ];
-  }
-
-  // Default Persian
-  return [
-    {
-      id: "booking",
-      label: "نوبت‌دهی و خدمات",
-      href: `/${locale}/doctors`,
-      icon: "stethoscope",
-      items: [
-        {
-          label: "پزشکان و متخصصان",
-          href: `/${locale}/doctors`,
-          description: "جستجو و رزرو نوبت پزشکان فوق‌تخصص و مطب‌ها",
-          icon: "stethoscope",
-        },
-        {
-          label: "خدمات درمانی و پاراکلینیک",
-          href: `/${locale}/services`,
-          description: "سونوگرافی، نوار قلب، آزمایش‌ها و چکاپ‌های دوره‌ای",
-          icon: "medical_services",
-        },
-        {
-          label: "پایگاه‌های سلامت ۳۶۰°",
-          href: `/${locale}/topics`,
-          description: "مسیر مراقبت جامع دیابت، قلب و عروق و کبد چرب",
-          icon: "hub",
-        },
-      ],
-    },
-    {
-      id: "nutrition",
-      label: "پرونده و تغذیه",
-      href: `/${locale}/nutrition`,
-      icon: "restaurant",
-      items: [
-        {
-          label: "داشبورد متابولیک و کالری",
-          href: `/${locale}/nutrition`,
-          description: "محاسبه BMR/TDEE، وزن ایده‌آل و بودجه کالری روزانه",
-          icon: "calculate",
-        },
-        {
-          label: "دفترچه ثبت خوراک روزانه",
-          href: `/${locale}/diary`,
-          description: "ثبت غذاهای سفره ایرانی با پیمانه‌های سنتی (کفگیر، پیاله)",
-          icon: "edit_note",
-          badge: "کاربردی",
-        },
-        {
-          label: "برنامه‌های رژیم بالینی",
-          href: `/${locale}/diet`,
-          description: "پروتکل‌های تغذیه‌ای کنترل قند، کبد چرب و کاهش وزن",
-          icon: "menu_book",
-        },
-        {
-          label: "بانک ارزش غذایی خوراک‌ها",
-          href: `/${locale}/foods`,
-          description: "پایگاه اطلاعات درشت‌مغذی‌ها و کالری غذاهای ایرانی",
-          icon: "restaurant",
-        },
-      ],
-    },
-    {
-      id: "content",
-      label: "مجله سلامت",
-      href: `/${locale}/articles`,
-      icon: "menu_book",
-      items: [
-        {
-          label: "مجله مقالات تخصصی",
-          href: `/${locale}/articles`,
-          description: "تازه‌ترین مقالات بالینی و پژوهش‌های علمی علوم پزشکی",
-          icon: "article",
-        },
-        {
-          label: "ویدیوها و وبینارها",
-          href: `/${locale}/videos`,
-          description: "مشاوره‌های تصویری و ویدیوهای آموزشی خودمراقبتی",
-          icon: "videocam",
-        },
-        {
-          label: "علائم و بیماری‌ها",
-          href: `/${locale}/conditions/diabetes`,
-          description: "بررسی علل بالینی، نشانه‌های خطر و آزمایش‌های پیشنهادی",
-          icon: "vital_signs",
-        },
-      ],
-    },
-    {
-      id: "support",
-      label: "راهنما و پشتیبانی",
-      href: `/${locale}/faq`,
-      icon: "help",
-      items: [
-        {
-          label: "پرسش‌های متداول (FAQ)",
-          href: `/${locale}/faq`,
-          description: "پاسخ سریع به سوالات بیمه‌ها، پرداخت در مطب و رزرو",
-          icon: "quiz",
-          badge: "پاسخ آنی",
-        },
-        {
-          label: "مرکز پشتیبانی و تیکت‌ها",
-          href: `/${locale}/support`,
-          description: "ارسال پیام، پیگیری درخواست‌ها و ارتباط با کارشناسان",
-          icon: "support_agent",
-        },
-        {
-          label: "تماس با ما و شعب",
-          href: `/${locale}/contact`,
-          description: "آدرس و شماره تلفن کلینیک‌ها و خطوط پذیرش",
-          icon: "location_on",
-        },
-        {
-          label: "درباره ما",
-          href: `/${locale}/about`,
-          description: "رسالت بالینی، منشور اخلاقی و اعضای هیئت علمی",
-          icon: "info",
-        },
-      ],
-    },
-  ];
+function asLocaleKey(locale: string): LocaleKey {
+  return locale === "en" || locale === "ar" ? locale : "fa";
 }
+
+// Single nav structure: hub/item ids, icons, and route paths are written once.
+// Localized labels, descriptions, and badges live in NAV_STRINGS below, keyed by hub id + item key.
+interface NavItemSkeleton {
+  key: string;
+  path: string;
+  icon: string;
+}
+
+interface NavHubSkeleton {
+  id: string;
+  icon: string;
+  path: string;
+  items: NavItemSkeleton[];
+}
+
+const NAV_STRUCTURE: NavHubSkeleton[] = [
+  {
+    id: "booking",
+    icon: "stethoscope",
+    path: "/doctors",
+    items: [
+      { key: "doctors", path: "/doctors", icon: "stethoscope" },
+      { key: "services", path: "/services", icon: "medical_services" },
+      { key: "topics", path: "/topics", icon: "hub" },
+    ],
+  },
+  {
+    id: "nutrition",
+    icon: "restaurant",
+    path: "/nutrition",
+    items: [
+      { key: "dashboard", path: "/nutrition", icon: "calculate" },
+      { key: "diary", path: "/diary", icon: "edit_note" },
+      { key: "diet", path: "/diet", icon: "menu_book" },
+      { key: "foods", path: "/foods", icon: "restaurant" },
+    ],
+  },
+  {
+    id: "content",
+    icon: "menu_book",
+    path: "/articles",
+    items: [
+      { key: "articles", path: "/articles", icon: "article" },
+      { key: "videos", path: "/videos", icon: "videocam" },
+      { key: "conditions", path: "/conditions/diabetes", icon: "vital_signs" },
+    ],
+  },
+  {
+    id: "support",
+    icon: "help",
+    path: "/faq",
+    items: [
+      { key: "faq", path: "/faq", icon: "quiz" },
+      { key: "support", path: "/support", icon: "support_agent" },
+      { key: "contact", path: "/contact", icon: "location_on" },
+      { key: "about", path: "/about", icon: "info" },
+    ],
+  },
+];
+
+interface NavItemStrings {
+  label: string;
+  description: string;
+}
+
+interface NavHubStrings {
+  label: string;
+  items: Record<string, NavItemStrings>;
+}
+
+const NAV_STRINGS: Record<LocaleKey, Record<string, NavHubStrings>> = {
+  en: {
+    booking: {
+      label: "Appointments & Services",
+      items: {
+        doctors: {
+          label: "Doctors & Specialists",
+          description: "Search and book board-certified physicians and clinics",
+        },
+        services: {
+          label: "Clinical & Diagnostic Services",
+          description: "Ultrasound, ECG, laboratory tests, and routine checkups",
+        },
+        topics: {
+          label: "360° Health Topics",
+          description: "Integrated care pathways for diabetes, cardiovascular, fatty liver",
+        },
+      },
+    },
+    nutrition: {
+      label: "Nutrition & Records",
+      items: {
+        dashboard: {
+          label: "Metabolic Dashboard & BMR",
+          description: "Calculate BMR/TDEE, target weight, and daily calorie targets",
+        },
+        diary: {
+          label: "Daily Food Diary",
+          description: "Log meals with traditional and metric portion measurements",
+        },
+        diet: {
+          label: "Clinical Diet Plans",
+          description: "Nutritional protocols for glucose control, fatty liver, weight loss",
+        },
+        foods: {
+          label: "Nutritional Food Database",
+          description: "Macro and micronutrient nutritional values for Iranian foods",
+        },
+      },
+    },
+    content: {
+      label: "Health Knowledge",
+      items: {
+        articles: {
+          label: "Clinical Articles",
+          description: "Latest peer-reviewed medical articles and clinical research",
+        },
+        videos: {
+          label: "Videos & Webinars",
+          description: "Visual consultations and educational self-care video guides",
+        },
+        conditions: {
+          label: "Conditions & Symptoms",
+          description: "Clinical root causes, warning signs, and recommended labs",
+        },
+      },
+    },
+    support: {
+      label: "Support & Guide",
+      items: {
+        faq: {
+          label: "Frequently Asked Questions",
+          description: "Instant answers about insurances, in-clinic payment, and bookings",
+        },
+        support: {
+          label: "Support Center & Tickets",
+          description: "Submit messages, follow up care requests, and connect with staff",
+        },
+        contact: {
+          label: "Contact & Locations",
+          description: "Clinic addresses, branch phone numbers, and reception desks",
+        },
+        about: {
+          label: "About Us",
+          description: "Clinical mission, medical ethics charter, and advisory council",
+        },
+      },
+    },
+  },
+  ar: {
+    booking: {
+      label: "المواعيد والخدمات",
+      items: {
+        doctors: {
+          label: "الأطباء والاستشاريون",
+          description: "البحث وحجز المواعيد مع كبار الأطباء والمراكز",
+        },
+        services: {
+          label: "الخدمات السريرية والتشخيصية",
+          description: "الموجات فوق الصوتية، تخطيط القلب، والتحاليل الدورية",
+        },
+        topics: {
+          label: "محاور الصحة ۳۶۰°",
+          description: "مسارات الرعاية الشاملة للسكري، القلب والكبد الدهني",
+        },
+      },
+    },
+    nutrition: {
+      label: "الملف والتغذية",
+      items: {
+        dashboard: {
+          label: "لوحة الأيض والسعرات",
+          description: "حساب معدل الأيض الأساسي BMR/TDEE والوزن المثالي",
+        },
+        diary: {
+          label: "سجل الوجبات اليومي",
+          description: "تسجيل الأطعمة وتتبع الوجبات الغذائية بمقاييس دقيقة",
+        },
+        diet: {
+          label: "برامج الحمية العلاجية",
+          description: "بروتوكولات تغذية لضبط السكر، الكبد وتخفيف الوزن",
+        },
+        foods: {
+          label: "قاعدة بيانات الأغذية",
+          description: "معلومات السعرات والقيم الغذائية للوجبات الإيرانية",
+        },
+      },
+    },
+    content: {
+      label: "مجلة الصحة",
+      items: {
+        articles: {
+          label: "المقالات الطبية المتخصصة",
+          description: "أحدث المقالات السريرية والأبحاث الطبية المعتمدة",
+        },
+        videos: {
+          label: "الفيديوهات والندوات",
+          description: "استشارات مرئية وفيديوهات تعليمية للرعاية الذاتية",
+        },
+        conditions: {
+          label: "الأعراض والأمراض",
+          description: "استكشاف الأسباب السريرية، مؤشرات الخطر والفحوصات المقترحة",
+        },
+      },
+    },
+    support: {
+      label: "الدليل والدعم",
+      items: {
+        faq: {
+          label: "الأسئلة الشائعة (FAQ)",
+          description: "إجابات فورية حول التأمين، الدفع في العيادة والحجوزات",
+        },
+        support: {
+          label: "مركز الدعم والتذاكر",
+          description: "إرسال الاستفسارات ومتابعة الطلبات مع فريق الدعم",
+        },
+        contact: {
+          label: "اتصل بنا والفروع",
+          description: "عناوين المراكز وأرقام الهواتف وخطوط الاستقبال",
+        },
+        about: {
+          label: "عن انگبین طب",
+          description: "الرسالة الطبية، الميثاق الأخلاقي واللجنة الاستشارية",
+        },
+      },
+    },
+  },
+  // Default Persian
+  fa: {
+    booking: {
+      label: "نوبت‌دهی و خدمات",
+      items: {
+        doctors: {
+          label: "پزشکان و متخصصان",
+          description: "جستجو و رزرو نوبت پزشکان فوق‌تخصص و مطب‌ها",
+        },
+        services: {
+          label: "خدمات درمانی و تشخیصی",
+          description: "سونوگرافی، نوار قلب، آزمایش‌ها و چکاپ‌های دوره‌ای",
+        },
+        topics: {
+          label: "پایگاه‌های سلامت ۳۶۰°",
+          description: "مسیر مراقبت جامع دیابت، قلب و عروق و کبد چرب",
+        },
+      },
+    },
+    nutrition: {
+      label: "پرونده و تغذیه",
+      items: {
+        dashboard: {
+          label: "برنامه‌ها و ابزارهای تغذیه",
+          description: "محاسبه BMR/TDEE، وزن ایده‌آل و بودجه کالری روزانه",
+        },
+        diary: {
+          label: "دفترچه ثبت خوراک روزانه",
+          description: "ثبت غذاهای سفره ایرانی با پیمانه‌های سنتی (کفگیر، پیاله)",
+        },
+        diet: {
+          label: "برنامه‌های رژیم بالینی",
+          description: "پروتکل‌های تغذیه‌ای کنترل قند، کبد چرب و کاهش وزن",
+        },
+        foods: {
+          label: "بانک ارزش غذایی خوراک‌ها",
+          description: "پایگاه اطلاعات درشت‌مغذی‌ها و کالری غذاهای ایرانی",
+        },
+      },
+    },
+    content: {
+      label: "مجله سلامت",
+      items: {
+        articles: {
+          label: "دانشنامه و مقالات سلامت",
+          description: "تازه‌ترین مقالات بالینی و پژوهش‌های علمی علوم پزشکی",
+        },
+        videos: {
+          label: "ویدیوها و وبینارها",
+          description: "مشاوره‌های تصویری و ویدیوهای آموزشی خودمراقبتی",
+        },
+        conditions: {
+          label: "علائم و بیماری‌ها",
+          description: "بررسی علل بالینی، نشانه‌های خطر و آزمایش‌های پیشنهادی",
+        },
+      },
+    },
+    support: {
+      label: "راهنما و پشتیبانی",
+      items: {
+        faq: {
+          label: "پرسش‌های متداول (FAQ)",
+          description: "پاسخ سریع به سوالات بیمه‌ها، پرداخت در مطب و رزرو",
+        },
+        support: {
+          label: "مرکز پشتیبانی و تیکت‌ها",
+          description: "ارسال پیام، پیگیری درخواست‌ها و ارتباط با کارشناسان",
+        },
+        contact: {
+          label: "تماس با ما و شعب",
+          description: "آدرس و شماره تلفن کلینیک‌ها و خطوط پذیرش",
+        },
+        about: {
+          label: "درباره ما",
+          description: "رسالت بالینی، منشور اخلاقی و اعضای هیئت علمی",
+        },
+      },
+    },
+  },
+};
+
+function getNavHubs(locale: string): NavHub[] {
+  const strings = NAV_STRINGS[asLocaleKey(locale)];
+  return NAV_STRUCTURE.map((hub) => ({
+    id: hub.id,
+    label: strings[hub.id].label,
+    href: `/${locale}${hub.path}`,
+    icon: hub.icon,
+    items: hub.items.map((item) => {
+      const s = strings[hub.id].items[item.key];
+      return {
+        label: s.label,
+        href: `/${locale}${item.path}`,
+        description: s.description,
+        icon: item.icon,
+      };
+    }),
+  }));
+}
+
+interface UserMenuStrings {
+  account: string;
+  appointments: string;
+  appointmentsDesc: string;
+  notifications: string;
+  notificationsDesc: string;
+  admin: string;
+  adminDesc: string;
+  signOut: string;
+  adminBadge: string;
+}
+
+const USER_MENU_LABELS: Record<LocaleKey, UserMenuStrings> = {
+  fa: {
+    account: "حساب کاربری",
+    appointments: "نوبت‌های من",
+    appointmentsDesc: "پیگیری، سوابق و جزئیات نوبت‌های رزرو شده",
+    notifications: "پیام‌ها و اعلان‌ها",
+    notificationsDesc: "یادآوری نوبت و وضعیت پرونده",
+    admin: "پنل مدیریت",
+    adminDesc: "مدیریت پزشکان، خدمات و گزارش‌ها",
+    signOut: "خروج از حساب",
+    adminBadge: "مدیر سامانه",
+  },
+  en: {
+    account: "My Account",
+    appointments: "My Appointments",
+    appointmentsDesc: "Track and manage bookings",
+    notifications: "Notifications",
+    notificationsDesc: "Reminders and health alerts",
+    admin: "Admin Dashboard",
+    adminDesc: "Manage providers, services, and reports",
+    signOut: "Sign Out",
+    adminBadge: "Administrator",
+  },
+  ar: {
+    account: "حسابي",
+    appointments: "مواعيدي",
+    appointmentsDesc: "متابعة وإدارة المواعيد المحجوزة",
+    notifications: "الإشعارات",
+    notificationsDesc: "تنبيهات المواعيد وتحديثات الملف",
+    admin: "لوحة الإدارة",
+    adminDesc: "إدارة الأطباء والخدمات والتقارير",
+    signOut: "تسجيل الخروج",
+    adminBadge: "مدير النظام",
+  },
+};
+
+interface HeaderChromeStrings {
+  brandTitle: string;
+  brandSubtitle: string;
+  login: string;
+  viewAllPrefix: string;
+  menuAria: string;
+}
+
+const HEADER_COPY: Record<LocaleKey, HeaderChromeStrings> = {
+  en: {
+    brandTitle: "Angabin Teb",
+    brandSubtitle: "Clinical Health & Nutrition",
+    login: "Sign In",
+    viewAllPrefix: "View all in",
+    menuAria: "Toggle menu",
+  },
+  ar: {
+    brandTitle: "انگبین طب",
+    brandSubtitle: "منصة الصحة والتغذية السريرية",
+    login: "تسجيل الدخول",
+    viewAllPrefix: "عرض جميع أقسام",
+    menuAria: "منوی گزینه‌ها",
+  },
+  fa: {
+    brandTitle: "انگبین طب",
+    brandSubtitle: "سامانه سلامت و تغذیه بالینی",
+    login: "ورود",
+    viewAllPrefix: "مشاهده همه بخش‌های",
+    menuAria: "منوی گزینه‌ها",
+  },
+};
 
 export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
   const pathname = usePathname();
@@ -411,63 +453,15 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
   const isAuthenticated = Boolean(user);
   const isAdmin = (user as { role?: string })?.role === "admin";
 
-  const userMenuLabels = {
-    fa: {
-      account: "حساب کاربری",
-      appointments: "نوبت‌های من",
-      appointmentsDesc: "پیگیری، سوابق و جزئیات نوبت‌های رزرو شده",
-      notifications: "پیام‌ها و اعلان‌ها",
-      notificationsDesc: "یادآوری نوبت و وضعیت پرونده",
-      admin: "پنل مدیریت",
-      adminDesc: "مدیریت پزشکان، خدمات و گزارش‌ها",
-      signOut: "خروج از حساب",
-      adminBadge: "مدیر سامانه",
-    },
-    en: {
-      account: "My Account",
-      appointments: "My Appointments",
-      appointmentsDesc: "Track and manage bookings",
-      notifications: "Notifications",
-      notificationsDesc: "Reminders and health alerts",
-      admin: "Admin Dashboard",
-      adminDesc: "Manage providers, services, and reports",
-      signOut: "Sign Out",
-      adminBadge: "Administrator",
-    },
-    ar: {
-      account: "حسابي",
-      appointments: "مواعيدي",
-      appointmentsDesc: "متابعة وإدارة المواعيد المحجوزة",
-      notifications: "الإشعارات",
-      notificationsDesc: "تنبيهات المواعيد وتحديثات الملف",
-      admin: "لوحة الإدارة",
-      adminDesc: "إدارة الأطباء والخدمات والتقارير",
-      signOut: "تسجيل الخروج",
-      adminBadge: "مدير النظام",
-    },
-  }[locale as "fa" | "en" | "ar"] || {
-    account: "حساب کاربری",
-    appointments: "نوبت‌های من",
-    appointmentsDesc: "پیگیری، سوابق و جزئیات نوبت‌های رزرو شده",
-    notifications: "پیام‌ها و اعلان‌ها",
-    notificationsDesc: "یادآوری نوبت و وضعیت پرونده",
-    admin: "پنل مدیریت",
-    adminDesc: "مدیریت پزشکان، خدمات و گزارش‌ها",
-    signOut: "خروج از حساب",
-    adminBadge: "مدیر سامانه",
-  };
+  const userMenuLabels = USER_MENU_LABELS[asLocaleKey(locale)];
 
   const navHubs = getNavHubs(locale);
 
-  const brandTitle = locale === "en" ? "Angabin Teb" : "انگبین طب";
-  const brandSubtitle =
-    locale === "en"
-      ? "Clinical Health & Nutrition"
-      : locale === "ar"
-        ? "منصة الصحة والتغذية السريرية"
-        : "سامانه سلامت و تغذیه بالینی";
+  const headerCopy = HEADER_COPY[asLocaleKey(locale)];
+  const brandTitle = headerCopy.brandTitle;
+  const brandSubtitle = headerCopy.brandSubtitle;
 
-  const loginLabel = locale === "en" ? "Sign In" : locale === "ar" ? "تسجيل الدخول" : "ورود";
+  const loginLabel = headerCopy.login;
 
   const handleSignOut = async () => {
     try {
@@ -595,16 +589,9 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                               <ClinicalIcon name={item.icon} size={20} />
                             </div>
                             <div className="flex flex-col">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                                  {item.label}
-                                </span>
-                                {item.badge && (
-                                  <span className="bg-secondary/15 text-secondary text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                                    {item.badge}
-                                  </span>
-                                )}
-                              </div>
+                              <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
+                                {item.label}
+                              </span>
                               <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1 mt-0.5">
                                 {item.description}
                               </span>
@@ -621,11 +608,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                           className="hover:underline flex items-center gap-1"
                         >
                           <span>
-                            {locale === "en"
-                              ? `View all in ${hub.label}`
-                              : locale === "ar"
-                                ? `عرض جميع أقسام ${hub.label}`
-                                : `مشاهده همه بخش‌های ${hub.label}`}
+                            {headerCopy.viewAllPrefix} {hub.label}
                           </span>
                           <ClinicalIcon
                             name={locale === "en" ? "arrow_forward" : "arrow_back"}
@@ -791,7 +774,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={locale === "en" ? "Toggle menu" : "منوی گزینه‌ها"}
+            aria-label={headerCopy.menuAria}
             className="md:hidden p-2 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors"
           >
             <ClinicalIcon name={mobileMenuOpen ? "close" : "menu"} size={24} />
@@ -914,11 +897,6 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                             <ClinicalIcon name={item.icon} size={16} className="text-primary" />
                             <span className="font-medium">{item.label}</span>
                           </div>
-                          {item.badge && (
-                            <span className="bg-secondary/15 text-secondary text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                              {item.badge}
-                            </span>
-                          )}
                         </Link>
                       ))}
                     </div>
