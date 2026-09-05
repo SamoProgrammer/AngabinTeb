@@ -29,7 +29,7 @@ export default async function FoodDetailPage({
   );
 
   return (
-    <div className="flex flex-col gap-8 text-right" dir="rtl">
+    <div className="flex flex-col gap-8 text-start" dir="rtl">
       {/* 1. Breadcrumb (Screen #17) */}
       <nav aria-label="مسیر راهنما" className="flex items-center gap-2 text-xs text-on-surface-variant">
         <Link href={`/${locale}/nutrition`} className="hover:text-primary transition-colors">
@@ -58,7 +58,7 @@ export default async function FoodDetailPage({
               {food.name}
             </h1>
             <p className="text-xs text-on-surface-variant mt-1">
-              پروفایل تحلیلی مواد مغذی و مقیاس‌های خانگی
+              اطلاعات تغذیه‌ای و مقیاس‌های خانگی
             </p>
           </div>
 
@@ -147,10 +147,10 @@ export default async function FoodDetailPage({
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs sm:text-sm">
+            <table className="w-full text-start text-xs sm:text-sm">
               <thead>
                 <tr className="border-b border-outline-variant/30 text-on-surface-variant font-bold">
-                  <th className="py-2.5 px-2">ماده مغذی / املاح</th>
+                  <th className="py-2.5 px-2">ماده مغذی</th>
                   <th className="py-2.5 px-2">واحد</th>
                   <th className="py-2.5 px-2">مقدار در ۱۰۰ گرم</th>
                 </tr>

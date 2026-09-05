@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { requireUser } from "@/contexts/identity/actions";
-import { listPrograms, myClaims } from "@/contexts/nutrition/queries";
+import { listPrograms, myClaims, getProgramContent } from "@/contexts/nutrition/queries";
 import { claimDietProgram } from "@/contexts/nutrition/actions";
+import { isPricedProgram } from "@/contexts/nutrition/kernel";
 import { formatPersianNumber, toPersianDigits } from "@/lib/metabolism";
 import { ClinicalIcon } from "@/components/clinical/clinical-icon";
 
@@ -20,11 +21,11 @@ export default async function DietPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ context?: string }>;
+  searchParams: Promise<{ context?: string; claim?: string }>;
 }) {
   const user = await requireUser();
   const { locale } = await params;
-  const { context } = await searchParams;
+  const { context, claim } = await searchParams;
 
   const selectedContext =
     context && CONTEXT_IDS.includes(context as (typeof CONTEXT_IDS)[number])
@@ -38,8 +39,31 @@ export default async function DietPage({
 
   const claimedProgramIds = new Set(claims.map((c) => c.programId));
 
+  // Review-before-claim: ?claim=<programId> shows a confirmation card.
+  // Falls back to the gated content query so cross-context programs resolve too.
+  let reviewProgram: (typeof programs)[number] | null = null;
+  if (typeof claim === "string" && claim && !claimedProgramIds.has(claim)) {
+    reviewProgram = programs.find((p) => p.id === claim) ?? null;
+    if (!reviewProgram) {
+      const content = await getProgramContent(claim, user.id, locale);
+      if (content && !content.hasClaim) {
+        reviewProgram = {
+          id: content.id,
+          name: content.name,
+          description: content.description,
+          organizationContext: content.organizationContext,
+          planType: content.planType,
+          durationDays: content.durationDays,
+          price: content.price,
+          practitionerName: content.practitionerName,
+          practitionerPhone: content.practitionerPhone,
+        };
+      }
+    }
+  }
+
   return (
-    <div className="flex flex-col gap-8 text-right" dir="rtl">
+    <div className="flex flex-col gap-8 text-start" dir="rtl">
       {/* Top Ambient Banner: Clinical Philosophy (Screens #16, #24, #26) */}
       <section
         aria-label="معرفی پزشکی تغذیه بالینی"
@@ -66,34 +90,6 @@ export default async function DietPage({
           <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed">
             رویکرد ما در انگبین طب ترکیب داده‌های آزمایشگاهی دقیق، فیزیولوژی غدد و سنت تغذیه اصیل ایرانی است. این رژیم‌ها بر پایه محاسبه بار گلیسمی بومی، اصلاح فلور روده و بهبود ریتم انرژی تدوین شده‌اند تا سلامت پایدار در سفره خانواده محقق گردد.
           </p>
-
-          {/* Micro Stats Bar */}
-          <div className="grid grid-cols-3 gap-3 pt-2 max-w-xl">
-            <div className="bg-surface-container-lowest p-3 rounded-2xl shadow-2xs border border-outline-variant/30 flex flex-col">
-              <span className="text-xl sm:text-2xl font-bold text-primary font-data-metric">
-                ۹۴٪
-              </span>
-              <span className="text-[11px] text-on-surface-variant mt-0.5">
-                بهبود شاخص HOMA-IR و آنزیم کبد
-              </span>
-            </div>
-            <div className="bg-surface-container-lowest p-3 rounded-2xl shadow-2xs border border-outline-variant/30 flex flex-col">
-              <span className="text-xl sm:text-2xl font-bold text-secondary font-data-metric">
-                ۱۲،۴۰۰+
-              </span>
-              <span className="text-[11px] text-on-surface-variant mt-0.5">
-                پرونده فعال پایش متابولیک
-              </span>
-            </div>
-            <div className="bg-surface-container-lowest p-3 rounded-2xl shadow-2xs border border-outline-variant/30 flex flex-col">
-              <span className="text-xl sm:text-2xl font-bold text-tertiary font-data-metric">
-                ۱۰۰٪
-              </span>
-              <span className="text-[11px] text-on-surface-variant mt-0.5">
-                تطبیق با سفره و اقلیم بومی
-              </span>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -141,7 +137,7 @@ export default async function DietPage({
         {/* Traditional Form Selector Fallback / Explicit Context Select */}
         <form method="GET" className="flex items-center gap-2 max-w-md mt-1">
           <label className="flex flex-1 items-center gap-2 text-xs font-semibold text-on-surface-variant">
-            <span>سازمان/مرکز (Context):</span>
+            <span>سازمان یا مرکز همکار:</span>
             <select
               name="context"
               defaultValue={selectedContext}
@@ -149,7 +145,7 @@ export default async function DietPage({
             >
               {CONTEXTS.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.label} ({c.id})
+                  {c.label}
                 </option>
               ))}
             </select>
@@ -162,6 +158,72 @@ export default async function DietPage({
           </button>
         </form>
       </section>
+
+      {/* Claim review + confirm (ticket 13): reachable from every program card */}
+      {reviewProgram && (
+        <section
+          aria-label="ClaimReview"
+          className="bg-surface-container-lowest rounded-3xl p-6 sm:p-7 shadow-xs border-2 border-primary/40 flex flex-col gap-4"
+        >
+          <div className="flex items-center gap-2 text-primary">
+            <ClinicalIcon name="fact_check" size={22} />
+            <h2 className="text-base sm:text-lg font-extrabold text-on-surface">
+              بازبینی و تأیید درخواست رژیم
+            </h2>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <p className="font-bold text-sm sm:text-base text-on-surface">{reviewProgram.name}</p>
+              <p className="text-xs text-on-surface-variant mt-1">
+                {reviewProgram.planType} • دوره {toPersianDigits(reviewProgram.durationDays)} روزه
+                {reviewProgram.practitionerName && ` • ${reviewProgram.practitionerName}`}
+              </p>
+            </div>
+            <div className="flex items-baseline gap-1">
+              {isPricedProgram(reviewProgram.price) ? (
+                <>
+                  <span className="text-xl font-extrabold text-on-surface font-data-metric">
+                    {formatPersianNumber(Number(reviewProgram.price))}
+                  </span>
+                  <span className="text-xs text-on-surface-variant">تومان</span>
+                </>
+              ) : (
+                <span className="text-base font-extrabold text-primary">رایگان</span>
+              )}
+            </div>
+          </div>
+          <p className="text-xs text-on-surface-variant leading-relaxed">
+            با تأیید، درخواست شما برای تیم بالینی ثبت می‌شود و دریافت فایل برنامه برای حساب شما فعال
+            می‌گردد. پرداخت آنلاین (در صورت نیاز) بعداً به همین درخواست متصل می‌شود، نه به نوبت‌دهی.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <form
+              action={async (formData) => {
+                "use server";
+                await claimDietProgram(formData);
+              }}
+            >
+              <input type="hidden" name="programId" value={reviewProgram.id} />
+              <button
+                type="submit"
+                aria-label="ConfirmClaim"
+                className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all flex items-center justify-center gap-2"
+              >
+                <ClinicalIcon name="check_circle" size={18} />
+                <span>تأیید و ثبت درخواست</span>
+              </button>
+            </form>
+            <Link
+              href={`?context=${selectedContext}`}
+              aria-label="CancelClaim"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all"
+            >
+              <ClinicalIcon name="close" size={18} />
+              <span>انصراف</span>
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Clinical Diet Packages Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -181,7 +243,7 @@ export default async function DietPage({
             return (
               <article
                 key={p.id}
-                className="bg-surface-container-lowest rounded-3xl p-6 sm:p-7 shadow-xs hover:shadow-md transition-all border border-outline-variant/30 flex flex-col justify-between text-right"
+                className="bg-surface-container-lowest rounded-3xl p-6 sm:p-7 shadow-xs hover:shadow-md transition-all border border-outline-variant/30 flex flex-col justify-between text-start"
               >
                 <div className="flex flex-col gap-4">
                   {/* Top Badge & Duration */}
@@ -283,30 +345,32 @@ export default async function DietPage({
 
                   {/* Claim Status Badge / Action */}
                   {isClaimed ? (
-                    <span
-                      aria-label="Pending"
-                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-100 text-amber-900 font-bold text-xs sm:text-sm"
-                    >
-                      <ClinicalIcon name="hourglass_top" size={16} />
-                      <span>در حال بررسی (Pending)</span>
-                    </span>
-                  ) : (
-                    <form
-                      action={async (formData) => {
-                        "use server";
-                        await claimDietProgram(formData);
-                      }}
-                    >
-                      <input type="hidden" name="programId" value={p.id} />
-                      <button
-                        type="submit"
-                        aria-label="Claim"
-                        className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all flex items-center justify-center gap-2"
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <span
+                        aria-label="Pending"
+                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-100 text-amber-900 font-bold text-xs sm:text-sm"
                       >
-                        <ClinicalIcon name="check_circle" size={18} />
-                        <span>ثبت درخواست رژیم (Claim)</span>
-                      </button>
-                    </form>
+                        <ClinicalIcon name="hourglass_top" size={16} />
+                        <span>در حال بررسی</span>
+                      </span>
+                      <Link
+                        href={`./${p.id}`}
+                        aria-label="ViewDownload"
+                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-xs sm:text-sm hover:bg-primary/20 transition-all"
+                      >
+                        <ClinicalIcon name="download" size={16} />
+                        <span>مشاهده و دریافت</span>
+                      </Link>
+                    </div>
+                  ) : (
+                    <Link
+                      href={`?context=${selectedContext}&claim=${p.id}`}
+                      aria-label="Claim"
+                      className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all inline-flex items-center justify-center gap-2"
+                    >
+                      <ClinicalIcon name="check_circle" size={18} />
+                      <span>ثبت درخواست رژیم</span>
+                    </Link>
                   )}
                 </div>
               </article>

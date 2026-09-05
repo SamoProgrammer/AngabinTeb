@@ -32,23 +32,23 @@ export default async function NutritionHomePage({
   // Calorie & Macro calculations
   const bmr = profile?.bmr ?? 1420;
   const tdee = profile?.tdee ?? 1850;
-  const hasIntake = Boolean(intakeData?.totals && intakeData.totals["n-energy"]);
+  const hasIntake = Boolean(intakeData?.totals && (intakeData.totals["n-energy"] ?? 0) > 0);
   const consumedKcal = hasIntake
     ? Math.round(intakeData.totals["n-energy"] ?? 0)
-    : 1450;
+    : 0;
   const remainingKcal = Math.max(0, tdee - consumedKcal);
   const caloriePercent = Math.min(100, Math.round((consumedKcal / tdee) * 100));
 
   const macroTargets = calculateMacros(tdee);
   const consumedCarbs = hasIntake
     ? Math.round(intakeData.totals["n-carbs"] ?? 0)
-    : 180;
+    : 0;
   const consumedProtein = hasIntake
     ? Math.round(intakeData.totals["n-protein"] ?? 0)
-    : 95;
+    : 0;
   const consumedFat = hasIntake
     ? Math.round(intakeData.totals["n-fat"] ?? 0)
-    : 42;
+    : 0;
 
   const carbTarget = macroTargets.carbGrams || 230;
   const proteinTarget = macroTargets.proteinGrams || 110;
@@ -58,12 +58,11 @@ export default async function NutritionHomePage({
   const proteinPct = Math.min(100, Math.round((consumedProtein / proteinTarget) * 100));
   const fatPct = Math.min(100, Math.round((consumedFat / fatTarget) * 100));
 
-  // Circular gauge calculations (circumference = 2 * PI * 50 = ~314.15)
-  const circleCircumference = 314.15;
-  const strokeDashoffset = circleCircumference * (1 - caloriePercent / 100);
+  // Circular gauge progress (0-100, rendered as a conic-gradient ring)
+  const calorieSweep = Math.min(100, Math.max(0, caloriePercent));
 
   return (
-    <div className="flex flex-col gap-8 text-right" dir="rtl">
+    <div className="flex flex-col gap-8 text-start" dir="rtl">
       {/* 1. Header & Anthropometric Metric Bar (Screen #14) */}
       <section aria-label="شاخص‌های آنتروپومتریک بدنی">
         <div className="flex flex-col mb-4">
@@ -183,29 +182,19 @@ export default async function NutritionHomePage({
           {/* Circular / Radial Calorie Visualization Gauge */}
           <div className="lg:col-span-5 flex flex-col items-center justify-center bg-surface-container-low/60 rounded-3xl p-6 border border-outline-variant/20">
             <div className="relative w-52 h-52 sm:w-60 sm:h-60 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
-                <circle
-                  className="text-surface-container-high"
-                  cx="60"
-                  cy="60"
-                  fill="transparent"
-                  r="50"
-                  stroke="currentColor"
-                  strokeWidth="11"
-                />
-                <circle
-                  className="text-primary transition-all duration-1000"
-                  cx="60"
-                  cy="60"
-                  fill="transparent"
-                  r="50"
-                  stroke="currentColor"
-                  strokeDasharray={circleCircumference}
-                  strokeDashoffset={strokeDashoffset}
-                  strokeLinecap="round"
-                  strokeWidth="11"
-                />
-              </svg>
+              <div
+                className="w-full h-full rounded-full"
+                role="progressbar"
+                aria-valuenow={calorieSweep}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                style={{
+                  background: `conic-gradient(var(--color-primary) ${calorieSweep}%, var(--color-surface-container-high) ${calorieSweep}%)`,
+                  WebkitMask:
+                    "radial-gradient(farthest-side, transparent calc(100% - 12px), #000 calc(100% - 11px))",
+                  mask: "radial-gradient(farthest-side, transparent calc(100% - 12px), #000 calc(100% - 11px))",
+                }}
+              />
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
                 <span className="text-xs text-on-surface-variant font-medium">
                   کالری دریافت‌شده
@@ -379,7 +368,7 @@ export default async function NutritionHomePage({
           {/* Action 1: Meal Log */}
           <Link
             href={`/${locale}/nutrition/diary`}
-            className="group bg-surface-container-lowest hover:bg-surface-bright rounded-2xl p-5 shadow-xs hover:shadow-md transition-all border border-outline-variant/30 flex flex-col justify-between text-right"
+            className="group bg-surface-container-lowest hover:bg-surface-bright rounded-2xl p-5 shadow-xs hover:shadow-md transition-all border border-outline-variant/30 flex flex-col justify-between text-start"
           >
             <div className="flex items-start justify-between">
               <div className="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
@@ -406,7 +395,7 @@ export default async function NutritionHomePage({
           {/* Action 2: Recalculate BMR/TDEE */}
           <Link
             href={`/${locale}/nutrition/body`}
-            className="group bg-surface-container-lowest hover:bg-surface-bright rounded-2xl p-5 shadow-xs hover:shadow-md transition-all border border-outline-variant/30 flex flex-col justify-between text-right"
+            className="group bg-surface-container-lowest hover:bg-surface-bright rounded-2xl p-5 shadow-xs hover:shadow-md transition-all border border-outline-variant/30 flex flex-col justify-between text-start"
           >
             <div className="flex items-start justify-between">
               <div className="w-12 h-12 rounded-xl bg-tertiary text-on-tertiary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
@@ -433,7 +422,7 @@ export default async function NutritionHomePage({
           {/* Action 3: Persian Food Database */}
           <Link
             href={`/${locale}/nutrition/foods`}
-            className="group bg-surface-container-lowest hover:bg-surface-bright rounded-2xl p-5 shadow-xs hover:shadow-md transition-all border border-outline-variant/30 flex flex-col justify-between text-right"
+            className="group bg-surface-container-lowest hover:bg-surface-bright rounded-2xl p-5 shadow-xs hover:shadow-md transition-all border border-outline-variant/30 flex flex-col justify-between text-start"
           >
             <div className="flex items-start justify-between">
               <div className="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
@@ -460,7 +449,7 @@ export default async function NutritionHomePage({
           {/* Action 4: Clinical Dietitian Consultation */}
           <Link
             href={`/${locale}/nutrition/diet`}
-            className="group bg-surface-container-lowest hover:bg-surface-bright rounded-2xl p-5 shadow-xs hover:shadow-md transition-all border border-outline-variant/30 flex flex-col justify-between text-right"
+            className="group bg-surface-container-lowest hover:bg-surface-bright rounded-2xl p-5 shadow-xs hover:shadow-md transition-all border border-outline-variant/30 flex flex-col justify-between text-start"
           >
             <div className="flex items-start justify-between">
               <div className="w-12 h-12 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
@@ -505,158 +494,84 @@ export default async function NutritionHomePage({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Breakfast Card */}
-          <div className="bg-surface-container-lowest rounded-2xl p-4 shadow-xs border border-outline-variant/30 flex flex-col justify-between relative overflow-hidden">
-            <div className="h-1.5 w-full bg-secondary-container absolute top-0 inset-x-0" />
-            <div>
-              <div className="flex items-center justify-between pt-1 mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="p-2 rounded-xl bg-secondary/10 text-secondary">
-                    <ClinicalIcon name="free_breakfast" size={20} />
-                  </span>
-                  <div>
-                    <h3 className="font-bold text-sm sm:text-base text-on-surface">صبحانه کامل</h3>
-                    <span className="text-[11px] text-on-surface-variant">ساعت ۰۸:۱۵</span>
-                  </div>
-                </div>
-                <span className="px-2 py-0.5 rounded-lg bg-surface-container text-secondary font-bold text-xs">
-                  ۴۲۰ Kcal
-                </span>
-              </div>
-              <ul className="space-y-1.5 text-xs text-on-surface-variant">
-                <li className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>نان سنگک کنجدی (۲ کف دست)</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>پنیر لیقوان کم‌نمک (۴۰ گرم)</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>گردوی تویسرکان (۲ عدد)</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>چای دم‌کشیده لاهیجان</span>
-                </li>
-              </ul>
+        {!intakeData?.intakes || intakeData.intakes.length === 0 ? (
+          <div className="bg-surface-container-lowest rounded-3xl p-8 shadow-xs border border-outline-variant/30 flex flex-col items-center justify-center text-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+              <ClinicalIcon name="restaurant" size={30} />
             </div>
-            <div className="mt-4 pt-2 flex items-center justify-between border-t border-outline-variant/20 text-xs">
-              <span className="text-primary font-medium flex items-center gap-1">
-                <ClinicalIcon name="check_circle" size={14} />
-                <span>فیبر و انرژی متعادل</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Lunch Card */}
-          <div className="bg-surface-container-lowest rounded-2xl p-4 shadow-xs border border-outline-variant/30 flex flex-col justify-between relative overflow-hidden">
-            <div className="h-1.5 w-full bg-primary absolute top-0 inset-x-0" />
-            <div>
-              <div className="flex items-center justify-between pt-1 mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="p-2 rounded-xl bg-primary/10 text-primary">
-                    <ClinicalIcon name="lunch_dining" size={20} />
-                  </span>
-                  <div>
-                    <h3 className="font-bold text-sm sm:text-base text-on-surface">ناهار سنتی</h3>
-                    <span className="text-[11px] text-on-surface-variant">ساعت ۱۳:۳۰</span>
-                  </div>
-                </div>
-                <span className="px-2 py-0.5 rounded-lg bg-surface-container text-primary font-bold text-xs">
-                  ۶۸۰ Kcal
-                </span>
-              </div>
-              <ul className="space-y-1.5 text-xs text-on-surface-variant">
-                <li className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>کته طارم (۶ قاشق غذاخوری)</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>خورشت قورمه‌سبزی (۱٫۵ کفگیر)</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>ماست پروبیوتیک (۱ پیاله)</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>سبزی خوردن تازه و لیمو</span>
-                </li>
-              </ul>
-            </div>
-            <div className="mt-4 pt-2 flex items-center justify-between border-t border-outline-variant/20 text-xs">
-              <span className="text-primary font-medium flex items-center gap-1">
-                <ClinicalIcon name="check_circle" size={14} />
-                <span>پروتئین و املاح غنی</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Snack Card */}
-          <div className="bg-surface-container-lowest rounded-2xl p-4 shadow-xs border border-outline-variant/30 flex flex-col justify-between relative overflow-hidden">
-            <div className="h-1.5 w-full bg-tertiary absolute top-0 inset-x-0" />
-            <div>
-              <div className="flex items-center justify-between pt-1 mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="p-2 rounded-xl bg-tertiary/10 text-tertiary">
-                    <ClinicalIcon name="local_cafe" size={20} />
-                  </span>
-                  <div>
-                    <h3 className="font-bold text-sm sm:text-base text-on-surface">عصرانه و دمنوش</h3>
-                    <span className="text-[11px] text-on-surface-variant">ساعت ۱۷:۰۰</span>
-                  </div>
-                </div>
-                <span className="px-2 py-0.5 rounded-lg bg-surface-container text-tertiary font-bold text-xs">
-                  ۱۵۰ Kcal
-                </span>
-              </div>
-              <ul className="space-y-1.5 text-xs text-on-surface-variant">
-                <li className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>سیب درختی دماوند (۱ عدد)</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>بادام مامایی خام (۸ عدد مغز)</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>دمنوش به‌لیمو بدون قند</span>
-                </li>
-              </ul>
-            </div>
-            <div className="mt-4 pt-2 flex items-center justify-between border-t border-outline-variant/20 text-xs">
-              <span className="text-tertiary font-medium flex items-center gap-1">
-                <ClinicalIcon name="check_circle" size={14} />
-                <span>آنتی‌اکسیدان و منیزیم</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Dinner Card (Actionable / Unlogged) */}
-          <div className="bg-surface-container-low/70 rounded-2xl p-4 border border-dashed border-primary/40 flex flex-col justify-between items-center text-center">
-            <div className="w-12 h-12 rounded-full bg-surface-container-lowest text-secondary flex items-center justify-center my-2 shadow-2xs">
-              <ClinicalIcon name="dinner_dining" size={24} />
-            </div>
-            <div>
-              <h3 className="font-bold text-sm sm:text-base text-on-surface">شام امروز</h3>
-              <p className="text-xs text-on-surface-variant mt-1">
-                هنوز ثبت نشده است (سقف مجاز: {toPersianDigits(remainingKcal)} Kcal)
+            <div className="max-w-md">
+              <p className="text-sm sm:text-base text-on-surface font-medium leading-relaxed">
+                امروز وعده‌ای ثبت نشده است. با ثبت اولین وعده، نمودار تراز درشت‌مغذی‌ها و کالری مصرفی شما فعال می‌شود.
               </p>
             </div>
             <Link
               href={`/${locale}/nutrition/diary`}
-              className="mt-3 bg-primary hover:bg-primary-container text-on-primary text-xs font-bold px-4 py-2 rounded-xl shadow-xs transition-all flex items-center gap-1"
+              className="bg-primary hover:bg-primary-container text-on-primary text-xs sm:text-sm font-bold px-6 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
             >
-              <ClinicalIcon name="add" size={16} />
-              <span>ثبت شام در دفترچه</span>
+              <ClinicalIcon name="add" size={18} />
+              <span>ثبت اولین وعده</span>
             </Link>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {intakeData.intakes.map((intake) => (
+              <div
+                key={intake.id}
+                className="bg-surface-container-lowest rounded-2xl p-4 shadow-xs border border-outline-variant/30 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between pt-1 mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="p-2 rounded-xl bg-primary/10 text-primary">
+                        <ClinicalIcon name="restaurant" size={20} />
+                      </span>
+                      <div>
+                        <h3 className="font-bold text-sm sm:text-base text-on-surface">{intake.foodName}</h3>
+                        <span className="text-[11px] text-on-surface-variant">
+                          {new Date(intake.loggedAt).toLocaleTimeString("fa-IR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant/20 flex items-center justify-between text-xs">
+                    <span className="text-on-surface-variant">مقدار مصرف:</span>
+                    <span className="font-bold text-on-surface">
+                      {toPersianDigits(intake.quantity)} {intake.servingUnitName}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-4 pt-2 flex items-center justify-between border-t border-outline-variant/20 text-xs">
+                  <span className="text-primary font-medium flex items-center gap-1">
+                    <ClinicalIcon name="check_circle" size={14} />
+                    <span>ثبت‌شده در پرونده</span>
+                  </span>
+                </div>
+              </div>
+            ))}
+            {/* Quick add more card */}
+            <div className="bg-surface-container-low/70 rounded-2xl p-4 border border-dashed border-primary/40 flex flex-col justify-between items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-surface-container-lowest text-secondary flex items-center justify-center my-2 shadow-2xs">
+                <ClinicalIcon name="add" size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm sm:text-base text-on-surface">ثبت وعده جدید</h3>
+                <p className="text-xs text-on-surface-variant mt-1">
+                  سقف مجاز باقی‌مانده: {toPersianDigits(remainingKcal)} Kcal
+                </p>
+              </div>
+              <Link
+                href={`/${locale}/nutrition/diary`}
+                className="mt-3 bg-primary hover:bg-primary-container text-on-primary text-xs font-bold px-4 py-2 rounded-xl shadow-xs transition-all flex items-center gap-1"
+              >
+                <ClinicalIcon name="add" size={16} />
+                <span>ثبت در دفترچه</span>
+              </Link>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* 5. Featured Clinical Diet Plans Preview (Screen #14 & #16) */}

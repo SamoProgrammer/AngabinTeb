@@ -37,7 +37,7 @@ export default async function FoodsPage({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="flex flex-col gap-8 text-right" dir="rtl">
+    <div className="flex flex-col gap-8 text-start" dir="rtl">
       {/* 1. Top Search & Hero Section (Screen #36) */}
       <section
         aria-label="جستجوی پایگاه داده خوراک‌ها"
@@ -205,7 +205,7 @@ export default async function FoodsPage({
               نتایج غذاها و خوراک‌های ایرانی
             </h2>
             <span className="text-xs text-on-surface-variant">
-              نمایش {toPersianDigits(rows.length)} از {toPersianDigits(total)} قلم کالیبره‌شده
+              نمایش {toPersianDigits(rows.length)} از {toPersianDigits(total)} غذا
             </span>
           </div>
 

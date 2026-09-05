@@ -55,7 +55,7 @@ export default async function BodyPage({
   const surplusCal = tdeeValue + 300;
 
   return (
-    <div className="flex flex-col gap-8 text-right" dir="rtl">
+    <div className="flex flex-col gap-8 text-start" dir="rtl">
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">
@@ -89,11 +89,8 @@ export default async function BodyPage({
           >
             {/* Biological Sex Selector */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs sm:text-sm font-bold text-on-surface flex items-center justify-between">
-                <span>جنسیت بیولوژیک</span>
-                <span className="text-[11px] text-on-surface-variant font-normal">
-                  جهت اعمال ضریب هورمونی
-                </span>
+              <label className="text-xs sm:text-sm font-bold text-on-surface">
+                جنسیت فیزیولوژیک
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <label className="cursor-pointer">
@@ -106,7 +103,7 @@ export default async function BodyPage({
                   />
                   <div className="p-3 rounded-xl bg-surface-container-low text-on-surface peer-checked:bg-primary peer-checked:text-on-primary flex items-center justify-center gap-2 transition-all font-bold text-sm">
                     <ClinicalIcon name="male" size={20} />
-                    <span>آقا (مرد)</span>
+                    <span>آقا</span>
                   </div>
                 </label>
                 <label className="cursor-pointer">
@@ -119,7 +116,7 @@ export default async function BodyPage({
                   />
                   <div className="p-3 rounded-xl bg-surface-container-low text-on-surface peer-checked:bg-primary peer-checked:text-on-primary flex items-center justify-center gap-2 transition-all font-bold text-sm">
                     <ClinicalIcon name="female" size={20} />
-                    <span>خانم (زن)</span>
+                    <span>خانم</span>
                   </div>
                 </label>
               </div>
@@ -150,7 +147,7 @@ export default async function BodyPage({
                   htmlFor="heightCm"
                   className="text-xs sm:text-sm font-bold text-on-surface"
                 >
-                  قد ایستاده (cm)
+                  قد (سانتی‌متر)
                 </label>
                 <input
                   id="heightCm"
@@ -169,7 +166,7 @@ export default async function BodyPage({
                   htmlFor="weightKg"
                   className="text-xs sm:text-sm font-bold text-on-surface"
                 >
-                  وزن ناشتا (kg)
+                  وزن (کیلوگرم)
                 </label>
                 <input
                   id="weightKg"
@@ -185,48 +182,42 @@ export default async function BodyPage({
               </div>
             </div>
 
-            {/* Physical Activity Level (PAL) */}
+            {/* Physical Activity Level */}
             <div className="flex flex-col gap-2">
-              <label className="text-xs sm:text-sm font-bold text-on-surface flex items-center justify-between">
-                <span>سطح تحرک و فعالیت فیزیکی</span>
-                <span className="text-[11px] text-secondary font-semibold">ضریب PAL</span>
+              <label className="text-xs sm:text-sm font-bold text-on-surface">
+                سطح تحرک و فعالیت روزانه
               </label>
 
               <div className="flex flex-col gap-2">
                 {[
                   {
                     level: "sedentary",
-                    label: "بدون تحرک",
-                    desc: "کار اداری و پشت‌میزنشینی مطلق",
-                    factor: "۱٫۲×",
+                    label: "کم‌تحرک (کارمندی)",
+                    desc: "بیشتر روز پشت‌میزنشینی یا بدون ورزش منظم",
                     icon: "airline_seat_recline_normal",
                   },
                   {
                     level: "light",
                     label: "فعالیت سبک",
-                    desc: "۱ الی ۳ روز پیاده‌روی یا ورزش سبک در هفته",
-                    factor: "۱٫۳۷۵×",
+                    desc: "۱ تا ۲ روز تمرین یا پیاده‌روی در هفته",
                     icon: "directions_walk",
                   },
                   {
                     level: "moderate",
                     label: "فعالیت متوسط",
-                    desc: "۳ الی ۵ روز تمرین ورزشی با شدت متوسط",
-                    factor: "۱٫۵۵×",
+                    desc: "۳ تا ۵ روز تمرین ورزشی با شدت متوسط",
                     icon: "fitness_center",
                   },
                   {
                     level: "active",
-                    label: "فعالیت شدید",
-                    desc: "ورزش سنگین روزانه یا شغل پرتحرک بدنی",
-                    factor: "۱٫۷۲۵×",
+                    label: "ورزشکار و پرتحرک",
+                    desc: "۶ تا ۷ روز ورزش یا شغل پرتحرک بدنی",
                     icon: "sprint",
                   },
                   {
                     level: "very_active",
-                    label: "بسیار شدید",
-                    desc: "ورزشکاران حرفه‌ای یا کار طاقت‌فرسا",
-                    factor: "۱٫۹×",
+                    label: "ورزشکار حرفه‌ای",
+                    desc: "تمرینات سنگین روزانه یا فعالیت بدنی طاقت‌فرسا",
                     icon: "sports_mma",
                   },
                 ].map((act) => (
@@ -246,7 +237,6 @@ export default async function BodyPage({
                           <span className="text-[11px] opacity-80">{act.desc}</span>
                         </div>
                       </div>
-                      <span className="text-xs opacity-70 font-semibold">{act.factor}</span>
                     </div>
                   </label>
                 ))}

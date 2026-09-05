@@ -9,6 +9,9 @@ import DietPage from "../diet/page";
 import FoodsPage from "../foods/page";
 import FoodDetailPage from "../foods/[id]/page";
 import { LogFood } from "@/components/nutrition/log-food";
+import { getTranslations } from "next-intl/server";
+import faMessages from "../../../../../messages/fa.json";
+import enMessages from "../../../../../messages/en.json";
 
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
@@ -23,6 +26,33 @@ vi.mock("next/navigation", () => ({
     throw new Error("NEXT_NOT_FOUND");
   },
 }));
+
+vi.mock("next-intl/server", () => ({
+  getTranslations: vi.fn(),
+}));
+
+type Catalog = Record<string, Record<string, string>>;
+const faCatalog = faMessages as unknown as Catalog;
+const enCatalog = enMessages as unknown as Catalog;
+
+function translator(catalog: Catalog, namespace: string) {
+  const table = catalog[namespace] ?? {};
+  return (key: string, values?: Record<string, string | number>) => {
+    let out: string = table[key] ?? key;
+    if (values) {
+      for (const [k, v] of Object.entries(values))
+        out = out.replaceAll(`{${k}}`, String(v));
+    }
+    return out;
+  };
+}
+
+function mockCatalog(catalog: Catalog) {
+  vi.mocked(getTranslations).mockImplementation(
+    ((namespace: string) =>
+      Promise.resolve(translator(catalog, namespace))) as unknown as typeof getTranslations,
+  );
+}
 
 // Mock Identity
 vi.mock("@/contexts/identity/actions", () => ({
@@ -105,6 +135,7 @@ vi.mock("@/contexts/nutrition/queries", () => ({
       status: "pending",
     },
   ]),
+  getProgramContent: vi.fn().mockResolvedValue(null),
   searchFoods: vi.fn().mockResolvedValue({
     rows: [
       {
@@ -188,6 +219,7 @@ vi.mock("@/db", () => ({
 describe("Nutrition Subsystem Overhaul (Task 7)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCatalog(faCatalog);
   });
 
   describe("1. NutritionLayout", () => {
@@ -274,12 +306,31 @@ describe("Nutrition Subsystem Overhaul (Task 7)", () => {
       const html = renderToString(jsx);
 
       expect(html).toContain("دفترچه وعده‌های غذایی امروز");
-      expect(html).toContain("صبحانه کامل");
-      expect(html).toContain("ناهار سنتی");
-      expect(html).toContain("عصرانه و دمنوش");
-      expect(html).toContain("شام امروز");
+      expect(html).toContain("آش رشته");
+      expect(html).toContain("بشقاب");
+      expect(html).not.toContain("صبحانه کامل");
+      expect(html).not.toContain("ناهار سنتی");
+      expect(html).not.toContain("عصرانه و دمنوش");
       expect(html).toContain("برنامه‌های رژیم درمانی منتخب انگبین طب");
       expect(html).toContain("برنامه طلایی پاکسازی کبد و مقاومت انسولین");
+    });
+
+    it("renders intuitive empty state when no meals logged today", async () => {
+      const { dayIntake } = await import("@/contexts/nutrition/queries");
+      vi.mocked(dayIntake).mockResolvedValueOnce({
+        intakes: [],
+        totals: {},
+      });
+
+      const jsx = await NutritionHomePage({
+        params: Promise.resolve({ locale: "fa" }),
+      });
+      const html = renderToString(jsx);
+
+      expect(html).toContain("امروز وعده‌ای ثبت نشده است. با ثبت اولین وعده، نمودار تراز درشت‌مغذی‌ها و کالری مصرفی شما فعال می‌شود.");
+      expect(html).toContain("ثبت اولین وعده");
+      expect(html).not.toContain("۱۴۵۰");
+      expect(html).not.toContain("1450");
     });
   });
 
@@ -359,6 +410,23 @@ describe("Nutrition Subsystem Overhaul (Task 7)", () => {
 
       expect(html).toContain("انتخاب تاریخ پرونده");
       expect(html).toContain("?day=2026-09-04");
+    });
+
+    it("renders diary page in English with LTR direction (ticket 09)", async () => {
+      mockCatalog(enCatalog);
+      const jsx = await DiaryPage({
+        params: Promise.resolve({ locale: "en" }),
+        searchParams: Promise.resolve({ day: "2026-09-04" }),
+      });
+      const html = renderToString(jsx);
+      mockCatalog(faCatalog);
+
+      expect(html).toContain("Daily food and calorie diary");
+      expect(html).toContain("Calories consumed today");
+      expect(html).toContain("Meals logged for this day");
+      expect(html).toContain("Pick record date:");
+      expect(html).toContain('dir="ltr"');
+      expect(html).not.toContain("دفترچه غذایی و کالری روزانه");
     });
 
     it("preserves Playwright E2E contract in LogFood component (Food, Serving, Quantity, Log intake)", () => {
@@ -444,6 +512,18 @@ describe("Nutrition Subsystem Overhaul (Task 7)", () => {
       // prog-2 is claimed: shows Pending badge
       expect(html).toContain('aria-label="Pending"');
       expect(html).toContain("Pending");
+    });
+
+    it("does not render fake precision statistics or developer internal strings", async () => {
+      const jsx = await DietPage({
+        params: Promise.resolve({ locale: "fa" }),
+        searchParams: Promise.resolve({ context: "clinics" }),
+      });
+      const html = renderToString(jsx);
+
+      expect(html).not.toContain("۹۴٪ بهبود شاخص HOMA-IR");
+      expect(html).not.toContain("۱۲،۴۰۰+");
+      expect(html).not.toContain("(clinics)");
     });
   });
 

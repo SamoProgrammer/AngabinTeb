@@ -16,11 +16,10 @@ export interface ActivityOption {
 }
 
 export const ACTIVITY_OPTIONS: ActivityOption[] = [
-  { value: 1.2, label: "کم‌تحرک (کار پشت‌میزی، بدون ورزش مشخص)" },
-  { value: 1.375, label: "سبک (ورزش ۱ تا ۲ روز در هفته)" },
-  { value: 1.55, label: "متوسط (ورزش منظم ۳ تا ۵ روز در هفته)" },
-  { value: 1.725, label: "فعال و ورزشکار (۶ الی ۷ روز تمرین بدنی)" },
-  { value: 1.9, label: "بسیار فعال (تمرینات حرفه‌ای سنگین یا کار بدنی شدید)" },
+  { value: 1.2, label: "کم‌تحرک (کارمندی)" },
+  { value: 1.375, label: "فعالیت ملایم (۱ تا ۳ روز در هفته)" },
+  { value: 1.55, label: "ورزش منظم" },
+  { value: 1.725, label: "ورزشکار حرفه‌ای" },
 ];
 
 export interface MetabolismCalculatorProps {
@@ -123,7 +122,7 @@ export function MetabolismCalculator({
                         className="sr-only"
                       />
                       <ClinicalIcon name="male" size={18} />
-                      <span className="text-xs sm:text-sm font-bold">آقا (مرد)</span>
+                      <span className="text-xs sm:text-sm font-bold">آقا</span>
                     </label>
 
                     <label
@@ -142,7 +141,7 @@ export function MetabolismCalculator({
                         className="sr-only"
                       />
                       <ClinicalIcon name="female" size={18} />
-                      <span className="text-xs sm:text-sm font-bold">خانم (زن)</span>
+                      <span className="text-xs sm:text-sm font-bold">خانم</span>
                     </label>
                   </div>
                 </div>
@@ -234,7 +233,7 @@ export function MetabolismCalculator({
             <div>
               <div className="flex items-center justify-between mb-6">
                 <span className="text-lg sm:text-xl font-extrabold text-on-primary">
-                  خروجی فیزیولوژیک زنده
+                  نتایج محاسبه سوخت‌وساز
                 </span>
                 <span className="bg-surface-container-lowest/20 backdrop-blur-xs px-2.5 py-1 rounded-full text-xs font-bold text-on-primary">
                   معتبرسازی بالینی
@@ -309,7 +308,7 @@ export function MetabolismCalculator({
               className="w-full bg-secondary-container hover:bg-secondary text-on-secondary-container hover:text-on-secondary py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-center font-bold text-sm sm:text-base shadow-md hover:shadow-lg mt-4 cursor-pointer"
             >
               <ClinicalIcon name="restaurant" size={20} className="shrink-0" />
-              <span>ورود به دفترچه تغذیه با سفره ایرانی (کفگیر، پیاله، پرس)</span>
+              <span>ثبت در دفترچه تغذیه</span>
             </Link>
           </div>
         </div>

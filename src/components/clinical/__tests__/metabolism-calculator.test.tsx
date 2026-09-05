@@ -18,10 +18,16 @@ describe("MetabolismCalculator Component", () => {
 
     // Gender selector
     expect(html).toContain("جنسیت فیزیولوژیک:");
-    expect(html).toContain("آقا (مرد)");
-    expect(html).toContain("خانم (زن)");
+    expect(html).toContain("آقا");
+    expect(html).toContain("خانم");
+    expect(html).not.toContain("آقا (مرد)");
+    expect(html).not.toContain("خانم (زن)");
     expect(html).toContain(">male</span>");
     expect(html).toContain(">female</span>");
+
+    // Result header
+    expect(html).toContain("نتایج محاسبه سوخت‌وساز");
+    expect(html).not.toContain("خروجی فیزیولوژیک زنده");
 
     // Inputs default values
     expect(html).toContain('value="32"');
@@ -48,7 +54,8 @@ describe("MetabolismCalculator Component", () => {
     // CTA Link to Iranian food diary
     expect(html).toContain('href="/fa/nutrition/diary"');
     expect(html).toContain(">restaurant</span>");
-    expect(html).toContain("ورود به دفترچه تغذیه با سفره ایرانی (کفگیر، پیاله، پرس)");
+    expect(html).toContain("ثبت در دفترچه تغذیه");
+    expect(html).not.toContain("ورود به دفترچه تغذیه با سفره ایرانی (کفگیر، پیاله، پرس)");
   });
 
   it("correctly renders female calculations with custom initial parameters", () => {
