@@ -45,10 +45,10 @@ export default async function FoodsPage({
       >
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">
-            دایرکتوری خوراک‌ها و غذاهای اصیل ایرانی
+            بانک ارزش غذایی و کالری خوراک‌ها
           </h1>
           <p className="text-sm sm:text-base text-on-surface-variant mt-1.5 leading-relaxed">
-            ارزش غذایی، کالری استاندارد و مشخصات بیوشیمیایی خوراک‌های اصیل بر اساس مقیاس‌های پذیرفته‌شده خانگی.
+            جستجوی میزان کالری، پروتئین، کربوهیدرات و چربی انواع غذاها بر اساس پیمانه‌های روزمره.
           </p>
         </div>
 

@@ -229,7 +229,8 @@ describe("Content Hub SSR Pages", () => {
     expect(html).toContain("دیابت و متابولیسم");
     expect(html).toContain("سلامت قلب و عروق");
     expect(html).toContain("کبد چرب و گوارش");
-    expect(html).toContain("پایگاه ۳۶۰°");
+    expect(html).not.toContain("پایگاه ۳۶۰°");
+    expect(html).toContain("مشاهده موضوع");
   });
 
   it("renders TopicHubPage with topic heading, links, and related care without fake telemetry", async () => {

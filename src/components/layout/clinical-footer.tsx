@@ -27,10 +27,10 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
         ? "منصة الصحة والتغذية السريرية"
         : "سامانه سلامت و تغذیه بالینی",
     description: isEn
-      ? "Angabin Teb is the comprehensive platform for booking specialist doctors, diagnostic services, smart metabolic analysis, and clinical medical diets in Iran. All appointments are guaranteed at approved rates with in-clinic payment."
+      ? "Angabin Teb provides appointment booking for specialist doctors, diagnostic services, and clinical nutrition programs. All appointments are booked at official rates with in-clinic payment."
       : isAr
-        ? "انگبین طب هي المنصة الشاملة لحجز مواعيد الأطباء الاستشاريين، الخدمات التشخيصية، التحليل الأيضي الذكي والأنظمة الغذائية العلاجية في إيران. تُقدم جميع المواعيد بالتعرفة المعتمدة مع الدفع في العيادة."
-        : "انگبین طب مرجع جامع نوبت‌دهی پزشکان متخصص، خدمات پاراکلینیک، آنالیز هوشمند متابولیسم و رژیم‌های درمانی تخصصی در ایران است. کلیه نوبت‌ها با تضمین تعرفه مصوب و پرداخت در مطب ارائه می‌گردد.",
+        ? "انگبین طب هي منصة لحجز مواعيد الأطباء، الخدمات التشخيصية والبرامج الغذائية. تُحجز جميع المواعيد بالتعرفة الرسمية مع الدفع في العيادة."
+        : "انگبین طب سامانه نوبت‌دهی پزشکان متخصص، خدمات پاراکلینیک و برنامه‌های تغذیه بالینی است. کلیه نوبت‌ها با پرداخت در مطب و مطابق تعرفه مصوب رزرو می‌شوند.",
     councilBadge: isEn
       ? "Member of Medical Council"
       : isAr

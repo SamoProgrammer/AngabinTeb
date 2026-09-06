@@ -53,7 +53,7 @@ export default async function ArticlesPage({
             مجله سلامت و پژوهش‌های پزشکی
           </h1>
           <p className="text-sm sm:text-base text-on-surface-variant max-w-3xl leading-relaxed">
-            راهنماهای بالینی، پروتکل‌های سبک زندگی و تازه‌ترین پژوهش‌های معتبر علوم پزشکی و تغذیه با نظارت مستقیم پزشکان متخصص انگبین طب.
+            مقالات آموزشی، نکات خودمراقبتی و توصیه‌های علمی تغذیه و سلامت.
           </p>
         </div>
 

@@ -44,7 +44,7 @@ export default async function KnowledgePage({
             موضوعات و مراکز تخصصی سلامت
           </h1>
           <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed">
-            مجموعه تخصصی راهنماهای بالینی، پروتکل‌های مراقبت ۳۶۰ درجه، خدمات درمانی و مشاوره‌های فوق‌تخصصی پزشکان بر اساس دسته‌بندی‌های جامع سلامت.
+            راهنماهای مراقبت سلامت، مقالات آموزشی و پزشکان مرتبط بر اساس دسته‌بندی موضوعی.
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export default async function KnowledgePage({
         <section aria-label="فهرست موضوعات سلامت" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {topics.map((t) => {
             const iconName = getTopicIcon(t.slug);
-            const countText = `${toPersianDigits(t.count)} مقاله و راهنمای بالینی`;
+            const countText = `${toPersianDigits(t.count)} مقاله و راهنما`;
             return (
               <Link
                 key={t.id}
@@ -63,9 +63,6 @@ export default async function KnowledgePage({
                   <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition-transform">
                     <ClinicalIcon name={iconName} size={30} />
                   </div>
-                  <span className="text-xs bg-surface-container text-on-surface-variant px-2.5 py-1 rounded-full font-medium">
-                    پایگاه ۳۶۰°
-                  </span>
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -73,14 +70,14 @@ export default async function KnowledgePage({
                     {t.name}
                   </h2>
                   <p className="text-xs text-on-surface-variant leading-relaxed">
-                    پروتکل‌های درمانی، مراقبت‌های خانگی، آزمایش‌های دوره‌ای و پزشکان مرتبط با {t.name}.
+                    راهنماها، مقالات آموزشی و پزشکان مرتبط با {t.name}.
                   </p>
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-outline-variant/20 flex items-center justify-between text-xs text-primary font-bold">
                   <span>{countText}</span>
                   <span className="flex items-center gap-1 group-hover:translate-x-[-4px] transition-transform">
-                    <span>ورود به مرکز</span>
+                    <span>مشاهده موضوع</span>
                     <ClinicalIcon name="arrow_back" size={16} />
                   </span>
                 </div>

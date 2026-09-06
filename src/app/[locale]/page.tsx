@@ -151,15 +151,10 @@ export default async function HomePage({
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 w-full"
         aria-label={t("systemsAria")}
       >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
-              {t("systemsTitle")}
-            </h2>
-          </div>
-          <div className="text-xs sm:text-sm text-on-surface-variant">
-            {t("systemsSide")}
-          </div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
+            {t("systemsTitle")}
+          </h2>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -241,24 +236,19 @@ export default async function HomePage({
         aria-label={t("servicesAria")}
       >
         <div className="bg-surface-container-low rounded-3xl p-6 sm:p-8 md:p-10 border border-outline-variant/30">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
             <div className="text-start">
               <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
                 {t("servicesTitle")}
               </h2>
             </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <p className="text-xs sm:text-sm text-on-surface-variant max-w-md">
-                {t("servicesDesc")}
-              </p>
-              <Link
-                href={`/${locale}/services`}
-                className="flex items-center gap-1 text-primary text-sm font-bold hover:underline shrink-0"
-              >
-                <span>{t("servicesViewAll")}</span>
-                <ClinicalIcon name={forwardArrow} size={16} />
-              </Link>
-            </div>
+            <Link
+              href={`/${locale}/services`}
+              className="flex items-center gap-1 text-primary text-sm font-bold hover:underline shrink-0"
+            >
+              <span>{t("servicesViewAll")}</span>
+              <ClinicalIcon name={forwardArrow} size={16} />
+            </Link>
           </div>
 
           {servicesError ? (

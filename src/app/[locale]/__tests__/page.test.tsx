@@ -160,10 +160,11 @@ describe("Landing Page SSR (src/app/[locale]/page.tsx)", () => {
   it("2. renders 5 quick action links with valid hrefs and icons", async () => {
     const html = await renderHomePage();
 
-    // Care Pathways section heading without kicker
+    // Care Pathways section heading without kicker or redundant side element
     expect(html).toContain("مراقبت تخصصی سلامت بر اساس نیاز شما");
     expect(html).not.toContain("دسترسی سریع بیماران و مراجعان");
     expect(html).not.toContain("مسیرهای مراقبت ۳۶۰ درجه");
+    expect(html).not.toContain("انتخاب سریع مسیر درمان و پایش شخصی");
 
     // Quick Action 1: نوبت‌دهی پزشکان
     expect(html).toContain("نوبت‌دهی پزشکان");
@@ -187,13 +188,13 @@ describe("Landing Page SSR (src/app/[locale]/page.tsx)", () => {
     expect(html).toContain("دفترچه کالری‌شمار");
     expect(html).toContain('href="/fa/nutrition/diary"');
     expect(html).toContain("restaurant");
-    expect(html).toContain("ثبت سفره امروز");
+    expect(html).toContain("ثبت وعده امروز");
 
     // Quick Action 5: رژیم‌درمانی تخصصی
     expect(html).toContain("رژیم‌درمانی تخصصی");
     expect(html).toContain('href="/fa/nutrition/diet"');
     expect(html).toContain("spa");
-    expect(html).toContain("مشاهده پروتکل‌ها");
+    expect(html).toContain("مشاهده برنامه‌ها");
   });
 
   it("3. renders Featured Specialists from listDoctors with bounded limit", async () => {
@@ -236,10 +237,11 @@ describe("Landing Page SSR (src/app/[locale]/page.tsx)", () => {
   it("4. renders Paraclinical Services from listServices with bounded limit", async () => {
     const html = await renderHomePage();
 
-    // Section header and all-services link stay (without servicesKicker)
+    // Section header and all-services link stay (without servicesKicker or robotic description)
     expect(html).toContain("خدمات تشخیصی و درمانی");
     expect(html).not.toContain("خدمات پاراکلینیک دارای استانداردهای بالینی");
     expect(html).not.toContain("خدمات بالینی و پاراکلینیکی");
+    expect(html).not.toContain("شفافیت کامل در دستورالعمل ناشتایی");
     expect(html).toContain("مشاهده کلیه خدمات");
 
     // Same query source as the services directory

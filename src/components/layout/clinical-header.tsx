@@ -273,8 +273,8 @@ const NAV_STRINGS: Record<LocaleKey, Record<string, NavHubStrings>> = {
           description: "سونوگرافی، نوار قلب، آزمایش‌ها و چکاپ‌های دوره‌ای",
         },
         topics: {
-          label: "پایگاه‌های سلامت ۳۶۰°",
-          description: "مسیر مراقبت جامع دیابت، قلب و عروق و کبد چرب",
+          label: "موضوعات و مراکز سلامت",
+          description: "راهنماهای مراقبت دیابت، قلب و عروق و کبد چرب",
         },
       },
     },
@@ -287,15 +287,15 @@ const NAV_STRINGS: Record<LocaleKey, Record<string, NavHubStrings>> = {
         },
         diary: {
           label: "دفترچه ثبت خوراک روزانه",
-          description: "ثبت غذاهای سفره ایرانی با پیمانه‌های سنتی (کفگیر، پیاله)",
+          description: "ثبت غذاها با پیمانه‌های معمول و پایش کالری",
         },
         diet: {
           label: "برنامه‌های رژیم بالینی",
-          description: "پروتکل‌های تغذیه‌ای کنترل قند، کبد چرب و کاهش وزن",
+          description: "برنامه‌های غذایی کنترل قند، کبد چرب و تناسب وزن",
         },
         foods: {
           label: "بانک ارزش غذایی خوراک‌ها",
-          description: "پایگاه اطلاعات درشت‌مغذی‌ها و کالری غذاهای ایرانی",
+          description: "بانک اطلاعات کالری و درشت‌مغذی‌های غذاها",
         },
       },
     },
@@ -304,11 +304,11 @@ const NAV_STRINGS: Record<LocaleKey, Record<string, NavHubStrings>> = {
       items: {
         articles: {
           label: "دانشنامه و مقالات سلامت",
-          description: "تازه‌ترین مقالات بالینی و پژوهش‌های علمی علوم پزشکی",
+          description: "مقالات کاربردی و توصیه‌های علمی تغذیه و سلامت",
         },
         videos: {
           label: "ویدیوها و وبینارها",
-          description: "مشاوره‌های تصویری و ویدیوهای آموزشی خودمراقبتی",
+          description: "آموزش‌های ویدیویی خودمراقبتی و سلامت",
         },
         conditions: {
           label: "علائم و بیماری‌ها",

@@ -434,14 +434,14 @@ export default async function NutritionHomePage({
             </div>
             <div className="mt-4">
               <h3 className="font-bold text-base text-on-surface group-hover:text-secondary transition-colors">
-                بانک غذاهای اصیل ایرانی
+                بانک ارزش غذایی خوراک‌ها
               </h3>
               <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                تطبیق هوشمند ارزش تغذیه‌ای بر اساس کفگیر، پیاله، قاشق و کف دست.
+                اطلاعات کالری و درشت‌مغذی‌ها بر اساس پیمانه‌های معمول روزمره.
               </p>
             </div>
             <div className="mt-4 pt-2 text-secondary font-bold text-xs flex items-center gap-1 border-t border-outline-variant/20">
-              <span>جستجو در غذاهای سنتی</span>
+              <span>جستجو در غذاها</span>
               <ClinicalIcon name="chevron_left" size={16} />
             </div>
           </Link>
@@ -461,14 +461,14 @@ export default async function NutritionHomePage({
             </div>
             <div className="mt-4">
               <h3 className="font-bold text-base text-on-surface group-hover:text-primary transition-colors">
-                برنامه رژیم تخصصی بالینی
+                برنامه‌های رژیم بالینی
               </h3>
               <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                درخواست بازبینی پرونده بالینی توسط متخصصین تغذیه و طب متابولیک.
+                برنامه‌های غذایی کنترل قند، چربی کبد و مدیریت وزن.
               </p>
             </div>
             <div className="mt-4 pt-2 text-primary font-bold text-xs flex items-center gap-1 border-t border-outline-variant/20">
-              <span>مشاهده برنامه‌های درمانی</span>
+              <span>مشاهده برنامه‌ها</span>
               <ClinicalIcon name="chevron_left" size={16} />
             </div>
           </Link>

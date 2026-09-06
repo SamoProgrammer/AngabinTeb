@@ -20,7 +20,7 @@ export default async function NutritionLayout({
         aria-label="سامانه پایش بالینی تغذیه و متابولیسم"
         className="bg-gradient-to-r from-primary-container/10 via-surface-container-low to-secondary-container/10 border-b border-outline-variant/30 py-4 px-4 sm:px-6 lg:px-8"
       >
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-right">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-start">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
               <ClinicalIcon name="verified_user" size={24} />

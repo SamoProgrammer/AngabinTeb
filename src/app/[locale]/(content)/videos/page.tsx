@@ -28,7 +28,7 @@ export default async function VideosPage({
             ویدیوها و وبینارهای تخصصی پزشکی
           </h1>
           <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed">
-            مشاهده مصاحبه‌های بالینی، آموزش‌های خودمراقبتی و وبینارهای تخصصی با کلام رسای پزشکان فوق‌تخصص انگبین طب.
+            ویدیوها و آموزش‌های تصویری خودمراقبتی و توصیه‌های پزشکان متخصص.
           </p>
         </div>
 

@@ -69,26 +69,13 @@ export default async function DietPage({
         aria-label="معرفی پزشکی تغذیه بالینی"
         className="relative overflow-hidden bg-surface-container-low rounded-3xl p-6 sm:p-8 md:p-10 border border-outline-variant/30"
       >
-        <div className="flex flex-col gap-4 max-w-3xl">
-          <div className="inline-flex items-center gap-2 self-start bg-surface-container-lowest px-3 py-1 rounded-full shadow-2xs border border-outline-variant/30">
-            <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs font-bold text-primary">
-              پزشکی تغذیه و طب متابولیک انگبین طب
-            </span>
-            <span className="text-[11px] text-on-surface-variant">
-              | نسخه تاییدشده بالینی
-            </span>
-          </div>
-
+        <div className="flex flex-col gap-3 max-w-3xl">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight leading-snug">
-            برنامه‌های رژیم درمانی و پایش بالینی
-            <span className="text-primary block mt-1">
-              سلامت اصیل بدون گرسنگی‌های فرساینده
-            </span>
+            برنامه‌های غذایی و رژیم بالینی
           </h1>
 
           <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed">
-            رویکرد ما در انگبین طب ترکیب داده‌های آزمایشگاهی دقیق، فیزیولوژی غدد و سنت تغذیه اصیل ایرانی است. این رژیم‌ها بر پایه محاسبه بار گلیسمی بومی، اصلاح فلور روده و بهبود ریتم انرژی تدوین شده‌اند تا سلامت پایدار در سفره خانواده محقق گردد.
+            برنامه‌های تغذیه‌ای استاندارد برای مدیریت وزن، کنترل قند خون و چربی کبد متناسب با شرایط سلامت و الگوهای غذایی معمول.
           </p>
         </div>
       </section>

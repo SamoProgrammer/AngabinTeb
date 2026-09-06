@@ -42,10 +42,6 @@ export default function ContactPage() {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-12">
         {/* Header Hero */}
         <section className="text-center flex flex-col items-center gap-3 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 text-primary font-bold text-xs sm:text-sm bg-primary/10 px-3 py-1.5 rounded-full">
-            <ClinicalIcon name="location_on" size={18} />
-            <span>ارتباط با ما و اطلاعات مراکز</span>
-          </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold text-on-surface tracking-tight leading-tight">
             تماس با کلینیک‌ها و پشتیبانی انگبین طب
           </h1>

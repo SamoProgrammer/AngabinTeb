@@ -446,7 +446,7 @@ describe("Discovery & Booking Subsystem Overhaul (Task 6)", () => {
       expect(html).toContain("Paraclinical, laboratory, and clinical measurement services");
       expect(html).toContain("All services");
       expect(html).toContain("Pick a service and date");
-      expect(html).toContain("Call the laboratory specialist");
+      expect(html).toContain("Contact support");
       expect(html).toContain('dir="ltr"');
       expect(html).not.toContain("خدمات پاراکلینیک، آزمایشگاه و سنجش بالینی");
       expect(html).not.toContain("Active capacity today");

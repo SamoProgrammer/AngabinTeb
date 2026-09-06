@@ -59,10 +59,10 @@ export default async function BodyPage({
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">
-          محاسبه متابولیسم و نمایه زیستی بدنی
+          محاسبه کالری پایه و سوخت‌وساز روزانه
         </h1>
         <p className="text-sm sm:text-base text-on-surface-variant mt-1">
-          برآورد دقیق انرژی مصرفی روزانه بر اساس استانداردهای معتبر بالینی Mifflin-St Jeor.
+          محاسبه BMR و TDEE برای تعیین کالری مورد نیاز روزانه متناسب با هدف شما.
         </p>
       </div>
 
@@ -75,7 +75,7 @@ export default async function BodyPage({
               <ClinicalIcon name="accessibility_new" size={24} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-on-surface">مشخصات فیزیولوژیک</h2>
+              <h2 className="text-lg font-bold text-on-surface">مشخصات فردی و بدنی</h2>
               <p className="text-xs text-on-surface-variant">اطلاعات برای محاسبه BMR و TDEE</p>
             </div>
           </div>
@@ -90,7 +90,7 @@ export default async function BodyPage({
             {/* Biological Sex Selector */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs sm:text-sm font-bold text-on-surface">
-                جنسیت فیزیولوژیک
+                جنسیت
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <label className="cursor-pointer">

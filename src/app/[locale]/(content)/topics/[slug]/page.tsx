@@ -32,7 +32,7 @@ export default async function TopicHubPage({
               {hub.topic.name}
             </h1>
             <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed text-justify">
-              پایگاه تخصصی راهنماهای بالینی، پروتکل‌های سبک زندگی، آزمایش‌های پایش دوره‌ای و معرفی پزشکان فوق‌تخصص همکار در حوزه {hub.topic.name}.
+              راهنماهای خودمراقبتی، آزمایش‌های دوره‌ای، مقالات آموزشی و پزشکان مرتبط در زمینه {hub.topic.name}.
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link

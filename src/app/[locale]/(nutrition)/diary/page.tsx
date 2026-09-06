@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
 import { dayIntake, foodPickerOptions, getPhysiology } from "@/contexts/nutrition/queries";
 import { LogFood } from "@/components/nutrition/log-food";
@@ -8,6 +9,9 @@ import {
   calculateMacros,
 } from "@/lib/metabolism";
 import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import faMessages from "../../../../../messages/fa.json";
+
+const faDiary = faMessages.diary as Record<string, string>;
 
 const dayPattern = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -21,6 +25,26 @@ export default async function DiaryPage({
   const { locale } = await params;
   const { day: dayParam } = await searchParams;
   const user = await requireUser();
+  const isEn = locale === "en";
+  const dir = isEn ? "ltr" : "rtl";
+  const timeLocale = locale === "en" ? "en-US" : locale === "ar" ? "ar-EG" : "fa-IR";
+
+  let t: (key: string, values?: Record<string, string | number>) => string = (
+    key,
+    values,
+  ) => {
+    let out: string = faDiary[key] ?? key;
+    if (values) {
+      for (const [k, v] of Object.entries(values)) out = out.replaceAll(`{${k}}`, String(v));
+    }
+    return out;
+  };
+  try {
+    const intlT = await getTranslations("diary");
+    t = (key, values) => intlT(key, values);
+  } catch {
+    // fallback in environments without next-intl server context
+  }
 
   const today = new Date().toISOString().slice(0, 10);
   const rawDay = dayParam ?? today;
@@ -57,7 +81,7 @@ export default async function DiaryPage({
   });
 
   return (
-    <div className="flex flex-col gap-8 text-right" dir="rtl">
+    <div className="flex flex-col gap-8 text-start" dir={dir}>
       {/* 1. Top Header & Date Pill (Screen #11) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-lowest p-6 rounded-3xl shadow-xs border border-outline-variant/30">
         <div className="flex items-center gap-3">
@@ -66,17 +90,17 @@ export default async function DiaryPage({
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-extrabold text-on-surface">
-              دفترچه غذایی و کالری روزانه
+              {t("title")}
             </h1>
             <p className="text-xs sm:text-sm text-on-surface-variant">
-              پایش ساده و هدفمند وعده‌های غذایی و دریافت کالری
+              {t("subtitle")}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-xl text-on-surface text-xs sm:text-sm font-bold border border-outline-variant/30 self-start sm:self-auto">
           <ClinicalIcon name="calendar_today" size={18} className="text-primary" />
-          <span>تاریخ پایش: {toPersianDigits(day)}</span>
+          <span>{t("monitoredOn", { date: toPersianDigits(day) })}</span>
         </div>
       </div>
 
@@ -85,14 +109,14 @@ export default async function DiaryPage({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <span className="text-xs sm:text-sm font-semibold text-on-surface-variant">
-              کالری مصرفی امروز
+              {t("consumedToday")}
             </span>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-3xl sm:text-4xl font-bold text-primary font-data-metric">
                 {formatPersianNumber(energyKcal)}
               </span>
               <span className="text-xs sm:text-sm text-on-surface-variant">
-                / {formatPersianNumber(targetTdee)} Kcal هدف
+                {t("targetLabel", { target: formatPersianNumber(targetTdee) })}
               </span>
               {/* Preserves numeric kcal value visible in text for Playwright contract */}
               <span className="text-xs text-on-surface-variant opacity-75">
@@ -101,12 +125,12 @@ export default async function DiaryPage({
             </div>
           </div>
 
-          <div className="text-right sm:text-left">
+          <div className="text-start sm:text-end">
             <span className="text-base sm:text-lg font-bold text-secondary">
-              {formatPersianNumber(remainingKcal)} Kcal باقیمانده
+              {t("remainingLabel", { remaining: formatPersianNumber(remainingKcal) })}
             </span>
             <span className="block text-xs text-on-surface-variant mt-0.5">
-              {toPersianDigits(caloriePercent)}٪ هدف تکمیل شده
+              {t("percentComplete", { percent: toPersianDigits(caloriePercent) })}
             </span>
           </div>
         </div>
@@ -120,33 +144,33 @@ export default async function DiaryPage({
         </div>
 
         {/* 3 Macro Metrics */}
-        <div className="grid grid-cols-3 gap-3 pt-4 border-t border-outline-variant/20 text-center sm:text-right">
+        <div className="grid grid-cols-3 gap-3 pt-4 border-t border-outline-variant/20 text-center sm:text-start">
           <div className="bg-surface-container-low/60 p-3 rounded-2xl border border-outline-variant/20">
-            <span className="text-xs text-on-surface-variant block">پروتئین</span>
+            <span className="text-xs text-on-surface-variant block">{t("macroProtein")}</span>
             <span className="text-sm sm:text-base font-bold text-on-surface block mt-1">
               {toPersianDigits(proteinG)}{" "}
               <span className="text-xs font-normal text-on-surface-variant">
-                / {toPersianDigits(proteinGoal)} گرم
+                {t("perGram", { goal: toPersianDigits(proteinGoal) })}
               </span>
             </span>
           </div>
 
           <div className="bg-surface-container-low/60 p-3 rounded-2xl border border-outline-variant/20">
-            <span className="text-xs text-on-surface-variant block">کربوهیدرات</span>
+            <span className="text-xs text-on-surface-variant block">{t("macroCarbs")}</span>
             <span className="text-sm sm:text-base font-bold text-on-surface block mt-1">
               {toPersianDigits(carbsG)}{" "}
               <span className="text-xs font-normal text-on-surface-variant">
-                / {toPersianDigits(carbGoal)} گرم
+                {t("perGram", { goal: toPersianDigits(carbGoal) })}
               </span>
             </span>
           </div>
 
           <div className="bg-surface-container-low/60 p-3 rounded-2xl border border-outline-variant/20">
-            <span className="text-xs text-on-surface-variant block">چربی</span>
+            <span className="text-xs text-on-surface-variant block">{t("macroFat")}</span>
             <span className="text-sm sm:text-base font-bold text-on-surface block mt-1">
               {toPersianDigits(fatG)}{" "}
               <span className="text-xs font-normal text-on-surface-variant">
-                / {toPersianDigits(fatGoal)} گرم
+                {t("perGram", { goal: toPersianDigits(fatGoal) })}
               </span>
             </span>
           </div>
@@ -159,10 +183,10 @@ export default async function DiaryPage({
         <div className="lg:col-span-7 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl font-bold text-on-surface">
-              وعده‌های ثبت‌شده برای این روز
+              {t("loggedTitle")}
             </h2>
             <span className="text-xs text-on-surface-variant">
-              {toPersianDigits(intakes.length)} مورد ثبت شده
+              {t("loggedCount", { count: toPersianDigits(intakes.length) })}
             </span>
           </div>
 
@@ -170,10 +194,10 @@ export default async function DiaryPage({
             <div className="bg-surface-container-lowest rounded-3xl p-8 text-center border border-dashed border-outline-variant/40 flex flex-col items-center justify-center">
               <ClinicalIcon name="restaurant_menu" size={36} className="text-on-surface-variant/50 mb-2" />
               <p className="text-sm font-bold text-on-surface">
-                هنوز خوراکی برای این تاریخ ثبت نشده است.
+                {t("emptyTitle")}
               </p>
               <p className="text-xs text-on-surface-variant mt-1">
-                از فرم روبرو، وعده غذایی یا میان‌وعده خود را با مقیاس‌های سنتی ثبت فرمایید.
+                {t("emptyHint")}
               </p>
             </div>
           ) : (
@@ -192,14 +216,17 @@ export default async function DiaryPage({
                         {i.foodName}
                       </h3>
                       <p className="text-xs text-on-surface-variant mt-0.5">
-                        مقیاس: {i.servingUnitName} × {toPersianDigits(i.quantity)}
+                        {t("servingLine", {
+                          unit: i.servingUnitName,
+                          quantity: toPersianDigits(i.quantity),
+                        })}
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-left flex flex-col items-end">
+                  <div className="text-end flex flex-col items-end">
                     <span className="text-xs text-on-surface-variant">
-                      {new Date(i.loggedAt).toLocaleTimeString("fa-IR", {
+                      {new Date(i.loggedAt).toLocaleTimeString(timeLocale, {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
@@ -219,11 +246,11 @@ export default async function DiaryPage({
 
       {/* 4. Date Pagination Navigator */}
       <nav
-        aria-label="پیمایش روزهای هفته"
+        aria-label={t("navAria")}
         className="bg-surface-container-lowest p-4 sm:p-5 rounded-3xl shadow-xs border border-outline-variant/30 flex flex-col sm:flex-row items-center justify-between gap-3"
       >
         <span className="text-xs sm:text-sm font-semibold text-on-surface-variant">
-          انتخاب تاریخ پرونده:
+          {t("pickDate")}
         </span>
         <div className="flex flex-wrap items-center gap-2">
           {days.map((d) => {
@@ -239,7 +266,7 @@ export default async function DiaryPage({
                 }`}
               >
                 {toPersianDigits(d)}
-                {d === today && " (امروز)"}
+                {d === today && t("todaySuffix")}
               </Link>
             );
           })}

@@ -295,8 +295,8 @@ describe("Nutrition Subsystem Overhaul (Task 7)", () => {
       expect(html).toContain("دستورات و میانبرهای سریع بالینی");
       expect(html).toContain("ثبت وعده در دفترچه کالری‌شمار");
       expect(html).toContain("محاسبه شاخص‌های فیزیولوژیک");
-      expect(html).toContain("بانک غذاهای اصیل ایرانی");
-      expect(html).toContain("برنامه رژیم تخصصی بالینی");
+      expect(html).toContain("بانک ارزش غذایی خوراک‌ها");
+      expect(html).toContain("برنامه‌های رژیم بالینی");
     });
 
     it("renders today's logged meals summary cards and featured diet plans preview", async () => {
@@ -536,7 +536,7 @@ describe("Nutrition Subsystem Overhaul (Task 7)", () => {
       const html = renderToString(jsx);
 
       expect(html).toContain('aria-label="Search foods"');
-      expect(html).toContain("دایرکتوری خوراک‌ها و غذاهای اصیل ایرانی");
+      expect(html).toContain("بانک ارزش غذایی و کالری خوراک‌ها");
       expect(html).toContain("راهنمای مقیاس‌های بومی");
       expect(html).toContain("یک کفگیر برنج یا خورش");
       expect(html).toContain("یک کف دست نان سنتی");
