@@ -7,7 +7,7 @@ import { db } from "@/db";
 import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, nutrients, translations, intakePeriods } from "@/db/schema";
 import { requireAdmin, requireUser } from "@/contexts/identity/actions";
 import { servingToGrams, nutrientsForIntake } from "./kernel";
-import { getPhysiology } from "./queries";
+import { getPhysiology, getPeriod } from "./queries";
 
 function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
   const r = schema.safeParse(input);
@@ -45,6 +45,9 @@ const intakeSchema = z.object({
   foodId: z.string().min(1),
   servingUnitId: z.string().min(1),
   quantity: z.number().positive(),
+  mealSlot: z.enum(["breakfast", "lunch", "dinner", "snack"]).optional(),
+  periodId: z.string().min(1).optional(),
+  loggedAt: z.string().datetime().optional(),
 });
 
 export async function logIntake(input: z.infer<typeof intakeSchema>) {
@@ -52,6 +55,11 @@ export async function logIntake(input: z.infer<typeof intakeSchema>) {
   const parsed = intakeSchema.safeParse(input);
   if (!parsed.success) return { ok: false as const, error: parsed.error.issues.map((i) => i.message).join("; ") };
   const data = parsed.data;
+
+  if (data.periodId) {
+    const period = await getPeriod(user.id, data.periodId);
+    if (!period) throw new Error("invalid period");
+  }
 
   await db.transaction(async (tx) => {
     const [food] = await tx.select().from(foods).where(eq(foods.id, data.foodId));
@@ -66,7 +74,7 @@ export async function logIntake(input: z.infer<typeof intakeSchema>) {
     const grams = servingToGrams(data.quantity, Number(su.gramsEquivalent));
     const values = nutrientsForIntake(grams, per100g);
 
-    await tx.insert(foodIntakes).values({ id: randomUUID(), userId: user.id, foodId: data.foodId, servingUnitId: data.servingUnitId, quantity: String(data.quantity) });
+    await tx.insert(foodIntakes).values({ id: randomUUID(), userId: user.id, foodId: data.foodId, servingUnitId: data.servingUnitId, quantity: String(data.quantity), mealSlot: data.mealSlot ?? null, periodId: data.periodId ?? null, loggedAt: data.loggedAt ? new Date(data.loggedAt) : new Date() });
     await tx.insert(dailyNutrition).values({
       userId: user.id,
       day: new Date().toISOString().slice(0, 10),

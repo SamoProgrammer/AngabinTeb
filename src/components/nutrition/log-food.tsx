@@ -13,12 +13,28 @@ export interface FoodOption {
   servingUnits: Array<{ id: string; name: string }>;
 }
 
+export type MealSlot = "breakfast" | "lunch" | "dinner" | "snack";
+
+function defaultMealSlot(hour = new Date().getHours()): MealSlot {
+  if (hour >= 5 && hour <= 10) return "breakfast";
+  if (hour >= 11 && hour <= 15) return "lunch";
+  if (hour >= 16 && hour <= 18) return "snack";
+  return "dinner";
+}
+
+function toLocalInputValue(d = new Date()) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export function LogFood({
   foods,
   locale = "fa",
+  periodId,
 }: {
   foods: FoodOption[];
   locale?: string;
+  periodId?: string;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [foodId, setFoodId] = useState(foods[0]?.id ?? "");
@@ -26,6 +42,8 @@ export function LogFood({
     foods[0]?.servingUnits[0]?.id ?? ""
   );
   const [quantity, setQuantity] = useState("1");
+  const [mealSlot, setMealSlot] = useState<MealSlot>(() => defaultMealSlot());
+  const [loggedAt, setLoggedAt] = useState(() => toLocalInputValue());
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -93,10 +111,14 @@ export function LogFood({
           setError(null);
           setSuccess(false);
           startTransition(async () => {
+            const loggedAtMs = Date.parse(loggedAt);
             const res = await logIntake({
               foodId: food?.id ?? foodId,
               servingUnitId,
               quantity: Number(quantity),
+              mealSlot,
+              ...(periodId ? { periodId } : {}),
+              ...(Number.isNaN(loggedAtMs) ? {} : { loggedAt: new Date(loggedAtMs).toISOString() }),
             });
             if (res.ok) {
               setSuccess(true);
@@ -211,6 +233,46 @@ export function LogFood({
             min="0.5"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
+            className="w-full bg-surface-container-low rounded-xl px-3.5 py-2.5 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-outline-variant/30 text-start"
+          />
+        </div>
+
+        {/* Meal Slot Select */}
+        <div>
+          <label
+            htmlFor="meal-slot-select"
+            className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
+          >
+            وعده غذایی
+          </label>
+          <select
+            id="meal-slot-select"
+            aria-label="Meal slot"
+            value={mealSlot}
+            onChange={(e) => setMealSlot(e.target.value as MealSlot)}
+            className="w-full bg-surface-container-low rounded-xl px-3.5 py-2.5 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-outline-variant/30"
+          >
+            <option value="breakfast">صبحانه</option>
+            <option value="lunch">ناهار</option>
+            <option value="dinner">شام</option>
+            <option value="snack">میان‌وعده</option>
+          </select>
+        </div>
+
+        {/* Logged-at Datetime Input */}
+        <div>
+          <label
+            htmlFor="logged-at-input"
+            className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
+          >
+            زمان ثبت
+          </label>
+          <input
+            id="logged-at-input"
+            aria-label="Logged at"
+            type="datetime-local"
+            value={loggedAt}
+            onChange={(e) => setLoggedAt(e.target.value)}
             className="w-full bg-surface-container-low rounded-xl px-3.5 py-2.5 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-outline-variant/30 text-start"
           />
         </div>
