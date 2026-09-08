@@ -131,3 +131,12 @@ export const dietClaims = pgTable("diet_claim", {
 }, (t) => [
   uniqueIndex("one_claim_per_program").on(t.userId, t.programId).where(sql`status != 'completed'`),
 ]);
+
+export const dietDocuments = pgTable("diet_document", {
+  id: text("id").primaryKey(),
+  claimId: text("claim_id").notNull().references(() => dietClaims.id, { onDelete: "cascade" }).unique(),
+  model: text("model").notNull(),
+  promptVersion: text("prompt_version").notNull().default("v1"),
+  bodyMarkdown: text("body_markdown").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

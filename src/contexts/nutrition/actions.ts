@@ -4,8 +4,9 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, nutrients, translations, intakePeriods } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, clinicalRegistries, nutrients, translations, intakePeriods } from "@/db/schema";
 import { requireAdmin, requireUser } from "@/contexts/identity/actions";
+import { buildDietPrompt, summarizeRegistry, generateDietPlan, DIET_DOC_FOOTER, DIET_PROMPT_VERSION } from "@/lib/ai-diet";
 import { servingToGrams, nutrientsForIntake } from "./kernel";
 import { getPhysiology, getPeriod } from "./queries";
 
@@ -122,6 +123,74 @@ export async function claimDietProgram(input: FormData) {
       return { ok: false as const, reason: "already_claimed" as const };
     }
     throw err;
+  }
+}
+
+// Minimal paid step for the paid → generating → ready chain: no payment
+// gateway is wired (paid = downloadable content), so the owner confirms an
+// offline/at-clinic payment to unlock document generation.
+export async function markDietClaimPaid(claimId: string, opts?: { dbc?: typeof db }) {
+  const dbc = opts?.dbc ?? db;
+  const user = await requireUser();
+  const [claim] = await dbc
+    .select({ id: dietClaims.id, status: dietClaims.status })
+    .from(dietClaims)
+    .where(and(eq(dietClaims.id, claimId), eq(dietClaims.userId, user.id)));
+  if (!claim) return { ok: false as const, reason: "not_found" as const };
+  if (claim.status !== "pending") return { ok: false as const, reason: "invalid_status" as const };
+  await dbc.update(dietClaims).set({ status: "paid" }).where(eq(dietClaims.id, claimId));
+  return { ok: true as const };
+}
+
+// Long-form AI diet document (Task 5). Accepts own claims in `paid` (fresh)
+// or `generating` (retry after a failed attempt). Sets `generating` first,
+// then generates, stores the document with the specialist-review footer, and
+// flips to `ready`. On any throw the claim stays `generating` (retryable);
+// `paid`/`generating`/`ready` are all != 'completed' so the
+// one_claim_per_program partial unique index keeps working untouched.
+export async function generateProgramDocument(claimId: string, opts?: { dbc?: typeof db }) {
+  const dbc = opts?.dbc ?? db;
+  const user = await requireUser();
+  const [claim] = await dbc
+    .select({ id: dietClaims.id, programId: dietClaims.programId, status: dietClaims.status })
+    .from(dietClaims)
+    .where(and(eq(dietClaims.id, claimId), eq(dietClaims.userId, user.id)));
+  if (!claim) return { ok: false as const, reason: "not_found" as const };
+  if (claim.status !== "paid" && claim.status !== "generating") {
+    return { ok: false as const, reason: "invalid_status" as const };
+  }
+  await dbc.update(dietClaims).set({ status: "generating" }).where(eq(dietClaims.id, claimId));
+  try {
+    const [program] = await dbc.select().from(dietPrograms).where(eq(dietPrograms.id, claim.programId));
+    const [profile] = await dbc.select().from(physiologyProfiles).where(eq(physiologyProfiles.userId, user.id));
+    const [registry] = await dbc.select().from(clinicalRegistries).where(eq(clinicalRegistries.userId, user.id));
+    const periods = await dbc.select().from(intakePeriods).where(eq(intakePeriods.userId, user.id));
+    const age = profile
+      ? Math.floor((Date.now() - new Date(profile.birthDate).getTime()) / (365.25 * 24 * 3600 * 1000))
+      : 30;
+    const prompt = buildDietPrompt({
+      sex: (profile?.sex as "male" | "female" | undefined) ?? "female",
+      age,
+      weightKg: profile ? Number(profile.weightKg) : 70,
+      heightCm: profile ? Number(profile.heightCm) : 170,
+      activityLevel: profile?.activityLevel ?? "moderate",
+      programType: program?.planType ?? program?.name ?? "",
+      registrySummary: summarizeRegistry(registry ?? null),
+      periodSummary:
+        periods.length > 0 ? `تعداد دوره‌ها: ${periods.length}؛ آخرین دوره: ${periods[0]?.title ?? ""}` : "",
+    });
+    const text = await generateDietPlan(prompt);
+    await dbc.insert(dietDocuments).values({
+      id: randomUUID(),
+      claimId,
+      model: process.env.AI_MODEL ?? "openai/gpt-5.4",
+      promptVersion: DIET_PROMPT_VERSION,
+      bodyMarkdown: `${text}\n\n---\n${DIET_DOC_FOOTER}`,
+    });
+    await dbc.update(dietClaims).set({ status: "ready" }).where(eq(dietClaims.id, claimId));
+    return { ok: true as const };
+  } catch {
+    return { ok: false as const, reason: "generation_failed" as const };
   }
 }
 

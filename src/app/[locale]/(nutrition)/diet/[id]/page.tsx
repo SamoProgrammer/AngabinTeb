@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { and, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { dietClaims, dietDocuments } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 import { getProgramContent } from "@/contexts/nutrition/queries";
+import { generateProgramDocument, markDietClaimPaid } from "@/contexts/nutrition/actions";
+import PrintButton from "./print-button";
 import { isPricedProgram } from "@/contexts/nutrition/kernel";
 import { formatPersianNumber, toPersianDigits } from "@/lib/metabolism";
 import {
@@ -12,9 +18,13 @@ import {
   CircleCheckBig,
   Download,
   FilePenLine,
+  LoaderCircle,
   Lock,
+  RotateCcw,
+  Sparkles,
   Stethoscope,
   Utensils,
+  Wallet,
 } from "lucide-react";
 
 export default async function DietDetailPage({
@@ -28,6 +38,16 @@ export default async function DietDetailPage({
   // get downloadUrl: null, so the file can never leak through this page.
   const content = await getProgramContent(id, user.id, locale);
   if (!content) notFound();
+
+  // AI document states (claim gate above stays untouched): own claim row for
+  // this program plus its generated document, if any.
+  const [claim] = await db
+    .select({ id: dietClaims.id, status: dietClaims.status })
+    .from(dietClaims)
+    .where(and(eq(dietClaims.userId, user.id), eq(dietClaims.programId, id)));
+  const [document] = claim
+    ? await db.select().from(dietDocuments).where(eq(dietDocuments.claimId, claim.id))
+    : [];
 
   const t = await getTranslations("nutrition");
   const durationText = (days: number) =>
@@ -116,7 +136,96 @@ export default async function DietDetailPage({
           </div>
         ) : (
           <div aria-label="ProgramAccess" className="flex flex-col gap-3">
-            {content.downloadUrl ? (
+            {document ? (
+              <section aria-label="DietDocument" className="flex flex-col gap-3">
+                <h2 className="text-base sm:text-lg font-extrabold text-on-surface">
+                  {t("dietDocTitle")}
+                </h2>
+                <div className="whitespace-pre-wrap text-xs sm:text-sm text-on-surface bg-surface-container-low rounded-2xl p-5 leading-loose">
+                  {document.bodyMarkdown}
+                </div>
+                <PrintButton label={t("dietDocPrint")} />
+              </section>
+            ) : claim?.status === "generating" ? (
+              <div
+                aria-label="DietGenerating"
+                className="bg-surface-container-low rounded-2xl p-5 flex flex-col gap-3"
+              >
+                <p className="flex items-center gap-2 text-sm font-extrabold text-on-surface">
+                  <LoaderCircle size={20} className="animate-spin text-primary" aria-hidden="true" />
+                  <span>{t("dietDocPreparing")}</span>
+                </p>
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  {t("dietDocPreparingNote")}
+                </p>
+                <form
+                  action={async () => {
+                    "use server";
+                    await generateProgramDocument(claim.id);
+                    revalidatePath(`/${locale}/nutrition/diet/${id}`);
+                  }}
+                >
+                  <button
+                    type="submit"
+                    aria-label="Retry"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl shadow-xs transition-all"
+                  >
+                    <RotateCcw size={18} aria-hidden="true" />
+                    <span>{t("dietDocRetry")}</span>
+                  </button>
+                </form>
+              </div>
+            ) : claim?.status === "paid" ? (
+              <div
+                aria-label="DietPaid"
+                className="bg-surface-container-low rounded-2xl p-5 flex flex-col gap-3"
+              >
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  {t("dietDocStartNote")}
+                </p>
+                <form
+                  action={async () => {
+                    "use server";
+                    await generateProgramDocument(claim.id);
+                    revalidatePath(`/${locale}/nutrition/diet/${id}`);
+                  }}
+                >
+                  <button
+                    type="submit"
+                    aria-label="StartProgram"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all"
+                  >
+                    <Sparkles size={18} aria-hidden="true" />
+                    <span>{t("dietDocStart")}</span>
+                  </button>
+                </form>
+              </div>
+            ) : claim?.status === "pending" ? (
+              <div
+                aria-label="DietPendingPay"
+                className="bg-surface-container-low rounded-2xl p-5 flex flex-col gap-3"
+              >
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  {t("dietDocPayNote")}
+                </p>
+                <form
+                  action={async () => {
+                    "use server";
+                    await markDietClaimPaid(claim.id);
+                    revalidatePath(`/${locale}/nutrition/diet/${id}`);
+                  }}
+                >
+                  <button
+                    type="submit"
+                    aria-label="ConfirmPay"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all"
+                  >
+                    <Wallet size={18} aria-hidden="true" />
+                    <span>{t("dietDocPayBtn")}</span>
+                  </button>
+                </form>
+              </div>
+            ) : content.downloadUrl ? (
               <a
                 href={content.downloadUrl}
                 aria-label="Download"
