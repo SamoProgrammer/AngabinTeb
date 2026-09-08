@@ -4,8 +4,15 @@ import { makeSignature } from "better-auth/crypto";
 import { db } from "@/db";
 import { users, sessions } from "@/db/schema";
 
+// Demo login is ON in dev, and in prod only with explicit opt-in:
+// DEMO_LOGIN_ENABLED=true. Anyone with the URL can mint a session
+// (including admin), so never enable it on a site with real patient data.
+function isDemoLoginEnabled() {
+  return process.env.DEMO_LOGIN_ENABLED === "true" || process.env.NODE_ENV !== "production";
+}
+
 export async function POST(req: Request) {
-  if (process.env.NODE_ENV === "production") {
+  if (!isDemoLoginEnabled()) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
@@ -56,7 +63,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  if (process.env.NODE_ENV === "production") {
+  if (!isDemoLoginEnabled()) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
