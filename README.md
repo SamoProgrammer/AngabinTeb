@@ -1,4 +1,4 @@
-# Angabin Teb — انگبین طب
+# Angabin Teb
 
 Persian health platform — booking (doctors/clinics/services by type), nutrition (body→calorie + food diary + diet), content (articles/videos/FAQ by topic). 3 locales (fa/en/ar), phone-OTP auth.
 
