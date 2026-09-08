@@ -73,8 +73,10 @@ export const foodIntakes = pgTable(
     servingUnitId: text("serving_unit_id").notNull().references(() => servingUnits.id),
     quantity: numeric("quantity", { precision: 6, scale: 2 }).notNull(),
     loggedAt: timestamp("logged_at", { withTimezone: true }).notNull().defaultNow(),
+    mealSlot: text("meal_slot"), // صبحانه | ناهار | شام | میان‌وعده
+    periodId: text("period_id").references(() => intakePeriods.id, { onDelete: "set null" }),
   },
-  (t) => [index("intake_user_day").on(t.userId, t.loggedAt)],
+  (t) => [index("intake_user_day").on(t.userId, t.loggedAt), index("intake_period").on(t.periodId)],
 );
 
 export const dailyNutrition = pgTable(
@@ -88,6 +90,24 @@ export const dailyNutrition = pgTable(
     fatG: numeric("fat_g", { precision: 10, scale: 2 }).notNull().default("0"),
   },
   (t) => [primaryKey({ columns: [t.userId, t.day] })],
+);
+
+export const intakePeriods = pgTable(
+  "intake_period",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    startsOn: date("starts_on").notNull(),
+    endsOn: date("ends_on").notNull(),
+    sex: text("sex").notNull(),
+    age: integer("age").notNull(),
+    weightKg: numeric("weight_kg", { precision: 5, scale: 1 }).notNull(),
+    heightCm: numeric("height_cm", { precision: 5, scale: 1 }).notNull(),
+    activityLevel: text("activity_level").notNull().default("moderate"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("period_user").on(t.userId)],
 );
 
 export const dietPrograms = pgTable("diet_program", {

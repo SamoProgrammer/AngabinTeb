@@ -120,6 +120,13 @@
       "when": 1788862755932,
       "tag": "0016_flippant_juggernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788883791901,
+      "tag": "0017_clumsy_christian_walker",
+      "breakpoints": true
     }
   ]
 }
