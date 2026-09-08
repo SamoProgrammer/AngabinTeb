@@ -4,9 +4,10 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, nutrients, translations } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, nutrients, translations, intakePeriods } from "@/db/schema";
 import { requireAdmin, requireUser } from "@/contexts/identity/actions";
 import { servingToGrams, nutrientsForIntake } from "./kernel";
+import { getPhysiology } from "./queries";
 
 function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
   const r = schema.safeParse(input);
@@ -236,4 +237,77 @@ export async function createDietProgram(input: z.infer<typeof dietProgramSchema>
     }
   });
   return { ok: true as const, id };
+}
+
+export function validatePeriodInput(input: { title: string; startsOn: string; endsOn: string }) {
+  const title = input.title?.trim() ?? "";
+  if (title.length < 1 || title.length > 80) return { ok: false as const, error: "invalid title" };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.startsOn) || !/^\d{4}-\d{2}-\d{2}$/.test(input.endsOn)) {
+    return { ok: false as const, error: "invalid dates" };
+  }
+  const start = new Date(`${input.startsOn}T00:00:00Z`);
+  const end = new Date(`${input.endsOn}T00:00:00Z`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return { ok: false as const, error: "invalid dates" };
+  }
+  if (end < start) return { ok: false as const, error: "end before start" };
+  const spanDays = Math.round((end.getTime() - start.getTime()) / (24 * 3600 * 1000)) + 1;
+  if (spanDays > 62) return { ok: false as const, error: "period too long" };
+  return { ok: true as const, data: { title, startsOn: input.startsOn, endsOn: input.endsOn } };
+}
+
+const periodPhysiologySchema = z.object({
+  sex: z.enum(["male", "female"]),
+  age: z.number().int().min(0).max(120),
+  weightKg: z.number().min(25).max(300),
+  heightCm: z.number().min(80).max(250),
+  activityLevel: z.enum(["sedentary", "light", "moderate", "active", "very_active"]),
+});
+
+export async function createPeriod(input: {
+  title: string;
+  startsOn: string;
+  endsOn: string;
+  sex?: "male" | "female";
+  age?: number;
+  weightKg?: number;
+  heightCm?: number;
+  activityLevel?: "sedentary" | "light" | "moderate" | "active" | "very_active";
+}) {
+  const user = await requireUser();
+  const validated = validatePeriodInput({ title: input.title, startsOn: input.startsOn, endsOn: input.endsOn });
+  if (!validated.ok) return validated;
+  const profile = await getPhysiology(user.id);
+  const merged = {
+    sex: input.sex ?? (profile?.sex as "male" | "female" | undefined),
+    age: input.age ?? profile?.age,
+    weightKg: input.weightKg ?? (profile?.weightKg !== undefined ? Number(profile.weightKg) : undefined),
+    heightCm: input.heightCm ?? (profile?.heightCm !== undefined ? Number(profile.heightCm) : undefined),
+    activityLevel: input.activityLevel ?? (profile?.activityLevel as typeof input.activityLevel | undefined) ?? "moderate",
+  };
+  if (merged.sex === undefined || merged.age === undefined || merged.weightKg === undefined || merged.heightCm === undefined) {
+    return { ok: false as const, error: "physiology required" };
+  }
+  const parsed = periodPhysiologySchema.safeParse(merged);
+  if (!parsed.success) return { ok: false as const, error: parsed.error.issues.map((i) => i.message).join("; ") };
+  const id = randomUUID();
+  await db.insert(intakePeriods).values({
+    id,
+    userId: user.id,
+    title: validated.data.title,
+    startsOn: validated.data.startsOn,
+    endsOn: validated.data.endsOn,
+    sex: parsed.data.sex,
+    age: parsed.data.age,
+    weightKg: String(parsed.data.weightKg),
+    heightCm: String(parsed.data.heightCm),
+    activityLevel: parsed.data.activityLevel,
+  });
+  return { ok: true as const, id };
+}
+
+export async function deleteIntake(id: string) {
+  const user = await requireUser();
+  await db.delete(foodIntakes).where(and(eq(foodIntakes.id, id), eq(foodIntakes.userId, user.id)));
+  return { ok: true as const };
 }

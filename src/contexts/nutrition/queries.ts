@@ -1,10 +1,10 @@
 import "server-only";
 import { cache } from "react";
-import { sql, eq, and, gte, lt } from "drizzle-orm";
+import { sql, eq, and, gte, lt, desc, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, providers } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, providers, intakePeriods } from "@/db/schema";
 import { localizedRows } from "@/lib/translate";
-import { bmr, tdee, canAccessProgramContent, type ActivityLevel } from "./kernel";
+import { bmr, tdee, canAccessProgramContent, servingToGrams, nutrientsForIntake, sumDay, macroSplit, type ActivityLevel } from "./kernel";
 import type { FoodCard, FoodDetail, FoodOption, ProgramCard, ProgramContent } from "./model";
 
 export const getPhysiology = cache(async (userId: string) => {
@@ -229,5 +229,66 @@ export const getProgramContent = cache(async (
     hasClaim,
     accessDenied: !allowed,
     downloadUrl: allowed ? row.downloadUrl : null,
+  };
+});
+
+export const listPeriods = cache(async (userId: string) => {
+  return db.select().from(intakePeriods)
+    .where(eq(intakePeriods.userId, userId))
+    .orderBy(desc(intakePeriods.startsOn));
+});
+
+export const getPeriod = cache(async (userId: string, id: string) => {
+  const [row] = await db.select().from(intakePeriods)
+    .where(and(eq(intakePeriods.id, id), eq(intakePeriods.userId, userId)));
+  return row ?? null;
+});
+
+export const periodEntries = cache(async (userId: string, periodId: string) => {
+  return db.select({
+    id: foodIntakes.id, foodName: foods.name, servingUnitName: servingUnits.name,
+    quantity: foodIntakes.quantity, mealSlot: foodIntakes.mealSlot, loggedAt: foodIntakes.loggedAt,
+    gramsEquivalent: servingUnits.gramsEquivalent, foodId: foodIntakes.foodId,
+  }).from(foodIntakes)
+    .innerJoin(foods, eq(foodIntakes.foodId, foods.id))
+    .innerJoin(servingUnits, eq(foodIntakes.servingUnitId, servingUnits.id))
+    .where(and(eq(foodIntakes.userId, userId), eq(foodIntakes.periodId, periodId)))
+    .orderBy(foodIntakes.loggedAt);
+});
+
+export const periodTotals = cache(async (userId: string, periodId: string) => {
+  const period = await getPeriod(userId, periodId);
+  if (!period) return null;
+  const entries = await periodEntries(userId, periodId);
+  const foodIds = [...new Set(entries.map((e) => e.foodId))];
+  const per100gByFood = new Map<string, Record<string, number>>();
+  if (foodIds.length > 0) {
+    const rows = await db.select().from(foodNutrients).where(inArray(foodNutrients.foodId, foodIds));
+    for (const r of rows) {
+      const map = per100gByFood.get(r.foodId) ?? {};
+      map[r.nutrientId] = Number(r.amountPer100g);
+      per100gByFood.set(r.foodId, map);
+    }
+  }
+  const rows = entries.map((e) =>
+    nutrientsForIntake(
+      servingToGrams(Number(e.quantity), Number(e.gramsEquivalent)),
+      per100gByFood.get(e.foodId) ?? {},
+    ),
+  );
+  const totals = sumDay(rows);
+  const bmrValue = bmr({
+    sex: period.sex as "male" | "female",
+    weightKg: Number(period.weightKg),
+    heightCm: Number(period.heightCm),
+    age: period.age,
+  });
+  const tdeeValue = tdee(bmrValue, period.activityLevel as ActivityLevel);
+  return {
+    totals,
+    bmr: Math.round(bmrValue),
+    tdee: Math.round(tdeeValue),
+    macros: macroSplit(tdeeValue),
+    entryCount: entries.length,
   };
 });
