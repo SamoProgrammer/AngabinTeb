@@ -1,7 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { getTopicHub } from "@/contexts/content/queries";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import {
+  Activity,
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  BriefcaseMedical,
+  Stethoscope,
+  User,
+} from "lucide-react";
 import { ArticleCard } from "@/components/clinical/media-cards";
 
 export default async function TopicHubPage({
@@ -13,42 +22,47 @@ export default async function TopicHubPage({
   const hub = await getTopicHub(slug, locale);
   if (!hub) notFound();
 
+  const t = await getTranslations("topics");
+  const dir = locale === "en" ? "ltr" : "rtl";
+  const ArrowForwardIcon = dir === "ltr" ? ArrowRight : ArrowLeft;
+  const topicName = hub.topic.name;
+
   return (
-    <div dir="rtl" className="w-full bg-surface min-h-screen py-8 sm:py-12">
+    <div dir={dir} className="w-full bg-surface min-h-screen py-8 sm:py-12">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-10">
         {/* Breadcrumb */}
-        <nav aria-label="مسیر راهنما" className="flex items-center gap-2 text-xs sm:text-sm text-on-surface-variant">
+        <nav aria-label={t("detail.navAria")} className="flex items-center gap-2 text-xs sm:text-sm text-on-surface-variant">
           <Link href={`/${locale}/topics`} className="hover:text-primary transition-colors">
-            پایگاه موضوعات سلامت
+            {t("detail.breadcrumb")}
           </Link>
           <span className="opacity-40">/</span>
-          <span className="text-on-surface font-semibold">{hub.topic.name}</span>
+          <span className="text-on-surface font-semibold">{topicName}</span>
         </nav>
 
         {/* Hero Banner — Natural Topic Pathway (Screen #28) */}
         <section className="relative w-full bg-gradient-to-b from-primary/10 via-surface-container-low/40 to-surface rounded-3xl p-6 sm:p-10 border border-outline-variant/30 overflow-hidden text-start">
           <div className="flex flex-col gap-4 max-w-3xl">
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-on-surface tracking-tight leading-tight">
-              {hub.topic.name}
+              {topicName}
             </h1>
             <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed text-justify">
-              راهنماهای خودمراقبتی، آزمایش‌های دوره‌ای، مقالات آموزشی و پزشکان مرتبط در زمینه {hub.topic.name}.
+              {t("detail.heroDesc", { name: topicName })}
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link
                 href={`/${locale}/articles?topic=${hub.topic.slug}`}
                 className="inline-flex items-center gap-2 bg-primary text-on-primary text-xs sm:text-sm font-bold px-4 sm:px-5 py-2.5 rounded-xl shadow-xs hover:bg-primary-container transition-all"
               >
-                <ClinicalIcon name="menu_book" size={18} />
-                <span>مقالات تخصصی {hub.topic.name}</span>
+                <BookOpen size={18} aria-hidden="true" />
+                <span>{t("detail.topicArticlesBtn", { name: topicName })}</span>
               </Link>
               {hub.conditions.length > 0 && (
                 <a
                   href="#conditions"
                   className="inline-flex items-center gap-2 bg-surface-container-high text-on-surface text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-surface-container transition-all"
                 >
-                  <ClinicalIcon name="vital_signs" size={18} />
-                  <span>بیماری‌های مرتبط</span>
+                  <Activity size={18} aria-hidden="true" />
+                  <span>{t("detail.relatedConditionsBtn")}</span>
                 </a>
               )}
               {hub.relatedServices.length > 0 && (
@@ -56,8 +70,8 @@ export default async function TopicHubPage({
                   href="#services"
                   className="inline-flex items-center gap-2 bg-surface-container-high text-on-surface text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-surface-container transition-all"
                 >
-                  <ClinicalIcon name="medical_services" size={18} />
-                  <span>خدمات و آزمایش‌ها</span>
+                  <BriefcaseMedical size={18} aria-hidden="true" />
+                  <span>{t("detail.relatedServicesBtn")}</span>
                 </a>
               )}
               {hub.relatedDoctors.length > 0 && (
@@ -65,8 +79,8 @@ export default async function TopicHubPage({
                   href="#doctors"
                   className="inline-flex items-center gap-2 bg-surface-container-high text-on-surface text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-xl hover:bg-surface-container transition-all"
                 >
-                  <ClinicalIcon name="stethoscope" size={18} />
-                  <span>پزشکان متخصص</span>
+                  <Stethoscope size={18} aria-hidden="true" />
+                  <span>{t("detail.relatedDoctorsBtn")}</span>
                 </a>
               )}
             </div>
@@ -78,18 +92,18 @@ export default async function TopicHubPage({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-outline-variant/20 pb-4">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
-                مقالات و راهنماهای بالینی {hub.topic.name}
+                {t("detail.articlesHeading", { name: topicName })}
               </h2>
               <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-                جدیدترین مقالات پژوهشی و توصیه‌های پزشکان درباره {hub.topic.name}
+                {t("detail.articlesSubtitle", { name: topicName })}
               </p>
             </div>
             <Link
               href={`/${locale}/articles?topic=${hub.topic.slug}`}
               className="text-xs sm:text-sm text-primary font-bold hover:underline inline-flex items-center gap-1 self-start sm:self-auto"
             >
-              <span>مشاهده همه مقالات {hub.topic.name}</span>
-              <ClinicalIcon name="arrow_back" size={16} />
+              <span>{t("detail.viewAllArticles", { name: topicName })}</span>
+              <ArrowForwardIcon size={16} aria-hidden="true" />
             </Link>
           </div>
 
@@ -104,7 +118,7 @@ export default async function TopicHubPage({
                     title: c.title,
                     summary: c.body,
                     publishedAt: c.publishedAt,
-                    category: hub.topic.name,
+                    category: topicName,
                   }}
                   locale={locale}
                 />
@@ -112,7 +126,7 @@ export default async function TopicHubPage({
             </div>
           ) : (
             <div className="bg-surface-container-low p-8 rounded-2xl text-center text-on-surface-variant">
-              <p>در حال حاضر مقاله‌ای در این بخش ثبت نشده است.</p>
+              <p>{t("detail.noArticles")}</p>
             </div>
           )}
         </section>
@@ -122,10 +136,10 @@ export default async function TopicHubPage({
           <section id="conditions" className="flex flex-col gap-6 text-start">
             <div className="border-b border-outline-variant/20 pb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
-                بیماری‌ها و اختلالات مرتبط
+                {t("detail.conditionsHeading")}
               </h2>
               <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-                تشخیص و راهنمای مدیریت بالینی شرایط پزشکی وابسته به {hub.topic.name}
+                {t("detail.conditionsSubtitle", { name: topicName })}
               </p>
             </div>
 
@@ -138,16 +152,16 @@ export default async function TopicHubPage({
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                      <ClinicalIcon name="stethoscope" size={20} />
+                      <Stethoscope size={20} aria-hidden="true" />
                     </div>
                     <div>
                       <h3 className="font-bold text-sm text-on-surface group-hover:text-primary transition-colors">
                         {c.name}
                       </h3>
-                      <p className="text-[11px] text-on-surface-variant">راهنمای بالینی و علائم</p>
+                      <p className="text-[11px] text-on-surface-variant">{t("detail.conditionCardSubtitle")}</p>
                     </div>
                   </div>
-                  <ClinicalIcon name="arrow_back" size={16} className="text-outline group-hover:text-primary transition-colors" />
+                  <ArrowForwardIcon size={16} className="text-outline group-hover:text-primary transition-colors" aria-hidden="true" />
                 </Link>
               ))}
             </div>
@@ -159,10 +173,10 @@ export default async function TopicHubPage({
           <section id="services" className="flex flex-col gap-6 text-start">
             <div className="border-b border-outline-variant/20 pb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
-                بسته‌های پاراکلینیک و آزمایش‌های تشخیصی
+                {t("detail.servicesHeading")}
               </h2>
               <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-                خدمات درمانی و چکاپ‌های اختصاصی پایش {hub.topic.name}
+                {t("detail.servicesSubtitle", { name: topicName })}
               </p>
             </div>
 
@@ -175,7 +189,7 @@ export default async function TopicHubPage({
                 >
                   <div>
                     <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-                      <ClinicalIcon name="medical_services" size={20} />
+                      <BriefcaseMedical size={20} aria-hidden="true" />
                     </div>
                     <h3 className="font-bold text-sm text-on-surface group-hover:text-primary transition-colors mb-1">
                       {s.title}
@@ -185,8 +199,8 @@ export default async function TopicHubPage({
                     </p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs text-primary font-bold">
-                    <span>دریافت خدمت</span>
-                    <ClinicalIcon name="arrow_back" size={14} />
+                    <span>{t("detail.getService")}</span>
+                    <ArrowForwardIcon size={14} aria-hidden="true" />
                   </div>
                 </Link>
               ))}
@@ -199,10 +213,10 @@ export default async function TopicHubPage({
           <section id="doctors" className="flex flex-col gap-6 text-start">
             <div className="border-b border-outline-variant/20 pb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
-                پزشکان متخصص و فوق‌تخصص همکار
+                {t("detail.doctorsHeading")}
               </h2>
               <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-                متخصصان تایید شده بالینی جهت مشاوره و درمان اختلالات {hub.topic.name}
+                {t("detail.doctorsSubtitle", { name: topicName })}
               </p>
             </div>
 
@@ -215,7 +229,7 @@ export default async function TopicHubPage({
                 >
                   <div>
                     <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3 font-bold">
-                      <ClinicalIcon name="person" size={24} />
+                      <User size={24} aria-hidden="true" />
                     </div>
                     <h3 className="font-bold text-sm text-on-surface group-hover:text-primary transition-colors mb-1">
                       {d.title}
@@ -225,8 +239,8 @@ export default async function TopicHubPage({
                     </p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs text-primary font-bold">
-                    <span>رزرو نوبت</span>
-                    <ClinicalIcon name="arrow_back" size={14} />
+                    <span>{t("detail.bookDoctor")}</span>
+                    <ArrowForwardIcon size={14} aria-hidden="true" />
                   </div>
                 </Link>
               ))}

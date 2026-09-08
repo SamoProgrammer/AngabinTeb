@@ -3,22 +3,58 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { LocaleSwitcher } from "@/components/locale-switcher";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Atom,
+  Badge,
+  BookOpen,
+  Calculator,
+  CalendarCheck,
+  ChevronDown,
+  CircleHelp,
+  FilePenLine,
+  FileQuestion,
+  FileText,
+  Gavel,
+  Handshake,
+  Hospital,
+  Info,
+  Languages,
+  LayoutGrid,
+  Mail,
+  MapPin,
+  Menu,
+  Newspaper,
+  OctagonAlert,
+  ShieldCheck,
+  Stethoscope,
+  User,
+  Utensils,
+  Video,
+  Wallet,
+  X,
+  Bell,
+  Flower2,
+  LogOut,
+  type LucideIcon,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
 export interface SubNavItem {
   label: string;
   href: string;
   description: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 export interface NavHub {
   id: string;
   label: string;
   href: string;
-  icon: string;
+  icon: LucideIcon;
   items: SubNavItem[];
 }
 
@@ -26,23 +62,17 @@ export interface ClinicalHeaderProps {
   locale?: string;
 }
 
-type LocaleKey = "fa" | "en" | "ar";
-
-function asLocaleKey(locale: string): LocaleKey {
-  return locale === "en" || locale === "ar" ? locale : "fa";
-}
-
 // Single nav structure: hub/item ids, icons, and route paths are written once.
-// Localized labels, descriptions, and badges live in NAV_STRINGS below, keyed by hub id + item key.
+// Localized labels and descriptions resolve from the "header" message catalog.
 interface NavItemSkeleton {
   key: string;
   path: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 interface NavHubSkeleton {
   id: string;
-  icon: string;
+  icon: LucideIcon;
   path: string;
   items: NavItemSkeleton[];
 }
@@ -50,394 +80,66 @@ interface NavHubSkeleton {
 const NAV_STRUCTURE: NavHubSkeleton[] = [
   {
     id: "booking",
-    icon: "stethoscope",
-    path: "/doctors",
+    icon: Stethoscope,
+    path: "/booking/categories",
     items: [
-      { key: "doctors", path: "/doctors", icon: "stethoscope" },
-      { key: "services", path: "/services", icon: "medical_services" },
-      { key: "topics", path: "/topics", icon: "hub" },
+      { key: "categories", path: "/booking/categories", icon: LayoutGrid },
+      { key: "doctors", path: "/booking/doctors", icon: Stethoscope },
+      { key: "diagnostic", path: "/booking/diagnostic-services", icon: Atom },
     ],
   },
   {
     id: "nutrition",
-    icon: "restaurant",
-    path: "/nutrition",
+    icon: Utensils,
+    path: "/nutrition/diet",
     items: [
-      { key: "dashboard", path: "/nutrition", icon: "calculate" },
-      { key: "diary", path: "/diary", icon: "edit_note" },
-      { key: "diet", path: "/diet", icon: "menu_book" },
-      { key: "foods", path: "/foods", icon: "restaurant" },
+      { key: "diets", path: "/nutrition/diet", icon: Flower2 },
+      { key: "foodAnalysis", path: "/food-analysis/personal", icon: Calculator },
+      { key: "foods", path: "/foods", icon: Utensils },
+      { key: "diary", path: "/nutrition/diary", icon: FilePenLine },
     ],
   },
   {
     id: "content",
-    icon: "menu_book",
+    icon: BookOpen,
     path: "/articles",
     items: [
-      { key: "articles", path: "/articles", icon: "article" },
-      { key: "videos", path: "/videos", icon: "videocam" },
-      { key: "conditions", path: "/conditions/diabetes", icon: "vital_signs" },
+      { key: "articles", path: "/articles", icon: Newspaper },
+      { key: "nutritionKnowledge", path: "/nutrition-knowledge", icon: BookOpen },
+      { key: "pamphlets", path: "/knowledge/pamphlet", icon: FileText },
+      { key: "videos", path: "/knowledge/videos", icon: Video },
+      { key: "faq", path: "/knowledge/faq", icon: FileQuestion },
     ],
   },
   {
     id: "support",
-    icon: "help",
-    path: "/faq",
+    icon: CircleHelp,
+    path: "/about-us",
     items: [
-      { key: "faq", path: "/faq", icon: "quiz" },
-      { key: "support", path: "/support", icon: "support_agent" },
-      { key: "contact", path: "/contact", icon: "location_on" },
-      { key: "about", path: "/about", icon: "info" },
+      { key: "about", path: "/about-us", icon: Info },
+      { key: "contact", path: "/contact-us", icon: MapPin },
+      { key: "workWithUs", path: "/work-with-us", icon: Handshake },
+      { key: "siteHelp", path: "/notes/site-help", icon: CircleHelp },
+      { key: "complains", path: "/complains", icon: OctagonAlert },
+      { key: "terms", path: "/terms-and-conditions", icon: Gavel },
     ],
   },
 ];
 
-interface NavItemStrings {
-  label: string;
-  description: string;
-}
-
-interface NavHubStrings {
-  label: string;
-  items: Record<string, NavItemStrings>;
-}
-
-const NAV_STRINGS: Record<LocaleKey, Record<string, NavHubStrings>> = {
-  en: {
-    booking: {
-      label: "Appointments & Services",
-      items: {
-        doctors: {
-          label: "Doctors & Specialists",
-          description: "Search and book board-certified physicians and clinics",
-        },
-        services: {
-          label: "Clinical & Diagnostic Services",
-          description: "Ultrasound, ECG, laboratory tests, and routine checkups",
-        },
-        topics: {
-          label: "360° Health Topics",
-          description: "Integrated care pathways for diabetes, cardiovascular, fatty liver",
-        },
-      },
-    },
-    nutrition: {
-      label: "Nutrition & Records",
-      items: {
-        dashboard: {
-          label: "Metabolic Dashboard & BMR",
-          description: "Calculate BMR/TDEE, target weight, and daily calorie targets",
-        },
-        diary: {
-          label: "Daily Food Diary",
-          description: "Log meals with traditional and metric portion measurements",
-        },
-        diet: {
-          label: "Clinical Diet Plans",
-          description: "Nutritional protocols for glucose control, fatty liver, weight loss",
-        },
-        foods: {
-          label: "Nutritional Food Database",
-          description: "Macro and micronutrient nutritional values for Iranian foods",
-        },
-      },
-    },
-    content: {
-      label: "Health Knowledge",
-      items: {
-        articles: {
-          label: "Clinical Articles",
-          description: "Latest peer-reviewed medical articles and clinical research",
-        },
-        videos: {
-          label: "Videos & Webinars",
-          description: "Visual consultations and educational self-care video guides",
-        },
-        conditions: {
-          label: "Conditions & Symptoms",
-          description: "Clinical root causes, warning signs, and recommended labs",
-        },
-      },
-    },
-    support: {
-      label: "Support & Guide",
-      items: {
-        faq: {
-          label: "Frequently Asked Questions",
-          description: "Instant answers about insurances, in-clinic payment, and bookings",
-        },
-        support: {
-          label: "Support Center & Tickets",
-          description: "Submit messages, follow up care requests, and connect with staff",
-        },
-        contact: {
-          label: "Contact & Locations",
-          description: "Clinic addresses, branch phone numbers, and reception desks",
-        },
-        about: {
-          label: "About Us",
-          description: "Clinical mission, medical ethics charter, and advisory council",
-        },
-      },
-    },
-  },
-  ar: {
-    booking: {
-      label: "المواعيد والخدمات",
-      items: {
-        doctors: {
-          label: "الأطباء والاستشاريون",
-          description: "البحث وحجز المواعيد مع كبار الأطباء والمراكز",
-        },
-        services: {
-          label: "الخدمات السريرية والتشخيصية",
-          description: "الموجات فوق الصوتية، تخطيط القلب، والتحاليل الدورية",
-        },
-        topics: {
-          label: "محاور الصحة ۳۶۰°",
-          description: "مسارات الرعاية الشاملة للسكري، القلب والكبد الدهني",
-        },
-      },
-    },
-    nutrition: {
-      label: "الملف والتغذية",
-      items: {
-        dashboard: {
-          label: "لوحة الأيض والسعرات",
-          description: "حساب معدل الأيض الأساسي BMR/TDEE والوزن المثالي",
-        },
-        diary: {
-          label: "سجل الوجبات اليومي",
-          description: "تسجيل الأطعمة وتتبع الوجبات الغذائية بمقاييس دقيقة",
-        },
-        diet: {
-          label: "برامج الحمية العلاجية",
-          description: "بروتوكولات تغذية لضبط السكر، الكبد وتخفيف الوزن",
-        },
-        foods: {
-          label: "قاعدة بيانات الأغذية",
-          description: "معلومات السعرات والقيم الغذائية للوجبات الإيرانية",
-        },
-      },
-    },
-    content: {
-      label: "مجلة الصحة",
-      items: {
-        articles: {
-          label: "المقالات الطبية المتخصصة",
-          description: "أحدث المقالات السريرية والأبحاث الطبية المعتمدة",
-        },
-        videos: {
-          label: "الفيديوهات والندوات",
-          description: "استشارات مرئية وفيديوهات تعليمية للرعاية الذاتية",
-        },
-        conditions: {
-          label: "الأعراض والأمراض",
-          description: "استكشاف الأسباب السريرية، مؤشرات الخطر والفحوصات المقترحة",
-        },
-      },
-    },
-    support: {
-      label: "الدليل والدعم",
-      items: {
-        faq: {
-          label: "الأسئلة الشائعة (FAQ)",
-          description: "إجابات فورية حول التأمين، الدفع في العيادة والحجوزات",
-        },
-        support: {
-          label: "مركز الدعم والتذاكر",
-          description: "إرسال الاستفسارات ومتابعة الطلبات مع فريق الدعم",
-        },
-        contact: {
-          label: "اتصل بنا والفروع",
-          description: "عناوين المراكز وأرقام الهواتف وخطوط الاستقبال",
-        },
-        about: {
-          label: "عن انگبین طب",
-          description: "الرسالة الطبية، الميثاق الأخلاقي واللجنة الاستشارية",
-        },
-      },
-    },
-  },
-  // Default Persian
-  fa: {
-    booking: {
-      label: "نوبت‌دهی و خدمات",
-      items: {
-        doctors: {
-          label: "پزشکان و متخصصان",
-          description: "جستجو و رزرو نوبت پزشکان فوق‌تخصص و مطب‌ها",
-        },
-        services: {
-          label: "خدمات درمانی و تشخیصی",
-          description: "سونوگرافی، نوار قلب، آزمایش‌ها و چکاپ‌های دوره‌ای",
-        },
-        topics: {
-          label: "موضوعات و مراکز سلامت",
-          description: "راهنماهای مراقبت دیابت، قلب و عروق و کبد چرب",
-        },
-      },
-    },
-    nutrition: {
-      label: "پرونده و تغذیه",
-      items: {
-        dashboard: {
-          label: "برنامه‌ها و ابزارهای تغذیه",
-          description: "محاسبه BMR/TDEE، وزن ایده‌آل و بودجه کالری روزانه",
-        },
-        diary: {
-          label: "دفترچه ثبت خوراک روزانه",
-          description: "ثبت غذاها با پیمانه‌های معمول و پایش کالری",
-        },
-        diet: {
-          label: "برنامه‌های رژیم بالینی",
-          description: "برنامه‌های غذایی کنترل قند، کبد چرب و تناسب وزن",
-        },
-        foods: {
-          label: "بانک ارزش غذایی خوراک‌ها",
-          description: "بانک اطلاعات کالری و درشت‌مغذی‌های غذاها",
-        },
-      },
-    },
-    content: {
-      label: "مجله سلامت",
-      items: {
-        articles: {
-          label: "دانشنامه و مقالات سلامت",
-          description: "مقالات کاربردی و توصیه‌های علمی تغذیه و سلامت",
-        },
-        videos: {
-          label: "ویدیوها و وبینارها",
-          description: "آموزش‌های ویدیویی خودمراقبتی و سلامت",
-        },
-        conditions: {
-          label: "علائم و بیماری‌ها",
-          description: "بررسی علل بالینی، نشانه‌های خطر و آزمایش‌های پیشنهادی",
-        },
-      },
-    },
-    support: {
-      label: "راهنما و پشتیبانی",
-      items: {
-        faq: {
-          label: "پرسش‌های متداول (FAQ)",
-          description: "پاسخ سریع به سوالات بیمه‌ها، پرداخت در مطب و رزرو",
-        },
-        support: {
-          label: "مرکز پشتیبانی و تیکت‌ها",
-          description: "ارسال پیام، پیگیری درخواست‌ها و ارتباط با کارشناسان",
-        },
-        contact: {
-          label: "تماس با ما و شعب",
-          description: "آدرس و شماره تلفن کلینیک‌ها و خطوط پذیرش",
-        },
-        about: {
-          label: "درباره ما",
-          description: "رسالت بالینی، منشور اخلاقی و اعضای هیئت علمی",
-        },
-      },
-    },
-  },
-};
-
-function getNavHubs(locale: string): NavHub[] {
-  const strings = NAV_STRINGS[asLocaleKey(locale)];
+function getNavHubs(locale: string, t: (key: string) => string): NavHub[] {
   return NAV_STRUCTURE.map((hub) => ({
     id: hub.id,
-    label: strings[hub.id].label,
+    label: t(`hubs.${hub.id}.label`),
     href: `/${locale}${hub.path}`,
     icon: hub.icon,
-    items: hub.items.map((item) => {
-      const s = strings[hub.id].items[item.key];
-      return {
-        label: s.label,
-        href: `/${locale}${item.path}`,
-        description: s.description,
-        icon: item.icon,
-      };
-    }),
+    items: hub.items.map((item) => ({
+      label: t(`hubs.${hub.id}.items.${item.key}.label`),
+      href: `/${locale}${item.path}`,
+      description: t(`hubs.${hub.id}.items.${item.key}.description`),
+      icon: item.icon,
+    })),
   }));
 }
-
-interface UserMenuStrings {
-  account: string;
-  appointments: string;
-  appointmentsDesc: string;
-  notifications: string;
-  notificationsDesc: string;
-  admin: string;
-  adminDesc: string;
-  signOut: string;
-  adminBadge: string;
-}
-
-const USER_MENU_LABELS: Record<LocaleKey, UserMenuStrings> = {
-  fa: {
-    account: "حساب کاربری",
-    appointments: "نوبت‌های من",
-    appointmentsDesc: "پیگیری، سوابق و جزئیات نوبت‌های رزرو شده",
-    notifications: "پیام‌ها و اعلان‌ها",
-    notificationsDesc: "یادآوری نوبت و وضعیت پرونده",
-    admin: "پنل مدیریت",
-    adminDesc: "مدیریت پزشکان، خدمات و گزارش‌ها",
-    signOut: "خروج از حساب",
-    adminBadge: "مدیر سامانه",
-  },
-  en: {
-    account: "My Account",
-    appointments: "My Appointments",
-    appointmentsDesc: "Track and manage bookings",
-    notifications: "Notifications",
-    notificationsDesc: "Reminders and health alerts",
-    admin: "Admin Dashboard",
-    adminDesc: "Manage providers, services, and reports",
-    signOut: "Sign Out",
-    adminBadge: "Administrator",
-  },
-  ar: {
-    account: "حسابي",
-    appointments: "مواعيدي",
-    appointmentsDesc: "متابعة وإدارة المواعيد المحجوزة",
-    notifications: "الإشعارات",
-    notificationsDesc: "تنبيهات المواعيد وتحديثات الملف",
-    admin: "لوحة الإدارة",
-    adminDesc: "إدارة الأطباء والخدمات والتقارير",
-    signOut: "تسجيل الخروج",
-    adminBadge: "مدير النظام",
-  },
-};
-
-interface HeaderChromeStrings {
-  brandTitle: string;
-  brandSubtitle: string;
-  login: string;
-  viewAllPrefix: string;
-  menuAria: string;
-}
-
-const HEADER_COPY: Record<LocaleKey, HeaderChromeStrings> = {
-  en: {
-    brandTitle: "Angabin Teb",
-    brandSubtitle: "Clinical Health & Nutrition",
-    login: "Sign In",
-    viewAllPrefix: "View all in",
-    menuAria: "Toggle menu",
-  },
-  ar: {
-    brandTitle: "انگبین طب",
-    brandSubtitle: "منصة الصحة والتغذية السريرية",
-    login: "تسجيل الدخول",
-    viewAllPrefix: "عرض جميع أقسام",
-    menuAria: "منوی گزینه‌ها",
-  },
-  fa: {
-    brandTitle: "انگبین طب",
-    brandSubtitle: "سامانه سلامت و تغذیه بالینی",
-    login: "ورود",
-    viewAllPrefix: "مشاهده همه بخش‌های",
-    menuAria: "منوی گزینه‌ها",
-  },
-};
 
 export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
   const pathname = usePathname();
@@ -453,15 +155,34 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
   const isAuthenticated = Boolean(user);
   const isAdmin = (user as { role?: string })?.role === "admin";
 
-  const userMenuLabels = USER_MENU_LABELS[asLocaleKey(locale)];
+  const t = useTranslations("header");
+  const tCommon = useTranslations("common");
 
-  const navHubs = getNavHubs(locale);
+  const navHubs = getNavHubs(locale, t);
 
-  const headerCopy = HEADER_COPY[asLocaleKey(locale)];
-  const brandTitle = headerCopy.brandTitle;
-  const brandSubtitle = headerCopy.brandSubtitle;
+  const brandTitle = t("brandTitle");
+  const brandSubtitle = t("brandSubtitle");
 
-  const loginLabel = headerCopy.login;
+  const loginLabel = tCommon("login");
+
+  const userMenuLabels = {
+    account: t("userMenu.account"),
+    appointments: t("userMenu.appointments"),
+    appointmentsDesc: t("userMenu.appointmentsDesc"),
+    personalInfo: t("userMenu.personalInfo"),
+    personalInfoDesc: t("userMenu.personalInfoDesc"),
+    balance: t("userMenu.balance"),
+    balanceDesc: t("userMenu.balanceDesc"),
+    messages: t("userMenu.messages"),
+    messagesDesc: t("userMenu.messagesDesc"),
+    notifications: t("userMenu.notifications"),
+    notificationsDesc: t("userMenu.notificationsDesc"),
+    admin: t("userMenu.admin"),
+    adminDesc: t("userMenu.adminDesc"),
+    signOut: t("userMenu.signOut"),
+    adminBadge: t("userMenu.adminBadge"),
+    walletUnit: t("walletUnit"),
+  };
 
   const handleSignOut = async () => {
     try {
@@ -525,7 +246,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
             className="group flex items-center gap-3 transition-opacity hover:opacity-90 shrink-0"
           >
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-on-primary shadow-tier-1 transition-transform group-hover:scale-105">
-              <ClinicalIcon name="local_hospital" size={24} fill />
+              <Hospital size={24} fill="currentColor" aria-hidden="true" />
             </div>
             <div className="flex flex-col text-start">
               <span className="text-base sm:text-lg font-extrabold text-on-surface leading-tight tracking-tight">
@@ -561,12 +282,12 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                     }`}
                   >
                     <span>{hub.label}</span>
-                    <ClinicalIcon
-                      name="expand_more"
+                    <ChevronDown
                       size={16}
                       className={`transition-transform duration-200 ${
                         isOpen ? "rotate-180 text-primary" : "text-on-surface-variant/70"
                       }`}
+                      aria-hidden="true"
                     />
                   </button>
 
@@ -574,9 +295,11 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                   {isOpen && (
                     <div
                       role="menu"
-                      className="absolute top-full start-0 mt-2 w-72 lg:w-80 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-tier-2 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-start"
+                      className={`absolute top-full start-0 mt-2 ${
+                        hub.items.length > 5 ? "w-80 sm:w-[540px] lg:w-[620px]" : "w-72 lg:w-80"
+                      } bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-tier-2 p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-start`}
                     >
-                      <div className="flex flex-col gap-1">
+                      <div className={hub.items.length > 5 ? "grid grid-cols-1 sm:grid-cols-2 gap-1.5" : "flex flex-col gap-1"}>
                         {hub.items.map((item) => (
                           <Link
                             key={item.href}
@@ -586,7 +309,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                             className="group flex items-start gap-3 p-2.5 rounded-xl hover:bg-surface-container-low transition-colors"
                           >
                             <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                              <ClinicalIcon name={item.icon} size={20} />
+                              <item.icon size={20} aria-hidden="true" />
                             </div>
                             <div className="flex flex-col">
                               <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
@@ -608,12 +331,13 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                           className="hover:underline flex items-center gap-1"
                         >
                           <span>
-                            {headerCopy.viewAllPrefix} {hub.label}
+                            {t("viewAll", { hub: hub.label })}
                           </span>
-                          <ClinicalIcon
-                            name={locale === "en" ? "arrow_forward" : "arrow_back"}
-                            size={14}
-                          />
+                          {locale === "en" ? (
+                            <ArrowRight size={14} aria-hidden="true" />
+                          ) : (
+                            <ArrowLeft size={14} aria-hidden="true" />
+                          )}
                         </Link>
                       </div>
                     </div>
@@ -628,9 +352,21 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Locale switcher */}
           <div className="flex items-center rounded-xl border border-outline-variant/50 bg-surface-container-lowest px-2 py-1 text-xs text-on-surface">
-            <ClinicalIcon name="language" size={16} className="me-1 text-on-surface-variant" />
+            <Languages size={16} className="me-1 text-on-surface-variant" aria-hidden="true" />
             <LocaleSwitcher />
           </div>
+
+          {/* Wallet Balance Badge */}
+          {isAuthenticated && (
+            <Link
+              href={`/${locale}/profile/balance`}
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-primary/10 hover:bg-primary/15 border border-primary/25 px-3 py-2 text-xs sm:text-sm font-bold text-primary transition-all shadow-xs"
+              title={userMenuLabels.balance}
+            >
+              <Wallet size={16} fill="currentColor" aria-hidden="true" />
+              <span>{locale === "en" ? "0" : locale === "ar" ? "٠" : "۰"} {userMenuLabels.walletUnit}</span>
+            </Link>
+          )}
 
           {/* Patient Auth CTA / User Account Menu */}
           {isAuthenticated ? (
@@ -643,17 +379,17 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                 className="inline-flex items-center gap-2 rounded-xl bg-primary/10 hover:bg-primary/15 border border-primary/25 px-3 py-2 text-xs sm:text-sm font-bold text-primary transition-all cursor-pointer shadow-xs active:scale-95"
               >
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                  <ClinicalIcon name="person" size={16} fill />
+                  <User size={16} fill="currentColor" aria-hidden="true" />
                 </div>
                 <span className="max-w-[120px] truncate">
                   {user?.name || userMenuLabels.account}
                 </span>
-                <ClinicalIcon
-                  name="expand_more"
+                <ChevronDown
                   size={16}
                   className={`transition-transform duration-200 ${
                     userMenuOpen ? "rotate-180" : ""
                   }`}
+                  aria-hidden="true"
                 />
               </button>
 
@@ -686,13 +422,13 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                 {/* Menu Links */}
                 <div className="flex flex-col gap-1">
                   <Link
-                    href={`/${locale}/appointments`}
+                    href={`/${locale}/profile/reservations`}
                     role="menuitem"
                     onClick={() => setUserMenuOpen(false)}
                     className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
                   >
                     <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                      <ClinicalIcon name="event_available" size={18} />
+                      <CalendarCheck size={18} aria-hidden="true" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
@@ -705,20 +441,58 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                   </Link>
 
                   <Link
-                    href={`/${locale}/notifications`}
+                    href={`/${locale}/profile/personal-info`}
                     role="menuitem"
                     onClick={() => setUserMenuOpen(false)}
                     className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
                   >
                     <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                      <ClinicalIcon name="notifications" size={18} />
+                      <Badge size={18} aria-hidden="true" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                        {userMenuLabels.notifications}
+                        {userMenuLabels.personalInfo}
                       </span>
                       <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1">
-                        {userMenuLabels.notificationsDesc}
+                        {userMenuLabels.personalInfoDesc}
+                      </span>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href={`/${locale}/profile/balance`}
+                    role="menuitem"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
+                      <Wallet size={18} aria-hidden="true" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
+                        {userMenuLabels.balance}
+                      </span>
+                      <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1">
+                        {userMenuLabels.balanceDesc}
+                      </span>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href={`/${locale}/profile/messages`}
+                    role="menuitem"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
+                      <Mail size={18} aria-hidden="true" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
+                        {userMenuLabels.messages}
+                      </span>
+                      <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1">
+                        {userMenuLabels.messagesDesc}
                       </span>
                     </div>
                   </Link>
@@ -731,7 +505,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                       className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
                     >
                       <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                        <ClinicalIcon name="admin_panel_settings" size={18} />
+                        <ShieldCheck size={18} aria-hidden="true" />
                       </div>
                       <div className="flex flex-col">
                         <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
@@ -755,7 +529,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                   onClick={handleSignOut}
                   className="flex items-center gap-2.5 w-full p-2 rounded-xl text-error hover:bg-error-container/20 text-xs sm:text-sm font-semibold transition-colors cursor-pointer text-start"
                 >
-                  <ClinicalIcon name="logout" size={18} />
+                  <LogOut size={18} aria-hidden="true" />
                   <span>{userMenuLabels.signOut}</span>
                 </button>
               </div>
@@ -765,7 +539,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
               href={`/${locale}/signin`}
               className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-primary shadow-tier-1 hover:bg-primary-container active:translate-y-px transition-all"
             >
-              <ClinicalIcon name="person" size={18} fill />
+              <User size={18} fill="currentColor" aria-hidden="true" />
               <span>{loginLabel}</span>
             </Link>
           )}
@@ -774,10 +548,14 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={headerCopy.menuAria}
+            aria-label={t("menuAria")}
             className="md:hidden p-2 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors"
           >
-            <ClinicalIcon name={mobileMenuOpen ? "close" : "menu"} size={24} />
+            {mobileMenuOpen ? (
+              <X size={24} aria-hidden="true" />
+            ) : (
+              <Menu size={24} aria-hidden="true" />
+            )}
           </button>
         </div>
       </div>
@@ -792,7 +570,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-on-primary">
-                      <ClinicalIcon name="person" size={20} fill />
+                      <User size={20} fill="currentColor" aria-hidden="true" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-xs sm:text-sm font-bold text-on-surface">
@@ -814,11 +592,11 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
 
                 <div className="grid grid-cols-2 gap-2 pt-1 border-t border-outline-variant/20">
                   <Link
-                    href={`/${locale}/appointments`}
+                    href={`/${locale}/profile/reservations`}
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors"
                   >
-                    <ClinicalIcon name="event_available" size={16} className="text-primary" />
+                    <CalendarCheck size={16} className="text-primary" aria-hidden="true" />
                     <span>{userMenuLabels.appointments}</span>
                   </Link>
                   <Link
@@ -826,7 +604,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors"
                   >
-                    <ClinicalIcon name="notifications" size={16} className="text-primary" />
+                    <Bell size={16} className="text-primary" aria-hidden="true" />
                     <span>{userMenuLabels.notifications}</span>
                   </Link>
                 </div>
@@ -837,7 +615,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="w-full flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs font-bold text-primary hover:bg-primary/15 transition-colors"
                   >
-                    <ClinicalIcon name="admin_panel_settings" size={16} />
+                    <ShieldCheck size={16} aria-hidden="true" />
                     <span>{userMenuLabels.admin}</span>
                   </Link>
                 )}
@@ -847,7 +625,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                   onClick={handleSignOut}
                   className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-error hover:bg-error-container/20 text-xs font-semibold transition-colors cursor-pointer"
                 >
-                  <ClinicalIcon name="logout" size={16} />
+                  <LogOut size={16} aria-hidden="true" />
                   <span>{userMenuLabels.signOut}</span>
                 </button>
               </div>
@@ -857,7 +635,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-on-primary text-xs sm:text-sm font-semibold shadow-tier-1 hover:bg-primary-container transition-all"
               >
-                <ClinicalIcon name="person" size={18} fill />
+<User size={18} fill="currentColor" aria-hidden="true" />
                 <span>{loginLabel}</span>
               </Link>
             )}
@@ -874,13 +652,13 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                     className="w-full flex items-center justify-between p-3 bg-surface-container-low/60 text-xs font-bold text-on-surface cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <ClinicalIcon name={hub.icon} size={18} className="text-primary" />
+                      <hub.icon size={18} className="text-primary" aria-hidden="true" />
                       <span>{hub.label}</span>
                     </div>
-                    <ClinicalIcon
-                      name="expand_more"
+                    <ChevronDown
                       size={18}
                       className={`transition-transform duration-200 ${isExpanded ? "rotate-180 text-primary" : "text-outline"}`}
+                      aria-hidden="true"
                     />
                   </button>
 
@@ -894,7 +672,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
                           className="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-low text-xs text-on-surface transition-colors"
                         >
                           <div className="flex items-center gap-2">
-                            <ClinicalIcon name={item.icon} size={16} className="text-primary" />
+                            <item.icon size={16} className="text-primary" aria-hidden="true" />
                             <span className="font-medium">{item.label}</span>
                           </div>
                         </Link>

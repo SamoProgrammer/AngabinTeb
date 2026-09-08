@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { redirect } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -9,6 +10,7 @@ type ActionResult = { ok?: boolean; id?: string; error?: string };
 type Action = (input: any) => Promise<ActionResult>;
 
 const NUMERIC = ["durationMinutes", "fastingHours"];
+const SERVICE_TYPES = ["diagnostic", "therapy", "home_care", "rehab", "ambulance", "consultation"] as const;
 
 function toInput(fd: FormData): Record<string, unknown> {
   const input: Record<string, unknown> = {};
@@ -25,87 +27,95 @@ export function ServiceForm({
   providers,
   categories,
   locations,
+  locale = "fa",
 }: {
   action: Action;
   initial?: Record<string, string>;
   providers: { id: string; name: string }[];
   categories: { id: string; name: string }[];
   locations: { id: string; label: string }[];
+  locale?: string;
 }) {
+  const tCommon = useTranslations("admin.common");
+  const tServices = useTranslations("admin.services");
+  const tProviders = useTranslations("admin.providers");
+
   const [state, formAction] = useActionState(async (_prev: ActionResult, fd: FormData) => {
     const result = await action(toInput(fd));
-    if (result.ok) redirect("/admin/services");
+    if (result.ok) redirect(`/${locale}/admin/services`);
     return result;
   }, {});
 
   return (
-    <form action={formAction} className="max-w-xl space-y-4">
+    <form action={formAction} className="max-w-xl space-y-4 text-start">
       {state.error && (
         <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{state.error}</p>
       )}
       <label className="block space-y-1 text-sm">
-        Provider
+        {tCommon("provider")}
         <select name="providerId" defaultValue={initial.providerId ?? ""} required
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 outline-none">
-          <option value="">—</option>
+          <option value="">{tCommon("emptyValue")}</option>
           {providers.map((p) => (
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
       </label>
       <label className="block space-y-1 text-sm">
-        Category
+        {tCommon("category")}
         <select name="categoryId" defaultValue={initial.categoryId ?? ""} required
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 outline-none">
-          <option value="">—</option>
+          <option value="">{tCommon("emptyValue")}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
       </label>
       <label className="block space-y-1 text-sm">
-        Service type
+        {tCommon("type")}
         <select name="serviceType" defaultValue={initial.serviceType ?? "diagnostic"} required
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 outline-none">
-          {["diagnostic", "therapy", "home_care", "rehab", "ambulance", "consultation"].map((t) => (
-            <option key={t} value={t}>{t}</option>
+          {SERVICE_TYPES.map((typeKey) => (
+            <option key={typeKey} value={typeKey}>
+              {tServices(`types.${typeKey}` as any)}
+            </option>
           ))}
         </select>
       </label>
       <label className="block space-y-1 text-sm">
-        Location
+        {tServices("location")}
         <select name="locationId" defaultValue={initial.locationId ?? ""}
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 outline-none">
-          <option value="">—</option>
+          <option value="">{tCommon("emptyValue")}</option>
           {locations.map((l) => (
             <option key={l.id} value={l.id}>{l.label}</option>
           ))}
         </select>
       </label>
       <label className="block space-y-1 text-sm">
-        Name (Persian) <Input name="nameFa" defaultValue={initial.nameFa ?? ""} required />
+        {tProviders("nameFa")} <Input name="nameFa" defaultValue={initial.nameFa ?? ""} required />
       </label>
       <label className="block space-y-1 text-sm">
-        Name (English) <Input name="nameEn" defaultValue={initial.nameEn ?? ""} />
+        {tProviders("nameEn")} <Input name="nameEn" defaultValue={initial.nameEn ?? ""} />
       </label>
       <label className="block space-y-1 text-sm">
-        Name (Arabic) <Input name="nameAr" defaultValue={initial.nameAr ?? ""} />
+        {tProviders("nameAr")} <Input name="nameAr" defaultValue={initial.nameAr ?? ""} />
       </label>
       <label className="block space-y-1 text-sm">
-        Duration (minutes) <Input type="number" min={1} step={1} name="durationMinutes" defaultValue={initial.durationMinutes ?? ""} required />
+        {tCommon("duration")} <Input type="number" min={1} step={1} name="durationMinutes" defaultValue={initial.durationMinutes ?? ""} required />
       </label>
       <label className="block space-y-1 text-sm">
-        Base price <Input type="number" min={0} step={1} name="basePrice" defaultValue={initial.basePrice ?? ""} required />
+        {tCommon("price")} <Input type="number" min={0} step={1} name="basePrice" defaultValue={initial.basePrice ?? ""} required />
       </label>
       <label className="block space-y-1 text-sm">
-        Prep instructions (Persian)
+        {tServices("prepInstructionsFa")}
         <textarea name="prepInstructionsFa" defaultValue={initial.prepInstructionsFa ?? ""} rows={4}
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
       </label>
       <label className="block space-y-1 text-sm">
-        Fasting hours <Input type="number" min={0} step={1} name="fastingHours" defaultValue={initial.fastingHours ?? ""} />
+        {tServices("fastingHours")} <Input type="number" min={0} step={1} name="fastingHours" defaultValue={initial.fastingHours ?? ""} />
       </label>
-      <Button type="submit">Save</Button>
+      <Button type="submit">{tCommon("save")}</Button>
     </form>
   );
 }

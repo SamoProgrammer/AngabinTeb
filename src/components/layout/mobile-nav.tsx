@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { useTranslations } from "next-intl";
+import { CalendarDays, Headset, House, Stethoscope, Utensils, type LucideIcon } from "lucide-react";
 
 export interface MobileNavProps {
   locale?: string;
@@ -10,37 +11,22 @@ export interface MobileNavProps {
 
 export function MobileNav({ locale = "fa" }: MobileNavProps) {
   const pathname = usePathname();
+  const t = useTranslations("nav");
 
   const labels = {
-    en: {
-      home: "Home",
-      doctors: "Doctors",
-      nutrition: "Nutrition",
-      appointments: "Appointments",
-      support: "Support",
-    },
-    ar: {
-      home: "الرئيسية",
-      doctors: "الأطباء",
-      nutrition: "التغذية",
-      appointments: "المواعيد",
-      support: "الدعم",
-    },
-    fa: {
-      home: "خانه",
-      doctors: "پزشکان",
-      nutrition: "تغذیه",
-      appointments: "نوبت‌ها",
-      support: "پشتیبانی",
-    },
-  }[locale === "en" ? "en" : locale === "ar" ? "ar" : "fa"];
+    home: t("mobile.home"),
+    doctors: t("mobile.doctors"),
+    nutrition: t("mobile.nutrition"),
+    appointments: t("mobile.appointments"),
+    support: t("mobile.support"),
+  };
 
-  const items = [
-    { label: labels.home, href: `/${locale}`, icon: "home", exact: true },
-    { label: labels.doctors, href: `/${locale}/doctors`, icon: "stethoscope", exact: false },
-    { label: labels.nutrition, href: `/${locale}/nutrition`, icon: "restaurant", exact: false },
-    { label: labels.appointments, href: `/${locale}/appointments`, icon: "calendar_month", exact: false },
-    { label: labels.support, href: `/${locale}/support`, icon: "support_agent", exact: false },
+  const items: Array<{ label: string; href: string; icon: LucideIcon; exact: boolean }> = [
+    { label: labels.home, href: `/${locale}`, icon: House, exact: true },
+    { label: labels.doctors, href: `/${locale}/booking/categories`, icon: Stethoscope, exact: false },
+    { label: labels.nutrition, href: `/${locale}/nutrition/diet`, icon: Utensils, exact: false },
+    { label: labels.appointments, href: `/${locale}/profile/reservations`, icon: CalendarDays, exact: false },
+    { label: labels.support, href: `/${locale}/notes/site-help`, icon: Headset, exact: false },
   ];
 
   return (
@@ -68,11 +54,11 @@ export function MobileNav({ locale = "fa" }: MobileNavProps) {
                   : "text-on-surface-variant hover:text-primary"
               }`}
             >
-              <ClinicalIcon
-                name={item.icon}
+              <item.icon
                 size={22}
-                fill={isActive}
+                fill={isActive ? "currentColor" : "none"}
                 className={isActive ? "text-primary scale-105 transition-transform" : "text-on-surface-variant"}
+                aria-hidden="true"
               />
               <span className="text-[11px] mt-0.5 leading-tight">{item.label}</span>
             </Link>

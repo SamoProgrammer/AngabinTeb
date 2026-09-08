@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { redirect } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -15,84 +16,91 @@ export function ContentForm({
   initial = {},
   topics,
   currentTopicIds = [],
+  locale = "fa",
 }: {
   action: Action;
   initial?: Record<string, string>;
   topics: { id: string; name: string }[];
   currentTopicIds?: string[];
+  locale?: string;
 }) {
+  const tCommon = useTranslations("admin.common");
+  const tContent = useTranslations("admin.content");
+
   const [state, formAction] = useActionState(async (_prev: ActionResult, fd: FormData) => {
     const result = await action(fd);
-    if (result.ok) redirect("/admin/content");
+    if (result.ok) redirect(`/${locale}/admin/content`);
     return result;
   }, {});
   const [kind, setKind] = useState(initial.kind ?? "article");
 
   return (
-    <form action={formAction} className="max-w-xl space-y-4">
+    <form action={formAction} className="max-w-xl space-y-4 text-start">
       {state.error && (
         <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{state.error}</p>
       )}
       {initial.id && <input type="hidden" name="id" value={initial.id} />}
       <label className="block space-y-1 text-sm">
-        Kind
+        {tCommon("kind")}
         <select name="kind" value={kind} onChange={(e) => setKind(e.target.value)} required
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 outline-none">
           {KINDS.map((k) => (
-            <option key={k} value={k}>{k}</option>
+            <option key={k} value={k}>
+              {tContent(`kinds.${k}` as any)}
+            </option>
           ))}
         </select>
       </label>
       <label className="block space-y-1 text-sm">
-        Slug <Input name="slug" defaultValue={initial.slug ?? ""} required />
+        {tCommon("slug")} <Input name="slug" defaultValue={initial.slug ?? ""} required />
       </label>
       <label className="block space-y-1 text-sm">
-        Title (Persian) <Input name="titleFa" defaultValue={initial.titleFa ?? ""} required />
+        {tContent("titleFa")} <Input name="titleFa" defaultValue={initial.titleFa ?? ""} required />
       </label>
       <label className="block space-y-1 text-sm">
-        Body (Persian)
+        {tContent("bodyFa")}
         <textarea name="bodyFa" defaultValue={initial.bodyFa ?? ""} rows={5} required
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
       </label>
       <label className="block space-y-1 text-sm">
-        Title (English) <Input name="titleEn" defaultValue={initial.titleEn ?? ""} />
+        {tContent("titleEn")} <Input name="titleEn" defaultValue={initial.titleEn ?? ""} />
       </label>
       <label className="block space-y-1 text-sm">
-        Body (English)
+        {tContent("bodyEn")}
         <textarea name="bodyEn" defaultValue={initial.bodyEn ?? ""} rows={3}
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
       </label>
       <label className="block space-y-1 text-sm">
-        Title (Arabic) <Input name="titleAr" defaultValue={initial.titleAr ?? ""} />
+        {tContent("titleAr")} <Input name="titleAr" defaultValue={initial.titleAr ?? ""} />
       </label>
       <label className="block space-y-1 text-sm">
-        Body (Arabic)
+        {tContent("bodyAr")}
         <textarea name="bodyAr" defaultValue={initial.bodyAr ?? ""} rows={3}
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
       </label>
       <label className="block space-y-1 text-sm">
-        Video URL <Input name="videoUrl" defaultValue={initial.videoUrl ?? ""} disabled={kind !== "video"} />
+        {tContent("videoUrl")} <Input name="videoUrl" defaultValue={initial.videoUrl ?? ""} disabled={kind !== "video"} />
       </label>
       <label className="block space-y-1 text-sm">
-        Status
+        {tCommon("status")}
         <select name="status" defaultValue={initial.status ?? "draft"} required
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 outline-none">
-          <option value="draft">draft</option>
-          <option value="published">published</option>
+          <option value="draft">{tContent("statuses.draft")}</option>
+          <option value="published">{tContent("statuses.published")}</option>
         </select>
       </label>
       <fieldset className="space-y-1 text-sm">
-        <legend>Topics</legend>
+        <legend className="font-semibold">{tContent("topics")}</legend>
         <div className="grid max-h-48 grid-cols-2 gap-1 overflow-y-auto rounded-lg border border-input p-2">
-          {topics.map((t) => (
-            <label key={t.id} className="flex items-center gap-2">
-              <input type="checkbox" name="topicIds" value={t.id} defaultChecked={currentTopicIds.includes(t.id)} />
-              <span>{t.name}</span>
+          {topics.map((tItem) => (
+            <label key={tItem.id} className="flex items-center gap-2">
+              <input type="checkbox" name="topicIds" value={tItem.id} defaultChecked={currentTopicIds.includes(tItem.id)} />
+              <span>{tItem.name}</span>
             </label>
           ))}
         </div>
       </fieldset>
-      <Button type="submit">Save</Button>
+      <Button type="submit">{tCommon("save")}</Button>
     </form>
   );
 }

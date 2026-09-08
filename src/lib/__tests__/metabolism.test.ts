@@ -7,6 +7,11 @@ import {
   toPersianDigits,
   formatPersianNumber,
 } from "@/lib/metabolism";
+import { bmr, tdee } from "@/contexts/nutrition/kernel";
+import {
+  metabolismVector as v,
+  metabolismExpected as e,
+} from "@/contexts/nutrition/__tests__/metabolism-vector";
 
 describe("Metabolism Engine (Mifflin-St Jeor)", () => {
   describe("calculateBmr", () => {
@@ -154,6 +159,32 @@ describe("Metabolism Engine (Mifflin-St Jeor)", () => {
       expect(formatPersianNumber(1629)).toBe("۱٬۶۲۹");
       expect(formatPersianNumber(2240)).toBe("۲٬۲۴۰");
       expect(formatPersianNumber(22.5, { decimals: 1 })).toBe("۲۲٫۵");
+    });
+  });
+
+  describe("shared vector: widget adapter agrees with diary-target adapter", () => {
+    const widgetBmr = calculateBmr({
+      gender: v.gender,
+      weightKg: v.weightKg,
+      heightCm: v.heightCm,
+      ageYears: v.ageYears,
+    });
+    const widgetTdee = calculateTdee(widgetBmr, v.activityFactor);
+
+    it("computes the canonical rounded BMR/TDEE/BMI/macros", () => {
+      expect(widgetBmr).toBe(e.roundedBmr);
+      expect(widgetTdee).toBe(e.roundedTdee);
+      expect(calculateBmi(v.weightKg, v.heightCm)).toEqual({
+        bmi: e.roundedBmi,
+        label: e.bmiLabel,
+      });
+      expect(calculateMacros(widgetTdee)).toEqual(e.macros);
+    });
+
+    it("matches the server diary-target rounding exactly", () => {
+      const rawBmr = bmr({ sex: v.sex, weightKg: v.weightKg, heightCm: v.heightCm, age: v.age });
+      expect(widgetBmr).toBe(Math.round(rawBmr));
+      expect(widgetTdee).toBe(Math.round(tdee(rawBmr, v.activityLevel)));
     });
   });
 });

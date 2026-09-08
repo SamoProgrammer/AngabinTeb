@@ -1,12 +1,19 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { listDoctors } from "@/contexts/catalog/queries";
-import { DoctorCard, type DoctorData, toPersianDigits } from "@/components/catalog/doctor-card";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { DoctorCard, type DoctorData } from "@/components/catalog/doctor-card";
+import { toPersianDigits } from "@/lib/format";
+import {
+  ArrowUpDown,
+  BadgeCheck,
+  ChevronLeft,
+  ChevronRight,
+  Headset,
+  PhoneCall,
+  Search,
+} from "lucide-react";
 import { EmptyState, ErrorState } from "@/components/clinical/empty-state";
-import faMessages from "../../../../../messages/fa.json";
-
-const faDoctors = faMessages.doctors as Record<string, string>;
+import { CLINICAL_SPECIALTIES } from "@/lib/clinical-specialties";
 
 const pageSize = 12;
 
@@ -25,15 +32,6 @@ function pageHref(
   return `/${locale}/doctors?${params.toString()}`;
 }
 
-const SPECIALTIES = [
-  { id: "all", labelKey: "specialtyAll", slug: "" },
-  { id: "nutrition", labelKey: "specialtyNutrition", slug: "nutrition" },
-  { id: "gastroenterology", labelKey: "specialtyGastroenterology", slug: "gastroenterology" },
-  { id: "cardiology", labelKey: "specialtyCardiology", slug: "cardiology" },
-  { id: "endocrinology", labelKey: "specialtyEndocrinology", slug: "endocrinology" },
-  { id: "gynecology", labelKey: "specialtyGynecology", slug: "gynecology" },
-];
-
 export default async function DoctorsPage({
   params,
   searchParams,
@@ -45,26 +43,19 @@ export default async function DoctorsPage({
   const { specialty, city, q, page } = await searchParams;
   const p = Number(page ?? 1);
   const current = Number.isFinite(p) ? Math.max(1, p) : 1;
-  const isEn = locale === "en";
-  const dir = isEn ? "ltr" : "rtl";
-  const fmt = (n: number | string) => (isEn ? String(n) : toPersianDigits(n));
+  const t = await getTranslations("doctors");
+  const dir = locale === "en" ? "ltr" : "rtl";
+  const fmt = (n: number | string) =>
+    locale === "en" ? String(n) : toPersianDigits(n);
 
-  let t: (key: string, values?: Record<string, string | number>) => string = (
-    key,
-    values,
-  ) => {
-    let out: string = faDoctors[key] ?? key;
-    if (values) {
-      for (const [k, v] of Object.entries(values)) out = out.replaceAll(`{${k}}`, String(v));
-    }
-    return out;
-  };
-  try {
-    const intlT = await getTranslations("doctors");
-    t = (key, values) => intlT(key, values);
-  } catch {
-    // fallback in environments without next-intl server context
-  }
+  const specialtiesList = [
+    { id: "all", slug: "", label: t("specialtyAll") },
+    ...CLINICAL_SPECIALTIES.map((s) => ({
+      id: s.id,
+      slug: s.slug,
+      label: locale === "en" ? s.nameEn : locale === "ar" ? s.nameAr : s.nameFa,
+    })),
+  ];
 
   let dbDoctors: DoctorData[] = [];
   let total = 0;
@@ -78,6 +69,7 @@ export default async function DoctorsPage({
       specialty: d.specialty ?? t("fallbackSpecialty"),
       cityId: d.cityId,
       imageUrl: d.imageUrl,
+      medicalCouncilCode: d.medicalCouncilCode,
       slug: d.id,
       isVerified: false,
     }));
@@ -117,7 +109,7 @@ export default async function DoctorsPage({
               </p>
             </div>
             <div className="flex items-center gap-2 text-primary bg-primary/10 px-4 py-2 rounded-xl w-fit">
-              <ClinicalIcon name="verified" size={20} className="text-primary shrink-0" />
+              <BadgeCheck size={20} className="text-primary shrink-0" aria-hidden="true" />
               <span className="text-sm font-medium">{t("heroBadge")}</span>
             </div>
           </div>
@@ -128,7 +120,7 @@ export default async function DoctorsPage({
       <div className="sticky top-20 z-40 bg-surface/95 backdrop-blur-md shadow-xs border-b border-outline-variant/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {SPECIALTIES.map((item) => {
+            {specialtiesList.map((item) => {
               const isActive =
                 item.slug === currentSpecialty ||
                 (!currentSpecialty && item.id === "all");
@@ -146,7 +138,7 @@ export default async function DoctorsPage({
                       : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
                   }`}
                 >
-                  {t(item.labelKey)}
+                  {item.label}
                 </Link>
               );
             })}
@@ -178,7 +170,7 @@ export default async function DoctorsPage({
                     className="w-full bg-surface-container-low text-on-surface text-sm py-2.5 pe-4 ps-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-on-surface-variant/50"
                   />
                   <div className="absolute start-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant/60">
-                    <ClinicalIcon name="search" size={20} />
+                    <Search size={20} aria-hidden="true" />
                   </div>
                 </div>
                 {specialty && (
@@ -253,7 +245,7 @@ export default async function DoctorsPage({
             {/* Sort & Count Header Strip */}
             <div className="bg-surface-container-lowest p-4 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <ClinicalIcon name="sort" size={20} className="text-primary shrink-0" />
+                <ArrowUpDown size={20} className="text-primary shrink-0" aria-hidden="true" />
                 <span className="text-xs sm:text-sm font-bold text-on-surface">{t("sortLabel")}</span>
                 <div className="flex items-center gap-1 bg-surface-container-low p-1 rounded-xl text-xs">
                   <span className="px-3 py-1 rounded-lg bg-surface-container-lowest text-primary shadow-xs font-bold">
@@ -311,7 +303,7 @@ export default async function DoctorsPage({
                     href={pageHref(locale, specialty ?? "", city ?? "", q ?? "", current - 1)}
                     className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
                   >
-                    <ClinicalIcon name="chevron_right" size={16} />
+                    <ChevronRight size={16} aria-hidden="true" />
                     <span>{t("pagePrev")}</span>
                   </Link>
                 ) : (
@@ -331,7 +323,7 @@ export default async function DoctorsPage({
                     className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
                   >
                     <span>{t("pageNext")}</span>
-                    <ClinicalIcon name="chevron_left" size={16} />
+                    <ChevronLeft size={16} aria-hidden="true" />
                   </Link>
                 ) : (
                   <div />
@@ -343,7 +335,7 @@ export default async function DoctorsPage({
             <div className="mt-4 p-6 rounded-2xl bg-gradient-to-l from-primary/10 via-surface-container to-surface-container-lowest border border-primary/20 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-2xl bg-primary text-on-primary shrink-0 shadow-sm">
-                  <ClinicalIcon name="support_agent" size={32} />
+                  <Headset size={32} aria-hidden="true" />
                 </div>
                 <div className="flex flex-col gap-1 text-start">
                   <h3 className="text-sm sm:text-base font-bold text-on-surface">
@@ -358,7 +350,7 @@ export default async function DoctorsPage({
                 href="tel:02188224000"
                 className="shrink-0 px-5 py-2.5 rounded-xl bg-secondary hover:bg-secondary/90 text-on-secondary text-xs sm:text-sm font-medium shadow-sm transition-colors flex items-center gap-2"
               >
-                <ClinicalIcon name="phone_in_talk" size={18} />
+                <PhoneCall size={18} aria-hidden="true" />
                 <span>{t("triageCta")}</span>
               </a>
             </div>

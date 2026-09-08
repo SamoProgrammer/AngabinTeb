@@ -1,7 +1,25 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { getDoctor, listProviderServices } from "@/contexts/catalog/queries";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Badge,
+  BadgeCheck,
+  CalendarCheck,
+  CalendarDays,
+  Check,
+  CircleCheckBig,
+  GraduationCap,
+  Info,
+  MapPin,
+  Phone,
+  PhoneIncoming,
+  Stethoscope,
+  UserCheck,
+} from "lucide-react";
+import { toPersianDigits } from "@/lib/format";
 
 export default async function DoctorPage({
   params,
@@ -13,16 +31,23 @@ export default async function DoctorPage({
   const dbDoctor = await getDoctor(slug, locale).catch(() => null);
   if (!dbDoctor) notFound();
 
+  const t = await getTranslations("doctors");
+  const dir = locale === "en" ? "ltr" : "rtl";
+  const DirectionArrow = locale === "en" ? ArrowRight : ArrowLeft;
+  const fmt = (n: string | number) =>
+    locale === "en" ? String(n) : toPersianDigits(n);
+
   const bookable = await listProviderServices(dbDoctor.id, locale).catch(() => []);
-  const bookHref = bookable[0]
-    ? `/${locale}/services/${bookable[0].id}/book`
-    : `/${locale}/services`;
+  const bookHref = `/${locale}/booking/doctor/${slug}/reserve`;
 
   const doctor = {
     id: dbDoctor.id,
     name: dbDoctor.name,
-    specialtyName: dbDoctor.specialtyName ?? "متخصص بالینی",
+    specialtyName: dbDoctor.specialtyName ?? t("fallbackSpecialty"),
     credentials: dbDoctor.credentials,
+    medicalCouncilCode: dbDoctor.medicalCouncilCode,
+    landlinePhone: dbDoctor.landlinePhone,
+    cvUrl: dbDoctor.cvUrl,
     bio: dbDoctor.bio,
     imageUrl: dbDoctor.imageUrl,
     addressLine: dbDoctor.addressLine,
@@ -35,18 +60,19 @@ export default async function DoctorPage({
     doctor.latitude && doctor.longitude
       ? `https://www.openstreetmap.org/?mlat=${doctor.latitude}&mlon=${doctor.longitude}#map=16/${doctor.latitude}/${doctor.longitude}`
       : null;
+
   return (
-    <main className="w-full bg-surface" dir="rtl">
+    <main className="w-full bg-surface" dir={dir}>
       {/* Breadcrumb & Status Ambient Bar */}
       <div className="w-full bg-surface-container-low py-3 px-4 sm:px-6 lg:px-8 border-b border-outline-variant/20">
         <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2 text-xs sm:text-sm text-on-surface-variant">
           <div className="flex items-center gap-2">
             <Link href={`/${locale}`} className="hover:text-primary transition-colors">
-              خانه
+              {t("profile.home")}
             </Link>
             <span className="opacity-40">/</span>
             <Link href={`/${locale}/doctors`} className="hover:text-primary transition-colors">
-              پزشکان
+              {t("profile.doctors")}
             </Link>
             <span className="opacity-40">/</span>
             <span className="text-on-surface font-bold truncate max-w-[200px] sm:max-w-none">
@@ -54,8 +80,8 @@ export default async function DoctorPage({
             </span>
           </div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-            <ClinicalIcon name="check_circle" size={14} className="text-primary" />
-            پذیرش نوبت حضوری
+            <CircleCheckBig size={14} className="text-primary" aria-hidden="true" />
+            {t("profile.inPersonBadge")}
           </span>
         </div>
       </div>
@@ -74,7 +100,7 @@ export default async function DoctorPage({
               </div>
             ) : (
               <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border-2 border-primary/20">
-                <ClinicalIcon name="stethoscope" size={56} />
+                <Stethoscope size={56} aria-hidden="true" />
               </div>
             )}
             <div className="flex flex-col text-center sm:text-start gap-1.5">
@@ -83,8 +109,8 @@ export default async function DoctorPage({
                   {doctor.name}
                 </h1>
                 <span className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs px-2.5 py-0.5 rounded-full font-bold">
-                  <ClinicalIcon name="verified" size={16} fill className="text-primary" />
-                  پزشک معتمد
+                  <BadgeCheck size={16} fill="currentColor" className="text-primary" aria-hidden="true" />
+                  {t("profile.trustedDoctor")}
                 </span>
               </div>
               <p className="text-sm sm:text-base font-bold text-primary">
@@ -95,6 +121,11 @@ export default async function DoctorPage({
                   {doctor.credentials}
                 </p>
               )}
+              {doctor.medicalCouncilCode && (
+                <p className="text-xs text-on-surface-variant/80 font-mono mt-0.5">
+                  {t("profile.medicalCouncil")} {fmt(doctor.medicalCouncilCode)}
+                </p>
+              )}
             </div>
           </div>
 
@@ -103,8 +134,8 @@ export default async function DoctorPage({
               href={bookHref}
               className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary px-8 py-3 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md transition-colors"
             >
-              <ClinicalIcon name="calendar_month" size={20} />
-              <span>رزرو نوبت حضوری</span>
+              <CalendarDays size={20} aria-hidden="true" />
+              <span>{t("profile.bookInPerson")}</span>
             </Link>
           </div>
         </div>
@@ -119,8 +150,8 @@ export default async function DoctorPage({
           {doctor.bio && (
             <section className="bg-surface-container-lowest p-6 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex flex-col gap-4">
               <div className="flex items-center gap-2 text-primary font-bold text-base sm:text-lg">
-                <ClinicalIcon name="badge" size={22} />
-                <h2>سوابق علمی و رویکرد بالینی</h2>
+                <Badge size={22} aria-hidden="true" />
+                <h2>{t("profile.bioTitle")}</h2>
               </div>
               <p className="text-sm text-on-surface leading-relaxed text-justify">
                 {doctor.bio}
@@ -128,18 +159,18 @@ export default async function DoctorPage({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               <div className="bg-surface-container-low p-3.5 rounded-xl flex items-start gap-2.5">
-                <ClinicalIcon name="school" size={20} className="text-primary shrink-0 mt-0.5" />
+                <GraduationCap size={20} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-on-surface">مدارک و فلوشیپ‌ها</span>
+                  <span className="text-xs font-bold text-on-surface">{t("profile.credentialsTitle")}</span>
                   <span className="text-xs text-on-surface-variant mt-0.5">{doctor.credentials}</span>
                 </div>
               </div>
               <div className="bg-surface-container-low p-3.5 rounded-xl flex items-start gap-2.5">
-                <ClinicalIcon name="verified_user" size={20} className="text-primary shrink-0 mt-0.5" />
+                <UserCheck size={20} className="text-primary shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-on-surface">پروانه طبابت معتبر</span>
+                  <span className="text-xs font-bold text-on-surface">{t("profile.licenseTitle")}</span>
                   <span className="text-xs text-on-surface-variant mt-0.5">
-                    تاییدشده توسط سازمان نظام پزشکی کل کشور
+                    {t("profile.licenseDesc")}
                   </span>
                 </div>
               </div>
@@ -150,8 +181,8 @@ export default async function DoctorPage({
           {/* Practice Locations & Map Section */}
           <section className="bg-surface-container-lowest p-6 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex flex-col gap-4">
             <h3 className="text-base sm:text-lg font-bold text-on-surface flex items-center gap-2">
-              <ClinicalIcon name="location_on" size={22} className="text-secondary" />
-              <span>نشانی مطب و نوبت‌دهی</span>
+              <MapPin size={22} className="text-secondary" aria-hidden="true" />
+              <span>{t("profile.clinicAddressTitle")}</span>
             </h3>
 
             <div className="flex flex-col gap-1 pb-3 border-b border-outline-variant/20">
@@ -160,15 +191,21 @@ export default async function DoctorPage({
                   {doctor.addressLine}
                 </p>
               )}
-              <div className="flex items-center justify-between text-xs text-primary pt-2">
-                {doctor.phone ? (
-                  <span className="flex items-center gap-1">
-                    <ClinicalIcon name="call" size={16} />
-                    <span>{doctor.phone}</span>
-                  </span>
-                ) : (
-                  <span />
-                )}
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-primary pt-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  {doctor.landlinePhone && (
+                    <span className="flex items-center gap-1 text-on-surface">
+                      <PhoneIncoming size={16} className="text-secondary" aria-hidden="true" />
+                      <span>{t("profile.clinicPhone")} {fmt(doctor.landlinePhone)}</span>
+                    </span>
+                  )}
+                  {doctor.phone && (
+                    <span className="flex items-center gap-1">
+                      <Phone size={16} aria-hidden="true" />
+                      <span>{fmt(doctor.phone)}</span>
+                    </span>
+                  )}
+                </div>
                 {mapUrl && (
                   <a
                     href={mapUrl}
@@ -176,8 +213,8 @@ export default async function DoctorPage({
                     rel="noreferrer"
                     className="hover:underline flex items-center gap-1 font-bold"
                   >
-                    <span>مسیریابی روی نقشه</span>
-                    <ClinicalIcon name="arrow_back" size={14} />
+                    <span>{t("profile.mapDirections")}</span>
+                    <DirectionArrow size={14} aria-hidden="true" />
                   </a>
                 )}
               </div>
@@ -190,23 +227,23 @@ export default async function DoctorPage({
           {/* Booking Card */}
           <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-tier-2 border-2 border-primary/20 flex flex-col gap-4">
             <div className="flex items-center justify-between pb-3 border-b border-outline-variant/20">
-              <span className="text-base font-bold text-on-surface">رزرو حضوری نوبت</span>
+              <span className="text-base font-bold text-on-surface">{t("profile.bookingCardTitle")}</span>
               <span className="bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full font-bold">
-                پرداخت در مطب
+                {t("profile.payAtClinic")}
               </span>
             </div>
 
             {/* Bookable Service */}
             {bookable[0] ? (
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-on-surface">خدمت قابل رزرو:</label>
+                <label className="text-xs font-bold text-on-surface">{t("profile.bookableServiceLabel")}</label>
                 <div className="flex items-center justify-between p-3 rounded-xl bg-surface-container-low border border-primary/30">
                   <span className="text-xs font-bold text-on-surface">{bookable[0].name}</span>
                 </div>
               </div>
             ) : (
               <p className="text-xs text-on-surface-variant leading-relaxed">
-                برای این پزشک هنوز خدمت قابل رزروی ثبت نشده است؛ از فهرست خدمات انتخاب نمایید.
+                {t("profile.noBookableService")}
               </p>
             )}
 
@@ -216,26 +253,26 @@ export default async function DoctorPage({
               id="bookAppointmentBtn"
               className="w-full bg-primary hover:bg-primary-container text-on-primary py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
             >
-              <ClinicalIcon name="event_available" size={20} />
-              <span>ثبت نوبت حضوری</span>
+              <CalendarCheck size={20} aria-hidden="true" />
+              <span>{t("profile.submitBookingBtn")}</span>
             </Link>
 
             <div className="flex items-center justify-center gap-1.5 text-xs text-on-surface-variant/80 pt-1">
-              <ClinicalIcon name="check" size={16} className="text-primary" />
-              <span>بدون کارمزد رزرو</span>
+              <Check size={16} className="text-primary" aria-hidden="true" />
+              <span>{t("profile.noBookingFee")}</span>
             </div>
           </div>
 
           {/* Quick FAQ / Preparation Box */}
           <div className="bg-surface-container-low p-5 rounded-2xl flex flex-col gap-2 text-xs text-on-surface-variant">
             <span className="font-bold text-on-surface flex items-center gap-1.5 text-sm">
-              <ClinicalIcon name="info" size={18} className="text-primary" />
-              نکات ضروری پیش از مراجعه
+              <Info size={18} className="text-primary" aria-hidden="true" />
+              {t("profile.prepTipsTitle")}
             </span>
             <ul className="space-y-1.5 pe-4 list-disc leading-relaxed mt-1">
-              <li>لطفاً برگه آخرین آزمایش‌های خونی ۶ ماه اخیر را به همراه داشته باشید.</li>
-              <li>در صورت مصرف داروهای تنظیم قند یا تیروئید، دوزها را یادداشت فرمایید.</li>
-              <li>پذیرش بدون نیاز به پرداخت آنلاین ثبت شده و تسویه در مطب انجام می‌شود.</li>
+              <li>{t("profile.prepTip1")}</li>
+              <li>{t("profile.prepTip2")}</li>
+              <li>{t("profile.prepTip3")}</li>
             </ul>
           </div>
         </aside>

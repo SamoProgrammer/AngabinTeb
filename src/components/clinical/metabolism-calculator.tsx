@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { useTranslations } from "next-intl";
+import { Calculator, Mars, Utensils, Venus } from "lucide-react";
 import {
   calculateBmr,
   calculateTdee,
@@ -15,12 +16,9 @@ export interface ActivityOption {
   label: string;
 }
 
-export const ACTIVITY_OPTIONS: ActivityOption[] = [
-  { value: 1.2, label: "کم‌تحرک (کارمندی)" },
-  { value: 1.375, label: "فعالیت ملایم (۱ تا ۳ روز در هفته)" },
-  { value: 1.55, label: "ورزش منظم" },
-  { value: 1.725, label: "ورزشکار حرفه‌ای" },
-];
+// Activity multiplier values are locale-independent; labels resolve
+// from the "metabolism" message catalog (activity1..activity4).
+const ACTIVITY_VALUES = [1.2, 1.375, 1.55, 1.725];
 
 export interface MetabolismCalculatorProps {
   locale?: string;
@@ -49,6 +47,42 @@ export function MetabolismCalculator({
   const [weight, setWeight] = useState<number>(initialWeight);
   const [activity, setActivity] = useState<number>(initialActivity);
 
+  const t = useTranslations("metabolism");
+  const isEn = locale === "en";
+
+  const strings = {
+    sectionAria: t("sectionAria"),
+    widgetBadge: t("badge"),
+    headline: t("headline"),
+    description: t("description"),
+    genderLabel: t("genderLabel"),
+    male: t("male"),
+    female: t("female"),
+    ageLabel: t("ageLabel"),
+    heightLabel: t("heightLabel"),
+    weightLabel: t("weightLabel"),
+    activityLabel: t("activityLabel"),
+    resultsTitle: t("resultsTitle"),
+    validationBadge: t("validationBadge"),
+    bmrTitle: t("bmrTitle"),
+    bmrSubtext: t("bmrSubtext"),
+    tdeeTitle: t("tdeeTitle"),
+    tdeeSubtext: t("tdeeSubtext"),
+    bmiTitle: t("bmiTitle"),
+    ctaDiary: t("ctaDiary"),
+    bmiCategories: {
+      underweight: t("bmiUnderweight"),
+      normal: t("bmiNormal"),
+      overweight: t("bmiOverweight"),
+      obese: t("bmiObese"),
+      unknown: t("bmiUnknown"),
+    },
+  };
+  const activityOptions: ActivityOption[] = ACTIVITY_VALUES.map((value, idx) => ({
+    value,
+    label: t(`activity${idx + 1}`),
+  }));
+
   const bmr = useMemo(
     () => calculateBmr({ gender, weightKg: weight, heightCm: height, ageYears: age }),
     [gender, weight, height, age]
@@ -64,13 +98,29 @@ export function MetabolismCalculator({
     [weight, height]
   );
 
+  const localizedBmiLabel = useMemo(() => {
+    const val = bmiResult.bmi;
+    if (val <= 0) return strings.bmiCategories.unknown;
+    if (val < 18.5) return strings.bmiCategories.underweight;
+    if (val < 25) return strings.bmiCategories.normal;
+    if (val < 30) return strings.bmiCategories.overweight;
+    return strings.bmiCategories.obese;
+  }, [bmiResult.bmi, strings]);
+
   const targetDiaryHref = diaryHref ?? `/${locale}/nutrition/diary`;
+
+  const formatNumber = (num: number, decimals = 0) => {
+    if (locale === "fa") {
+      return formatPersianNumber(num, { decimals });
+    }
+    return decimals > 0 ? num.toFixed(decimals) : String(Math.round(num));
+  };
 
   return (
     <section
       id="metabolism-widget"
-      dir="rtl"
-      aria-label="محاسبه‌گر بالینی سوخت‌وساز و متابولیسم"
+      dir={isEn ? "ltr" : "rtl"}
+      aria-label={strings.sectionAria}
       className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 w-full ${className}`}
     >
       <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 md:p-10 shadow-lg relative overflow-hidden border border-outline-variant/30">
@@ -81,18 +131,18 @@ export function MetabolismCalculator({
           <div className="lg:col-span-7 text-start flex flex-col justify-between">
             <div>
               <div className="inline-flex items-center gap-2 bg-surface-container-low px-3 py-1 rounded-full mb-3">
-                <ClinicalIcon name="calculate" size={18} className="text-secondary" />
+                <Calculator size={18} className="text-secondary" aria-hidden="true" />
                 <span className="font-bold text-xs sm:text-sm text-secondary">
-                  محاسبه‌گر بالینی سوخت‌وساز پایه
+                  {strings.widgetBadge}
                 </span>
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-extrabold text-on-surface mb-2 tracking-tight">
-                سنجش زنده متابولیسم بدنی و انرژی مصرفی
+                {strings.headline}
               </h2>
 
               <p className="text-sm sm:text-base text-on-surface-variant mb-6 leading-relaxed">
-                بر اساس معادله معتبر میفلین سن‌ژور (Mifflin-St Jeor). مشخصات خود را وارد کنید تا نرخ سوخت‌وساز و سطح کالری دریافتی روزانه‌تان بلادرنگ محاسبه شود.
+                {strings.description}
               </p>
 
               <form
@@ -103,7 +153,7 @@ export function MetabolismCalculator({
                 {/* Gender Selector */}
                 <div>
                   <label className="block text-xs sm:text-sm font-bold text-on-surface mb-2">
-                    جنسیت فیزیولوژیک:
+                    {strings.genderLabel}
                   </label>
                   <div className="grid grid-cols-2 gap-3 max-w-sm">
                     <label
@@ -121,8 +171,8 @@ export function MetabolismCalculator({
                         onChange={() => setGender("male")}
                         className="sr-only"
                       />
-                      <ClinicalIcon name="male" size={18} />
-                      <span className="text-xs sm:text-sm font-bold">آقا</span>
+                      <Mars size={18} aria-hidden="true" />
+                      <span className="text-xs sm:text-sm font-bold">{strings.male}</span>
                     </label>
 
                     <label
@@ -140,8 +190,8 @@ export function MetabolismCalculator({
                         onChange={() => setGender("female")}
                         className="sr-only"
                       />
-                      <ClinicalIcon name="female" size={18} />
-                      <span className="text-xs sm:text-sm font-bold">خانم</span>
+                      <Venus size={18} aria-hidden="true" />
+                      <span className="text-xs sm:text-sm font-bold">{strings.female}</span>
                     </label>
                   </div>
                 </div>
@@ -153,7 +203,7 @@ export function MetabolismCalculator({
                       htmlFor="calc-age"
                       className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
                     >
-                      سن (سال):
+                      {strings.ageLabel}
                     </label>
                     <input
                       id="calc-age"
@@ -171,7 +221,7 @@ export function MetabolismCalculator({
                       htmlFor="calc-height"
                       className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
                     >
-                      قد (سانتی‌متر):
+                      {strings.heightLabel}
                     </label>
                     <input
                       id="calc-height"
@@ -189,7 +239,7 @@ export function MetabolismCalculator({
                       htmlFor="calc-weight"
                       className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
                     >
-                      وزن (کیلوگرم):
+                      {strings.weightLabel}
                     </label>
                     <input
                       id="calc-weight"
@@ -209,7 +259,7 @@ export function MetabolismCalculator({
                     htmlFor="calc-activity"
                     className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
                   >
-                    سطح فعالیت روزانه:
+                    {strings.activityLabel}
                   </label>
                   <select
                     id="calc-activity"
@@ -217,7 +267,7 @@ export function MetabolismCalculator({
                     onChange={(e) => setActivity(Number(e.target.value))}
                     className="w-full bg-surface-container-low rounded-xl px-3.5 py-2.5 text-on-surface text-sm focus:outline-none focus:bg-surface-container focus:ring-2 focus:ring-primary/20 transition-colors border border-outline-variant/30 cursor-pointer"
                   >
-                    {ACTIVITY_OPTIONS.map((opt) => (
+                    {activityOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
                       </option>
@@ -233,10 +283,10 @@ export function MetabolismCalculator({
             <div>
               <div className="flex items-center justify-between mb-6">
                 <span className="text-lg sm:text-xl font-extrabold text-on-primary">
-                  نتایج محاسبه سوخت‌وساز
+                  {strings.resultsTitle}
                 </span>
                 <span className="bg-surface-container-lowest/20 backdrop-blur-xs px-2.5 py-1 rounded-full text-xs font-bold text-on-primary">
-                  معتبرسازی بالینی
+                  {strings.validationBadge}
                 </span>
               </div>
 
@@ -244,17 +294,17 @@ export function MetabolismCalculator({
                 {/* BMR Box */}
                 <div className="bg-surface-container-lowest/10 backdrop-blur-xs p-4 rounded-xl border border-white/10">
                   <div className="text-xs sm:text-sm text-on-primary/80 font-medium">
-                    کالری پایه متابولیک (BMR):
+                    {strings.bmrTitle}
                   </div>
                   <div className="flex items-baseline justify-between mt-1">
                     <span
                       id="bmr-output"
                       className="text-2xl sm:text-3xl font-extrabold text-on-primary tracking-tight"
                     >
-                      {formatPersianNumber(bmr)}
+                      {formatNumber(bmr)}
                     </span>
                     <span className="text-xs text-on-primary/80">
-                      کیلوکالری در حالت استراحت مطلق
+                      {strings.bmrSubtext}
                     </span>
                   </div>
                 </div>
@@ -262,17 +312,17 @@ export function MetabolismCalculator({
                 {/* TDEE Box */}
                 <div className="bg-surface-container-lowest/15 backdrop-blur-xs p-4 rounded-xl border border-white/10">
                   <div className="text-xs sm:text-sm text-secondary-fixed font-bold">
-                    کل انرژی مصرفی روزانه (TDEE):
+                    {strings.tdeeTitle}
                   </div>
                   <div className="flex items-baseline justify-between mt-1">
                     <span
                       id="tdee-output"
                       className="text-2xl sm:text-3xl font-extrabold text-secondary-fixed tracking-tight"
                     >
-                      {formatPersianNumber(tdee)}
+                      {formatNumber(tdee)}
                     </span>
                     <span className="text-xs text-on-primary/80">
-                      کیلوکالری کل جهت حفظ وزن
+                      {strings.tdeeSubtext}
                     </span>
                   </div>
                 </div>
@@ -280,7 +330,7 @@ export function MetabolismCalculator({
                 {/* BMI Box */}
                 <div className="bg-surface-container-lowest/10 backdrop-blur-xs p-4 rounded-xl border border-white/10">
                   <div className="text-xs sm:text-sm text-on-primary/80 font-medium">
-                    شاخص توده بدنی (BMI):
+                    {strings.bmiTitle}
                   </div>
                   <div className="flex items-baseline justify-between mt-1">
                     <div className="flex items-baseline gap-2">
@@ -288,13 +338,13 @@ export function MetabolismCalculator({
                         id="bmi-output"
                         className="text-2xl sm:text-3xl font-extrabold text-on-primary tracking-tight"
                       >
-                        {formatPersianNumber(bmiResult.bmi, { decimals: 1 })}
+                        {formatNumber(bmiResult.bmi, 1)}
                       </span>
                       <span
                         id="bmi-label"
                         className="text-xs font-bold text-on-primary bg-surface-container-lowest/20 px-2.5 py-0.5 rounded-full"
                       >
-                        {bmiResult.label}
+                        {localizedBmiLabel}
                       </span>
                     </div>
                   </div>
@@ -307,8 +357,8 @@ export function MetabolismCalculator({
               href={targetDiaryHref}
               className="w-full bg-secondary-container hover:bg-secondary text-on-secondary-container hover:text-on-secondary py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-center font-bold text-sm sm:text-base shadow-md hover:shadow-lg mt-4 cursor-pointer"
             >
-              <ClinicalIcon name="restaurant" size={20} className="shrink-0" />
-              <span>ثبت در دفترچه تغذیه</span>
+              <Utensils size={20} className="shrink-0" aria-hidden="true" />
+              <span>{strings.ctaDiary}</span>
             </Link>
           </div>
         </div>

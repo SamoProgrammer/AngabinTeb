@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { bookAppointment } from "@/contexts/booking/actions";
+import { useTranslations } from "next-intl";
 import { toPersianDigits, formatPrice } from "@/components/catalog/doctor-card";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { ArrowLeft, ArrowRight, CalendarX, Clock, Moon, Sunrise, User } from "lucide-react";
 
 export type SlotProps = {
   id: string;
@@ -36,15 +37,20 @@ export function SlotPicker({
   const [busy, setBusy] = useState(false);
   const router = useRouter();
 
+  const t = useTranslations("booking");
+  const isEn = locale === "en";
+  const dir = isEn ? "ltr" : "rtl";
+  const ForwardIcon = isEn ? ArrowRight : ArrowLeft;
+
   if (slots.length === 0) {
     return (
-      <div className="mt-6 p-6 rounded-2xl bg-surface-container-low text-center border border-outline-variant/20 flex flex-col items-center gap-3">
-        <ClinicalIcon name="event_busy" size={32} className="text-on-surface-variant/60" />
+      <div className="mt-6 p-6 rounded-2xl bg-surface-container-low text-center border border-outline-variant/20 flex flex-col items-center gap-3" dir={dir}>
+        <CalendarX size={32} className="text-on-surface-variant/60" aria-hidden="true" />
         <p className="text-sm font-bold text-on-surface">
-          در این تاریخ نوبت خالی وجود ندارد.
+          {t("slotEmptyTitle")}
         </p>
         <p className="text-xs text-on-surface-variant">
-          لطفاً روز دیگری را برای مراجعه انتخاب فرمایید یا با پذیرش کلینیک تماس حاصل فرمایید.
+          {t("slotEmptyHint")}
         </p>
       </div>
     );
@@ -71,13 +77,13 @@ export function SlotPicker({
       } else {
         setError(
           res.reason === "capacity_exceeded"
-            ? "این نوبت لحظاتی پیش توسط مراجع دیگری رزرو شد. لطفاً زمان دیگری را انتخاب فرمایید."
-            : "ثبت نوبت با خطا مواجه شد. لطفاً مجدداً تلاش نمایید.",
+            ? t("slotCapacityError")
+            : t("slotGenericError"),
         );
         setBusy(false);
       }
     } catch {
-      setError("خطا در برقراری ارتباط با سرور. لطفاً دوباره تلاش نمایید.");
+      setError(t("slotServerError"));
       setBusy(false);
     }
   }
@@ -90,11 +96,19 @@ export function SlotPicker({
     const rawHour = String(dateObj.getUTCHours()).padStart(2, "0");
     const rawMinute = String(dateObj.getUTCMinutes()).padStart(2, "0");
     const timeEng = `${rawHour}:${rawMinute}`;
-    const timeDisplay = toPersianDigits(timeEng);
+    const timeDisplay = isEn ? timeEng : toPersianDigits(timeEng);
 
     const remaining = Math.max(0, s.capacity - s.bookedCount);
     const isFull = remaining <= 0;
     const isSelected = selected === s.id;
+
+    const remainingLabel = isFull
+      ? t("slotFull")
+      : remaining === 1
+      ? t("slotLimited")
+      : t("slotRemaining", {
+          count: isEn ? String(remaining) : toPersianDigits(remaining),
+        });
 
     return (
       <li key={s.id}>
@@ -122,36 +136,36 @@ export function SlotPicker({
                   : "bg-primary/10 text-primary font-medium"
             }`}
           >
-            {isFull
-              ? "تکمیل"
-              : remaining === 1
-                ? "ظرفیت محدود"
-                : `${toPersianDigits(remaining)} نوبت`}
+            {remainingLabel}
           </span>
         </button>
       </li>
     );
   };
 
+  const slotsCountLabel = t("slotsCount", {
+    count: isEn ? String(slots.length) : toPersianDigits(slots.length),
+  });
+
   return (
-    <div className="mt-6 flex flex-col gap-6" dir="rtl">
+    <div className="mt-6 flex flex-col gap-6" dir={dir}>
       {/* Time Slots Section */}
       <div className="bg-surface-container-lowest p-5 sm:p-6 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm sm:text-base font-bold text-on-surface flex items-center gap-2">
-            <ClinicalIcon name="schedule" size={20} className="text-primary" />
-            <span>انتخاب ساعت مراجعه</span>
+            <Clock size={20} className="text-primary" aria-hidden="true" />
+            <span>{t("selectTime")}</span>
           </h3>
           <span className="text-xs text-on-surface-variant">
-            {toPersianDigits(slots.length)} نوبت در دسترس
+            {slotsCountLabel}
           </span>
         </div>
 
         {morningSlots.length > 0 && (
           <div className="flex flex-col gap-2">
             <span className="text-xs font-semibold text-on-surface-variant flex items-center gap-1.5">
-              <ClinicalIcon name="wb_sunny" size={16} className="text-amber-600" />
-              <span>نوبت‌های صبح</span>
+              <Sunrise size={16} className="text-amber-600" aria-hidden="true" />
+              <span>{t("morningShift")}</span>
             </span>
             <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {morningSlots.map(renderSlot)}
@@ -162,8 +176,8 @@ export function SlotPicker({
         {eveningSlots.length > 0 && (
           <div className="flex flex-col gap-2">
             <span className="text-xs font-semibold text-on-surface-variant flex items-center gap-1.5">
-              <ClinicalIcon name="dark_mode" size={16} className="text-primary" />
-              <span>نوبت‌های عصر و شب</span>
+              <Moon size={16} className="text-primary" aria-hidden="true" />
+              <span>{t("eveningShift")}</span>
             </span>
             <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {eveningSlots.map(renderSlot)}
@@ -175,35 +189,35 @@ export function SlotPicker({
       {/* Patient Information Form (Screen #8) */}
       <div className="bg-surface-container-lowest p-5 sm:p-6 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex flex-col gap-4">
         <h3 className="text-sm sm:text-base font-bold text-on-surface flex items-center gap-2">
-          <ClinicalIcon name="person" size={20} className="text-primary" />
-          <span>اطلاعات بیمار</span>
+          <User size={20} className="text-primary" aria-hidden="true" />
+          <span>{t("patientInfo")}</span>
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1 text-start">
             <label htmlFor="patient_name" className="text-xs font-bold text-on-surface">
-              نام و نام خانوادگی بیمار
+              {t("patientName")}
             </label>
             <input
               id="patient_name"
               type="text"
               value={patientName}
               onChange={(e) => setPatientName(e.target.value)}
-              placeholder="مثلاً: سارا محمدی"
+              placeholder={t("patientNamePh")}
               className="bg-surface-container-low px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-on-surface-variant/50"
             />
           </div>
 
           <div className="flex flex-col gap-1 text-start">
             <label htmlFor="phone_number" className="text-xs font-bold text-on-surface">
-              شماره تماس همراه (جهت پیامک نوبت)
+              {t("patientPhone")}
             </label>
             <input
               id="phone_number"
               type="tel"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+              placeholder={t("patientPhonePh")}
               dir="ltr"
               className="bg-surface-container-low px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-on-surface text-start outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-on-surface-variant/50"
             />
@@ -211,14 +225,14 @@ export function SlotPicker({
 
           <div className="flex flex-col gap-1 text-start sm:col-span-2">
             <label htmlFor="symptoms_note" className="text-xs font-bold text-on-surface">
-              توضیحات یا علت مراجعه (اختیاری)
+              {t("visitReason")}
             </label>
             <input
               id="symptoms_note"
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="خلاصه علائم یا دلیل ویزیت..."
+              placeholder={t("visitReasonPh")}
               className="bg-surface-container-low px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-on-surface-variant/50"
             />
           </div>
@@ -229,10 +243,10 @@ export function SlotPicker({
       <div className="bg-surface-container-lowest p-5 sm:p-6 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex flex-col text-start">
           <span className="text-xs sm:text-sm font-bold text-on-surface">
-            هزینه مصوب: {formatPrice(price)}
+            {t("tariff", { price: formatPrice(price, locale) })}
           </span>
           <span className="text-xs text-primary font-medium mt-0.5">
-            پرداخت در محل مطب / بدون کارمزد آنلاین
+            {t("payNote")}
           </span>
         </div>
 
@@ -240,15 +254,16 @@ export function SlotPicker({
           type="button"
           disabled={!selected || busy}
           onClick={confirm}
-          aria-label="Confirm booking"
+          aria-label={t("confirmAria")}
           className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary py-3 px-8 rounded-xl font-bold text-sm shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
         >
+          <span className="sr-only">Confirm booking</span>
           {busy ? (
-            <span>در حال ثبت نوبت...</span>
+            <span>{t("bookingBusy")}</span>
           ) : (
             <>
-              <span>تایید نهایی نوبت</span>
-              <ClinicalIcon name="arrow_left" size={18} />
+              <span>{t("confirm")}</span>
+              <ForwardIcon size={18} aria-hidden="true" />
             </>
           )}
         </button>

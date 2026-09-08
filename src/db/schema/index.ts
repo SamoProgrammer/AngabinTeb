@@ -6,3 +6,8 @@ export * from "./nutrition";
 export * from "./content";
 export * from "./support";
 export * from "./notification";
+export * from "./wallet";
+export * from "./clinical-registry";
+export * from "./diet-subscription";
+export * from "./communication";
+export * from "./b2b-support";

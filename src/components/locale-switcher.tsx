@@ -1,12 +1,13 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { locales, type Locale } from "@/i18n/locales";
 
 export function LocaleSwitcher() {
   const currentLocale = useLocale();
+  const t = useTranslations("locale");
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
@@ -28,7 +29,7 @@ export function LocaleSwitcher() {
 
     startTransition(() => {
       // Force clean browser reload to ensure <html> dir (RTL/LTR) and fonts re-initialize cleanly
-      window.location.href = `${nextPath}${search}`;
+      window.location.assign(`${nextPath}${search}`);
     });
   }
 
@@ -37,12 +38,12 @@ export function LocaleSwitcher() {
       value={currentLocale}
       disabled={isPending}
       onChange={(e) => onSelect(e.target.value)}
-      aria-label="Change language"
+      aria-label={t("switch")}
       className="bg-transparent text-xs font-semibold text-on-surface focus:outline-none cursor-pointer"
     >
-      <option value="fa">فارسی (FA)</option>
-      <option value="en">English (EN)</option>
-      <option value="ar">العربية (AR)</option>
+      <option value="fa">{t("fa")} (FA)</option>
+      <option value="en">{t("en")} (EN)</option>
+      <option value="ar">{t("ar")} (AR)</option>
     </select>
   );
 }

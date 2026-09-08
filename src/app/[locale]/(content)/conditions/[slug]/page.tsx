@@ -1,8 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { getCondition, listContent } from "@/contexts/content/queries";
 import { searchAll } from "@/contexts/catalog/queries";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  BriefcaseMedical,
+  Calendar,
+  Stethoscope,
+  User,
+} from "lucide-react";
 import { ArticleCard } from "@/components/clinical/media-cards";
 
 export default async function ConditionPage({
@@ -14,21 +23,26 @@ export default async function ConditionPage({
   const condition = await getCondition(slug, locale);
   if (!condition) notFound();
 
+  const t = await getTranslations("conditions");
+  const dir = locale === "en" ? "ltr" : "rtl";
+  const ArrowForwardIcon = dir === "ltr" ? ArrowRight : ArrowLeft;
+  const conditionName = condition.name;
+
   const { rows } = await listContent("article", locale, undefined, condition.id);
-  const related = await searchAll(condition.name, locale);
+  const related = await searchAll(conditionName, locale);
   const relatedServices = related.filter((r) => r.type === "service").slice(0, 4);
   const relatedDoctors = related.filter((r) => r.type === "doctor" || r.type === "clinic").slice(0, 4);
 
   return (
-    <div dir="rtl" className="w-full bg-surface min-h-screen py-8 sm:py-12">
+    <div dir={dir} className="w-full bg-surface min-h-screen py-8 sm:py-12">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-10">
         {/* Breadcrumb */}
-        <nav aria-label="مسیر راهنما" className="flex items-center gap-2 text-xs sm:text-sm text-on-surface-variant">
+        <nav aria-label={t("navAria")} className="flex items-center gap-2 text-xs sm:text-sm text-on-surface-variant">
           <Link href={`/${locale}/topics`} className="hover:text-primary transition-colors">
-            پایگاه موضوعات سلامت
+            {t("breadcrumb")}
           </Link>
           <span className="opacity-40">/</span>
-          <span className="text-on-surface font-semibold">{condition.name}</span>
+          <span className="text-on-surface font-semibold">{conditionName}</span>
         </nav>
 
         {/* Condition Clinical Header Profile */}
@@ -36,11 +50,11 @@ export default async function ConditionPage({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <ClinicalIcon name="stethoscope" size={32} />
+                <Stethoscope size={32} aria-hidden="true" />
               </div>
               <div>
                 <h1 className="text-2xl sm:text-4xl font-extrabold text-on-surface tracking-tight">
-                  {condition.name}
+                  {conditionName}
                 </h1>
               </div>
             </div>
@@ -49,25 +63,25 @@ export default async function ConditionPage({
               href={`/${locale}/doctors`}
               className="inline-flex items-center gap-2 bg-primary text-on-primary text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow-xs hover:bg-primary-container transition-all self-start sm:self-auto"
             >
-              <ClinicalIcon name="calendar_today" size={18} />
-              <span>نوبت‌دهی پزشک متخصص</span>
+              <Calendar size={18} aria-hidden="true" />
+              <span>{t("bookDoctorBtn")}</span>
             </Link>
           </div>
 
           <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed max-w-3xl">
-            بررسی نشانه‌های بالینی، روش‌های پایش و پیشگیری، آزمایش‌های تشخیصی مرتبط و متخصصان همکار برای پایش و درمان {condition.name}.
+            {t("heroDesc", { name: conditionName })}
           </p>
         </section>
 
         {/* Linked Diagnostic Services */}
         {relatedServices.length > 0 && (
-          <section aria-label="خدمات تشخیصی مرتبط" className="flex flex-col gap-6 text-start">
+          <section aria-label={t("servicesAria")} className="flex flex-col gap-6 text-start">
             <div className="border-b border-outline-variant/20 pb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
-                آزمایش‌ها و خدمات تشخیصی مرتبط
+                {t("servicesHeading")}
               </h2>
               <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-                بسته‌ها و چکاپ‌های بالینی جهت بررسی دقیق و پایش {condition.name}
+                {t("servicesSubtitle", { name: conditionName })}
               </p>
             </div>
 
@@ -80,7 +94,7 @@ export default async function ConditionPage({
                 >
                   <div>
                     <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-                      <ClinicalIcon name="medical_services" size={20} />
+                      <BriefcaseMedical size={20} aria-hidden="true" />
                     </div>
                     <h3 className="font-bold text-sm text-on-surface group-hover:text-primary transition-colors mb-1">
                       {s.title}
@@ -90,8 +104,8 @@ export default async function ConditionPage({
                     </p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs text-primary font-bold">
-                    <span>دریافت خدمت</span>
-                    <ClinicalIcon name="arrow_back" size={14} />
+                    <span>{t("getService")}</span>
+                    <ArrowForwardIcon size={14} aria-hidden="true" />
                   </div>
                 </Link>
               ))}
@@ -101,13 +115,13 @@ export default async function ConditionPage({
 
         {/* Linked Doctors & Specialists */}
         {relatedDoctors.length > 0 && (
-          <section aria-label="پزشکان متخصص مرتبط" className="flex flex-col gap-6 text-start">
+          <section aria-label={t("doctorsAria")} className="flex flex-col gap-6 text-start">
             <div className="border-b border-outline-variant/20 pb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
-                پزشکان و متخصصان مرتبط
+                {t("doctorsHeading")}
               </h2>
               <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-                پزشکان تایید شده بالینی جهت مشاوره و مدیریت تخصصی {condition.name}
+                {t("doctorsSubtitle", { name: conditionName })}
               </p>
             </div>
 
@@ -120,7 +134,7 @@ export default async function ConditionPage({
                 >
                   <div>
                     <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3 font-bold">
-                      <ClinicalIcon name="person" size={24} />
+                      <User size={24} aria-hidden="true" />
                     </div>
                     <h3 className="font-bold text-sm text-on-surface group-hover:text-primary transition-colors mb-1">
                       {d.title}
@@ -130,8 +144,8 @@ export default async function ConditionPage({
                     </p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-xs text-primary font-bold">
-                    <span>رزرو نوبت</span>
-                    <ClinicalIcon name="arrow_back" size={14} />
+                    <span>{t("bookDoctor")}</span>
+                    <ArrowForwardIcon size={14} aria-hidden="true" />
                   </div>
                 </Link>
               ))}
@@ -140,13 +154,13 @@ export default async function ConditionPage({
         )}
 
         {/* Related Clinical Articles */}
-        <section aria-label="مقالات مرتبط با بیماری" className="flex flex-col gap-6 text-start">
+        <section aria-label={t("articlesAria")} className="flex flex-col gap-6 text-start">
           <div className="border-b border-outline-variant/20 pb-4">
             <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
-              راهنماها و مقالات مرتبط با {condition.name}
+              {t("articlesHeading", { name: conditionName })}
             </h2>
             <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-              مجموعه تحلیل‌های تخصصی و پروتکل‌های مراقبتی تایید شده توسط پزشکان
+              {t("articlesSubtitle")}
             </p>
           </div>
 
@@ -161,7 +175,7 @@ export default async function ConditionPage({
                     title: c.title,
                     summary: c.body,
                     publishedAt: c.publishedAt,
-                    category: condition.name,
+                    category: conditionName,
                   }}
                   locale={locale}
                 />
@@ -169,13 +183,13 @@ export default async function ConditionPage({
             </div>
           ) : (
             <div className="bg-surface-container-low p-10 rounded-2xl text-center text-on-surface-variant flex flex-col items-center justify-center gap-3">
-              <ClinicalIcon name="menu_book" size={40} className="text-outline" />
-              <p className="text-sm font-medium">مقاله‌ای مستقیماً برای این عنوان پیوند نیافته است.</p>
+              <BookOpen size={40} className="text-outline" aria-hidden="true" />
+              <p className="text-sm font-medium">{t("noArticles")}</p>
               <Link
                 href={`/${locale}/articles`}
                 className="text-xs text-primary font-bold hover:underline"
               >
-                مشاهده تمام مقالات مجله سلامت
+                {t("allArticlesLink")}
               </Link>
             </div>
           )}

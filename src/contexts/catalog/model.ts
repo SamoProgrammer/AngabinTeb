@@ -12,6 +12,7 @@ export type DoctorCard = {
   specialty: string | null;
   cityId: string | null;
   imageUrl: string | null;
+  medicalCouncilCode?: string | null;
 };
 
 export type ServiceCard = {
@@ -19,6 +20,8 @@ export type ServiceCard = {
   name: string;
   providerName: string;
   serviceType: string;
+  category: string | null;
   cityId: string | null;
   price: string;
+  durationMinutes: number;
 };

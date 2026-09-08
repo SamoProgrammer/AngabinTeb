@@ -1,12 +1,19 @@
 import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { providers, practitioners, serviceCategories, translations } from "@/db/schema";
 import { createProvider, updateProvider } from "@/contexts/catalog/actions";
 import { ProviderForm } from "../provider-form";
 
-export default async function AdminProviderEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function AdminProviderEditPage({
+  params,
+}: {
+  params: Promise<{ id: string; locale?: string }>;
+}) {
+  const { id, locale } = await params;
+  const tProviders = await getTranslations("admin.providers");
+
   const specialties = await db
     .select({ id: serviceCategories.id, name: serviceCategories.name })
     .from(serviceCategories)
@@ -14,9 +21,9 @@ export default async function AdminProviderEditPage({ params }: { params: Promis
 
   if (id === "new") {
     return (
-      <div>
-        <h1 className="mb-6 text-2xl font-bold">New provider</h1>
-        <ProviderForm action={createProvider} specialties={specialties} />
+      <div className="text-start">
+        <h1 className="mb-6 text-2xl font-bold">{tProviders("newTitle")}</h1>
+        <ProviderForm action={createProvider} specialties={specialties} locale={locale} />
       </div>
     );
   }
@@ -42,9 +49,14 @@ export default async function AdminProviderEditPage({ params }: { params: Promis
   }
 
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold">Edit provider</h1>
-      <ProviderForm action={updateProvider.bind(null, id)} initial={initial} specialties={specialties} />
+    <div className="text-start">
+      <h1 className="mb-6 text-2xl font-bold">{tProviders("editTitle")}</h1>
+      <ProviderForm
+        action={updateProvider.bind(null, id)}
+        initial={initial}
+        specialties={specialties}
+        locale={locale}
+      />
     </div>
   );
 }

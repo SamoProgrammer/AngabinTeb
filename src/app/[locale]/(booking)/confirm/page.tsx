@@ -1,13 +1,16 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { getAppointment } from "@/contexts/booking/queries";
 import { ReceiptActions } from "@/components/booking/receipt-actions";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
-
-function toPersianDigits(n: string | number): string {
-  const farsiDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
-  return n.toString().replace(/\d/g, (x) => farsiDigits[parseInt(x, 10)]);
-}
+import {
+  CalendarDays,
+  Check,
+  CircleCheckBig,
+  Info,
+  MapPin,
+  User,
+} from "lucide-react";
+import { formatJalaliDate, formatJalaliTime, toPersianDigits } from "@/lib/format";
 
 export default async function ConfirmPage({
   params,
@@ -18,6 +21,7 @@ export default async function ConfirmPage({
 }) {
   const { locale } = await params;
   const { id } = await searchParams;
+  const t = await getTranslations("booking");
 
   const appointmentData = id ? await getAppointment(id).catch(() => null) : null;
   if (!appointmentData) notFound();
@@ -31,39 +35,57 @@ export default async function ConfirmPage({
   const serviceName = appointmentData.serviceName;
   const clinicAddress = appointmentData.addressLine;
 
+  const dir = locale === "en" ? "ltr" : "rtl";
+  const digits = (n: string | number) =>
+    locale === "en" ? String(n) : toPersianDigits(n);
+
   const priceToman = Number(appointmentData.price || 0);
-  const priceDisplay = toPersianDigits(priceToman.toLocaleString("fa-IR"));
+  const priceDisplay = digits(priceToman.toLocaleString("en-US"));
 
   let dateDisplay = "—";
   let timeDisplay = "—";
   if (appointmentData.startsAt) {
     try {
       const d = new Date(appointmentData.startsAt);
-      dateDisplay = new Intl.DateTimeFormat("fa-IR", {
-        dateStyle: "full",
-      }).format(d);
-      timeDisplay = new Intl.DateTimeFormat("fa-IR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(d);
+      dateDisplay = formatJalaliDate(d, locale, { weekday: "long" });
+      timeDisplay = formatJalaliTime(d, locale);
     } catch {
       // keep placeholder
     }
   }
 
+  const headerTitle = t("receipt.headerTitle");
+  const headerSubtitle = t("receipt.headerSubtitle");
+  const trackingCodeLabel = t("receipt.trackingCode");
+  const visitTimeLabel = t("receipt.visitTime");
+  const patientNameLabel = t("receipt.patientName");
+  const partySizeLabel = t("receipt.partySize", {
+    count: digits(appointmentData.partySize),
+    unit: t(
+      appointmentData.partySize === 1 ? "receipt.person" : "receipt.people",
+    ),
+  });
+  const addressLabel = t("receipt.address");
+  const addressFallback = t("receipt.addressFallback");
+  const payableLabel = t("receipt.payable");
+  const currencyLabel = t("receipt.currency");
+  const guaranteeBadge = t("receipt.guarantee");
+  const arrivalNoticeTitle = t("receipt.arrivalTitle");
+  const arrivalNoticeSub = t("receipt.arrivalSub");
+
   return (
-    <main className="w-full min-h-screen bg-slate-50/50 py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
+    <main className="w-full min-h-screen bg-slate-50/50 py-12 px-4 sm:px-6 lg:px-8" dir={dir}>
       <div className="max-w-3xl mx-auto">
         {/* Top Status Header */}
         <section className="text-center mb-8 flex flex-col items-center">
           <div className="flex items-center justify-center w-20 h-20 mb-4 rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 ring-8 ring-emerald-50">
-            <ClinicalIcon name="check" size={40} />
+            <Check size={40} aria-hidden="true" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
-            نوبت بالینی شما با موفقیت ثبت شد
+            {headerTitle}
           </h1>
           <p className="text-slate-600 font-medium text-sm sm:text-base">
-            پیامک تایید حاوی اطلاعات نوبت برای شما ارسال گردید.
+            {headerSubtitle}
           </p>
           <span className="sr-only">Appointment confirmed</span>
         </section>
@@ -88,7 +110,7 @@ export default async function ConfirmPage({
 
             <div className="flex flex-col sm:items-end bg-slate-50 sm:bg-transparent p-3 sm:p-0 rounded-xl">
               <span className="text-xs text-slate-500 font-medium mb-1">
-                کد پیگیری پذیرش
+                {trackingCodeLabel}
               </span>
               <span
                 className="bg-emerald-50 text-emerald-800 border border-emerald-200/60 px-4 py-1.5 rounded-xl font-mono text-lg font-black tracking-wider select-all"
@@ -104,11 +126,11 @@ export default async function ConfirmPage({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-6 border-b border-slate-100 text-start">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-slate-100 text-emerald-700 flex items-center justify-center shrink-0">
-                <ClinicalIcon name="calendar_month" size={20} />
+                <CalendarDays size={20} aria-hidden="true" />
               </div>
               <div>
                 <span className="text-xs text-slate-500 block font-medium">
-                  زمان مراجعه حضوری
+                  {visitTimeLabel}
                 </span>
                 <span className="text-sm sm:text-base font-bold text-slate-900 block mt-0.5">
                   {dateDisplay}
@@ -121,11 +143,11 @@ export default async function ConfirmPage({
 
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-slate-100 text-emerald-700 flex items-center justify-center shrink-0">
-                <ClinicalIcon name="person" size={20} />
+                <User size={20} aria-hidden="true" />
               </div>
               <div>
                 <span className="text-xs text-slate-500 block font-medium">
-                  نام بیمار
+                  {patientNameLabel}
                 </span>
                 {appointmentData.patientName ? (
                   <span className="text-sm sm:text-base font-bold text-slate-900 block mt-0.5">
@@ -138,7 +160,7 @@ export default async function ConfirmPage({
                   </span>
                 ) : null}
                 <span className="text-xs text-slate-600 mt-0.5 block">
-                  {toPersianDigits(appointmentData.partySize)} نفر
+                  {partySizeLabel}
                 </span>
               </div>
             </div>
@@ -148,14 +170,14 @@ export default async function ConfirmPage({
           <div className="py-6 border-b border-slate-100 text-start">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-slate-100 text-emerald-700 flex items-center justify-center shrink-0">
-                <ClinicalIcon name="location_on" size={20} />
+                <MapPin size={20} aria-hidden="true" />
               </div>
               <div>
                 <span className="text-xs text-slate-500 block font-medium">
-                  آدرس مطب / مرکز درمانی
+                  {addressLabel}
                 </span>
                 <span className="text-sm font-medium text-slate-800 block mt-0.5 leading-relaxed">
-                  {clinicAddress || "نشانی ثبت نشده است."}
+                  {clinicAddress || addressFallback}
                 </span>
               </div>
             </div>
@@ -165,35 +187,34 @@ export default async function ConfirmPage({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-6 gap-4 text-start">
             <div>
               <span className="text-xs text-slate-500 block font-medium">
-                مبلغ قابل پرداخت در مطب:
+                {payableLabel}
               </span>
               <div className="flex items-baseline gap-1 mt-1">
                 <span className="text-2xl font-black text-slate-900">
                   {priceDisplay}
                 </span>
                 <span className="text-xs text-slate-500 font-medium">
-                  تومان
+                  {currencyLabel}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-2 bg-amber-50 text-amber-900 border border-amber-200/80 px-4 py-2 rounded-2xl">
-              <ClinicalIcon name="check_circle" size={16} className="text-amber-700" />
+              <CircleCheckBig size={16} className="text-amber-700" aria-hidden="true" />
               <span className="text-xs font-bold">
-                پرداخت حضوری در محل کلینیک (بدون کارمزد آنلاین)
+                {guaranteeBadge}
               </span>
             </div>
           </div>
 
           {/* Arrival advisory callout */}
           <div className="mt-6 p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100/80 flex items-start gap-3 text-start">
-            <ClinicalIcon name="info" size={20} className="text-emerald-700 shrink-0 mt-0.5" />
+            <Info size={20} className="text-emerald-700 shrink-0 mt-0.5" aria-hidden="true" />
             <div className="text-xs text-emerald-900 leading-relaxed space-y-1">
               <p className="font-semibold">
-                لطفاً ۱۵ دقیقه پیش از ساعت مقرر در محل حضور داشته باشید.
+                {arrivalNoticeTitle}
               </p>
               <p className="text-emerald-800">
-                در صورت نیاز به جابجایی یا انصراف از نوبت، از بخش پیگیری در
-                پرونده من اقدام فرمایید.
+                {arrivalNoticeSub}
               </p>
             </div>
           </div>
@@ -202,14 +223,10 @@ export default async function ConfirmPage({
         {/* Action buttons */}
         <ReceiptActions
           trackingCode={displayCode}
-          appointmentsHref={`/${locale}/appointments`}
+          appointmentsHref={`/${locale}/profile/reservations`}
           homeHref={`/${locale}`}
+          locale={locale}
         />
-
-        {/* Hidden back-compat anchor for legacy crawlers/tests if needed */}
-        <div className="sr-only">
-          <Link href={`/${locale}/appointments`}>View my appointments</Link>
-        </div>
       </div>
     </main>
   );

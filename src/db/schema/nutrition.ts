@@ -99,6 +99,7 @@ export const dietPrograms = pgTable("diet_program", {
   price: numeric("price", { precision: 12, scale: 0 }).notNull().default("0"),
   practitionerId: text("practitioner_id").references(() => providers.id),
   description: text("description"), // Persian base
+  downloadUrl: text("download_url"), // nullable: file attached to the program; served only through the claim gate
 });
 
 export const dietClaims = pgTable("diet_claim", {

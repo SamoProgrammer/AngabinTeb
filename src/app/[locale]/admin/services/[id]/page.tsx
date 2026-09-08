@@ -1,12 +1,19 @@
 import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { services, providers, serviceCategories, locations, diagnosticServices, translations } from "@/db/schema";
 import { createService, updateService } from "@/contexts/catalog/actions";
 import { ServiceForm } from "../service-form";
 
-export default async function AdminServiceEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function AdminServiceEditPage({
+  params,
+}: {
+  params: Promise<{ id: string; locale?: string }>;
+}) {
+  const { id, locale } = await params;
+  const tServices = await getTranslations("admin.services");
+
   const [providerRows, categoryRows, locationRows] = await Promise.all([
     db.select({ id: providers.id, name: providers.name }).from(providers).orderBy(providers.name),
     db.select({ id: serviceCategories.id, name: serviceCategories.name }).from(serviceCategories).orderBy(serviceCategories.name),
@@ -15,9 +22,15 @@ export default async function AdminServiceEditPage({ params }: { params: Promise
 
   if (id === "new") {
     return (
-      <div>
-        <h1 className="mb-6 text-2xl font-bold">New service</h1>
-        <ServiceForm action={createService} providers={providerRows} categories={categoryRows} locations={locationRows} />
+      <div className="text-start">
+        <h1 className="mb-6 text-2xl font-bold">{tServices("newTitle")}</h1>
+        <ServiceForm
+          action={createService}
+          providers={providerRows}
+          categories={categoryRows}
+          locations={locationRows}
+          locale={locale}
+        />
       </div>
     );
   }
@@ -46,9 +59,16 @@ export default async function AdminServiceEditPage({ params }: { params: Promise
   }
 
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold">Edit service</h1>
-      <ServiceForm action={updateService.bind(null, id)} initial={initial} providers={providerRows} categories={categoryRows} locations={locationRows} />
+    <div className="text-start">
+      <h1 className="mb-6 text-2xl font-bold">{tServices("editTitle")}</h1>
+      <ServiceForm
+        action={updateService.bind(null, id)}
+        initial={initial}
+        providers={providerRows}
+        categories={categoryRows}
+        locations={locationRows}
+        locale={locale}
+      />
     </div>
   );
 }

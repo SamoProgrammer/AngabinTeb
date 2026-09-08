@@ -1,9 +1,31 @@
+import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
 import { listNotifications } from "@/contexts/support/queries";
 import { markNotificationsRead } from "@/contexts/support/actions";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { resolveIcon } from "@/components/clinical/icons";
+import { formatJalaliDateTime } from "@/lib/format";
+import { BellOff, CheckCheck } from "lucide-react";
 
-export default async function NotificationsPage() {
+export default async function NotificationsPage({
+  params,
+}: {
+  params?: Promise<{ locale?: string }> | { locale?: string };
+} = {}) {
+  let locale = "fa";
+  if (params && typeof (params as Promise<unknown>).then === "function") {
+    try {
+      const resolved = await (params as Promise<{ locale?: string }>);
+      locale = resolved?.locale ?? "fa";
+    } catch {
+      locale = "fa";
+    }
+  } else if (params && "locale" in params) {
+    locale = (params as { locale?: string }).locale ?? "fa";
+  }
+
+  const t = await getTranslations("notifications");
+  const isRtl = locale !== "en";
+
   const user = await requireUser();
   const rows = await listNotifications(user.id);
   const unread = rows.filter((n) => !n.read);
@@ -23,16 +45,16 @@ export default async function NotificationsPage() {
   };
 
   return (
-    <div dir="rtl" className="w-full bg-surface min-h-screen py-8 sm:py-12">
+    <div dir={isRtl ? "rtl" : "ltr"} className="w-full bg-surface min-h-screen py-8 sm:py-12">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8">
         {/* Header Title & Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6 text-start">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">
-              اعلان‌ها و یادآوری‌های سلامت
+              {t("title")}
             </h1>
             <p className="text-xs sm:text-sm text-on-surface-variant">
-              اطلاع‌رسانی‌های نوبت ویزیت، پیام‌های پزشک و یادآوری‌های پایش سلامت
+              {t("subtitle")}
             </p>
           </div>
 
@@ -42,8 +64,8 @@ export default async function NotificationsPage() {
                 type="submit"
                 className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container text-on-surface text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
               >
-                <ClinicalIcon name="done_all" size={16} />
-                <span>علامت‌گذاری همه به عنوان خوانده شده</span>
+                <CheckCheck size={16} aria-hidden="true" />
+                <span>{t("markAllRead")}</span>
               </button>
             </form>
           )}
@@ -52,10 +74,7 @@ export default async function NotificationsPage() {
         {/* Notifications Feed (Screen #10) */}
         <div className="flex flex-col gap-3">
           {rows.map((n) => {
-            const dateStr = new Intl.DateTimeFormat("fa-IR", {
-              dateStyle: "medium",
-              timeStyle: "short",
-            }).format(new Date(n.createdAt));
+            const dateStr = formatJalaliDateTime(n.createdAt, locale);
 
             return (
               <div
@@ -72,7 +91,10 @@ export default async function NotificationsPage() {
                       !n.read ? "bg-primary/10 text-primary" : "bg-surface-container text-outline"
                     }`}
                   >
-                    <ClinicalIcon name={getNotificationIcon(n.kind)} size={22} />
+                    {(() => {
+                      const NotificationIcon = resolveIcon(getNotificationIcon(n.kind));
+                      return <NotificationIcon size={22} aria-hidden="true" />;
+                    })()}
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
@@ -84,7 +106,7 @@ export default async function NotificationsPage() {
                         {n.title}
                       </h2>
                       {!n.read && (
-                        <span className="w-2 h-2 rounded-full bg-primary shrink-0" title="پیام جدید" />
+                        <span className="w-2 h-2 rounded-full bg-primary shrink-0" title={t("unreadBadge")} />
                       )}
                     </div>
                     <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
@@ -100,11 +122,11 @@ export default async function NotificationsPage() {
           {rows.length === 0 && (
             <div className="bg-surface-container-low rounded-2xl p-12 text-center flex flex-col items-center justify-center gap-3">
               <div className="w-14 h-14 rounded-2xl bg-surface-container text-outline flex items-center justify-center">
-                <ClinicalIcon name="notifications_none" size={32} />
+                <BellOff size={32} aria-hidden="true" />
               </div>
-              <p className="text-base font-bold text-on-surface">پیام یا اعلانی وجود ندارد</p>
+              <p className="text-base font-bold text-on-surface">{t("emptyTitle")}</p>
               <p className="text-xs text-on-surface-variant max-w-sm">
-                تمامی پیام‌ها، تایید نوبت‌ها و یادآوری‌های پرونده در این قسمت نمایش داده می‌شوند.
+                {t("emptyHint")}
               </p>
             </div>
           )}

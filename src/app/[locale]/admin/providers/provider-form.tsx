@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { redirect } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -21,68 +22,73 @@ export function ProviderForm({
   action,
   initial = {},
   specialties,
+  locale = "fa",
 }: {
   action: Action;
   initial?: Record<string, string>;
   specialties: { id: string; name: string }[];
+  locale?: string;
 }) {
+  const tCommon = useTranslations("admin.common");
+  const tProviders = useTranslations("admin.providers");
+
   const [state, formAction] = useActionState(async (_prev: ActionResult, fd: FormData) => {
     const result = await action(toInput(fd));
-    if (result.ok) redirect("/admin/providers");
+    if (result.ok) redirect(`/${locale}/admin/providers`);
     return result;
   }, {});
 
   return (
-    <form action={formAction} className="max-w-xl space-y-4">
+    <form action={formAction} className="max-w-xl space-y-4 text-start">
       {state.error && (
         <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{state.error}</p>
       )}
       <label className="block space-y-1 text-sm">
-        Kind
+        {tProviders("kind")}
         <select name="kind" defaultValue={initial.kind ?? "person"} required
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 outline-none">
-          <option value="person">Person</option>
-          <option value="organization">Organization</option>
+          <option value="person">{tProviders("kindPerson")}</option>
+          <option value="organization">{tProviders("kindOrg")}</option>
         </select>
       </label>
       <label className="block space-y-1 text-sm">
-        Org type
+        {tProviders("orgType")}
         <select name="orgType" defaultValue={initial.orgType ?? ""}
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 outline-none">
-          <option value="">—</option>
-          <option value="clinic">Clinic</option>
-          <option value="office">Office</option>
-          <option value="service_org">Service org</option>
+          <option value="">{tCommon("emptyValue")}</option>
+          <option value="clinic">{tProviders("clinic")}</option>
+          <option value="office">{tProviders("office")}</option>
+          <option value="service_org">{tProviders("serviceOrg")}</option>
         </select>
       </label>
       <label className="block space-y-1 text-sm">
-        Name (Persian) <Input name="nameFa" defaultValue={initial.nameFa ?? ""} required />
+        {tProviders("nameFa")} <Input name="nameFa" defaultValue={initial.nameFa ?? ""} required />
       </label>
       <label className="block space-y-1 text-sm">
-        Name (English) <Input name="nameEn" defaultValue={initial.nameEn ?? ""} />
+        {tProviders("nameEn")} <Input name="nameEn" defaultValue={initial.nameEn ?? ""} />
       </label>
       <label className="block space-y-1 text-sm">
-        Name (Arabic) <Input name="nameAr" defaultValue={initial.nameAr ?? ""} />
+        {tProviders("nameAr")} <Input name="nameAr" defaultValue={initial.nameAr ?? ""} />
       </label>
       <label className="block space-y-1 text-sm">
-        Phone <Input name="phone" defaultValue={initial.phone ?? ""} />
+        {tCommon("phone")} <Input name="phone" defaultValue={initial.phone ?? ""} />
       </label>
       <label className="block space-y-1 text-sm">
-        Specialty
+        {tProviders("specialty")}
         <select name="specialtyId" defaultValue={initial.specialtyId ?? ""}
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 outline-none">
-          <option value="">—</option>
+          <option value="">{tCommon("emptyValue")}</option>
           {specialties.map((s) => (
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>
       </label>
       <label className="block space-y-1 text-sm">
-        Bio (Persian)
+        {tProviders("bioFa")}
         <textarea name="bioFa" defaultValue={initial.bioFa ?? ""} rows={4}
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
       </label>
-      <Button type="submit">Save</Button>
+      <Button type="submit">{tCommon("save")}</Button>
     </form>
   );
 }

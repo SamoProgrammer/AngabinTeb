@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { RequirementRow } from "../kernel";
 import {
   servingToGrams, nutrientsForIntake, sumDay, requirementFor,
-  bmr, tdee, deficits,
+  bmr, tdee, tdeeForFactor, bmi, macroSplit, deficits,
 } from "../kernel";
+import { calculateBmr, calculateTdee, calculateBmi, calculateMacros } from "@/lib/metabolism";
+import { metabolismVector as v, metabolismExpected as e } from "./metabolism-vector";
 
 describe("servingToGrams", () => {
   it("converts quantity × grams-equivalent", () => {
@@ -64,5 +66,34 @@ describe("deficits", () => {
   });
   it("ignores nutrients at or above requirement", () => {
     expect(deficits({ iron: 20 }, { iron: 18 })).toEqual([]);
+  });
+});
+
+describe("shared vector: server diary-target adapter agrees with widget adapter", () => {
+  const rawBmr = bmr({ sex: v.sex, weightKg: v.weightKg, heightCm: v.heightCm, age: v.age });
+
+  it("computes the canonical raw BMR/BMI/macro values", () => {
+    expect(rawBmr).toBeCloseTo(e.rawBmr, 2);
+    expect(tdee(rawBmr, v.activityLevel)).toBeCloseTo(e.roundedTdee, 2);
+    expect(tdeeForFactor(rawBmr, v.activityFactor)).toBeCloseTo(e.roundedTdee, 2);
+    expect(bmi(v.weightKg, v.heightCm)).toBeCloseTo(e.rawBmi, 4);
+    const macros = macroSplit(e.roundedTdee);
+    expect(macros.proteinGrams).toBeCloseTo(162.75, 2);
+    expect(macros.carbGrams).toBeCloseTo(325.5, 2);
+    expect(macros.fatGrams).toBeCloseTo(72.333, 2);
+  });
+
+  it("diary-target rounding matches the widget adapter exactly", () => {
+    // Same rounding queries.ts getPhysiology applies before persisting targets.
+    const diaryBmr = Math.round(rawBmr);
+    const diaryTdee = Math.round(tdee(rawBmr, v.activityLevel));
+    expect(diaryBmr).toBe(e.roundedBmr);
+    expect(diaryTdee).toBe(e.roundedTdee);
+    expect(diaryBmr).toBe(
+      calculateBmr({ gender: v.gender, weightKg: v.weightKg, heightCm: v.heightCm, ageYears: v.ageYears }),
+    );
+    expect(diaryTdee).toBe(calculateTdee(diaryBmr, v.activityFactor));
+    expect(calculateBmi(v.weightKg, v.heightCm)).toEqual({ bmi: e.roundedBmi, label: e.bmiLabel });
+    expect(calculateMacros(diaryTdee)).toEqual(e.macros);
   });
 });

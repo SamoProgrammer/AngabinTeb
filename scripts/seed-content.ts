@@ -26,7 +26,7 @@ const TOPICS: Array<{ id: string; slug: string; name: string }> = [
 
 // Ruling 5: one published article + one FAQ per topic; no title matches /ECG|نوار قلب/.
 const CONTENT: Array<{
-  id: string; topicSlug: string; kind: string; title: string; body: string;
+  id: string; topicSlug: string; kind: string; title: string; body: string; videoUrl?: string;
 }> = [
   { id: "content-life-stages-1", topicSlug: "life-stages", kind: "article", title: "مراحل زندگی: مراقبت‌های سلامت در هر دوره", body: "سلامت در هر دوره از زندگی نیازهای متفاوتی دارد؛ از واکسیناسیون دوران کودکی تا غربالگری‌های دوره سالمندی." },
   { id: "content-faq-life-stages-1", topicSlug: "life-stages", kind: "faq", title: "در چه سنی باید معاینات دوره‌ای شروع شود؟", body: "معاینات پایه از نوجوانی توصیه می‌شود و از ۴۰ سالگی با غربالگری‌های سالانه ادامه می‌یابد." },
@@ -53,6 +53,11 @@ const CONTENT: Array<{
   { id: "content-insulin-resistance", topicSlug: "diabetes", kind: "article", title: "راهنمای بالینی مدیریت مقاومت به انسولین و دیابت", body: "مقاومت به انسولین شایع‌ترین اختلال متابولیک در جوامع امروزی است. با اصلاح مصرف نان و برنج سنتی و کاهش ۵ تا ۷ درصدی وزن، حساسیت سلولی به انسولین احیا می‌شود." },
   { id: "content-fatty-liver", topicSlug: "gi-disease", kind: "article", title: "کنترل کبد چرب گرید ۱ و ۲ در سفره ایرانی", body: "کبد چرب ناشی از تجمع تری‌گلیسرید داخل بافت کبد است. جایگزینی روغن‌های صنعتی با روغن زیتون فرابکر و ورزش منظم روزانه مهم‌ترین رکن درمان است." },
   { id: "content-persian-rice-calories", topicSlug: "fitness", kind: "article", title: "کالری پلوهای سنتی و راه‌های کاهش بار گلیسمی", body: "ترکیب برنج سنتی با شوید، عدس یا سبوس برنج باعث افزایش نشاسته مقاوم و کاهش قله انسولینی پس از وعده غذایی می‌شود." },
+  { id: "content-pamphlet-diabetes-nutrition", topicSlug: "diabetes", kind: "pamphlet", title: "بروشور آموزشی تغذیه در دیابت", body: "بشقاب شما: نصف سبزیجات، یک‌چهارم پروتئین کم‌چرب، یک‌چهارم غلات کامل. نوشابه و آبمیوه صنعتی را حذف کنید؛ نان و برنج سنتی را با شوید، عدس یا سبوس ترکیب کنید. این بروشور قابل چاپ و همراه بیمار است." },
+  // Landing + videos pages query listContent("video") — without video rows both render empty.
+  { id: "content-video-diabetes-1", topicSlug: "diabetes", kind: "video", title: "آموزش تصویری کنترل قند خون در دیابت نوع ۲", body: "در این ویدیوی آموزشی، روش صحیح اندازه‌گیری قند خون، تفسیر اعداد و تنظیم وعده‌های غذایی توضیح داده می‌شود.", videoUrl: "https://example.com/videos/diabetes-control.mp4" },
+  { id: "content-video-cardio-1", topicSlug: "cardiovascular", kind: "video", title: "وبینار پیشگیری از بیماری‌های قلبی", body: "وبینار آموزشی کنترل فشار خون و چربی خون با تغذیه سالم و تحرک بدنی روزانه.", videoUrl: "https://example.com/videos/heart-prevention.mp4" },
+  { id: "content-video-fitness-1", topicSlug: "fitness", kind: "video", title: "راهنمای تصویری فعالیت بدنی در خانه", body: "تمرینات هوازی و مقاومتی ساده و بدون تجهیزات برای شروع فعالیت بدنی در خانه.", videoUrl: "https://example.com/videos/home-workout.mp4" },
 ];
 
 // Ruling 4: condition row id equals the topic's published article content id
@@ -102,12 +107,13 @@ async function main() {
         slug: c.id,
         title: c.title,
         body: c.body,
+        videoUrl: c.videoUrl ?? null,
         status: "published",
         publishedAt: new Date(),
       })
       .onConflictDoUpdate({
         target: contents.id,
-        set: { kind: c.kind, slug: c.id, title: c.title, body: c.body, status: "published" },
+        set: { kind: c.kind, slug: c.id, title: c.title, body: c.body, videoUrl: c.videoUrl ?? null, status: "published" },
       });
     await db
       .insert(contentTopics)
@@ -129,6 +135,46 @@ async function main() {
   // Ruling 5: prove the translation overlay on the diabetes article title.
   await upsertTranslation("content", "content-diabetes-1", "en", "title", "What is diabetes?");
   await upsertTranslation("content", "content-diabetes-1", "ar", "title", "ما هو مرض السكري؟");
+
+  // listTopics/getTopicHub overlay topic/condition names — without these, en/ar
+  // topic pages render Persian names.
+  const TOPIC_NAMES: Array<{ id: string; en: string; ar: string }> = [
+    { id: "topic-life-stages", en: "Life Stages", ar: "مراحل الحياة" },
+    { id: "topic-fitness", en: "Fitness", ar: "اللياقة البدنية" },
+    { id: "topic-gi-disease", en: "Gastrointestinal Diseases", ar: "أمراض الجهاز الهضمي" },
+    { id: "topic-diabetes", en: "Diabetes", ar: "السكري" },
+    { id: "topic-pulmonary", en: "Pulmonary Diseases", ar: "أمراض الجهاز التنفسي" },
+    { id: "topic-rheumatology", en: "Rheumatology", ar: "الروماتيزم" },
+    { id: "topic-thyroid", en: "Thyroid", ar: "الغدة الدرقية" },
+    { id: "topic-anemia", en: "Anemia", ar: "فقر الدم" },
+    { id: "topic-cancer", en: "Cancer", ar: "السرطان" },
+    { id: "topic-neuropsychiatric", en: "Neurology & Psychiatry", ar: "الأعصاب والطب النفسي" },
+    { id: "topic-cardiovascular", en: "Cardiovascular", ar: "القلب والأوعية الدموية" },
+  ];
+  for (const t of TOPIC_NAMES) {
+    await upsertTranslation("topic", t.id, "en", "name", t.en);
+    await upsertTranslation("topic", t.id, "ar", "name", t.ar);
+  }
+
+  const CONDITION_NAMES: Array<{ id: string; en: string; ar: string }> = [
+    { id: "content-diabetes-1", en: "Diabetes", ar: "السكري" },
+    { id: "content-cardiovascular-1", en: "Cardiovascular", ar: "القلب والأوعية الدموية" },
+    { id: "content-fatty-liver", en: "Non-alcoholic Fatty Liver", ar: "الكبد الدهني غير الكحولي" },
+  ];
+  for (const c of CONDITION_NAMES) {
+    await upsertTranslation("condition", c.id, "en", "name", c.en);
+    await upsertTranslation("condition", c.id, "ar", "name", c.ar);
+  }
+
+  const VIDEO_TITLES: Array<{ id: string; en: string; ar: string }> = [
+    { id: "content-video-diabetes-1", en: "Video guide to blood sugar control in type 2 diabetes", ar: "دليل مرئي لضبط سكر الدم في السكري من النوع الثاني" },
+    { id: "content-video-cardio-1", en: "Webinar on preventing heart disease", ar: "ندوة عن الوقاية من أمراض القلب" },
+    { id: "content-video-fitness-1", en: "Illustrated guide to working out at home", ar: "دليل مصور للنشاط البدني في المنزل" },
+  ];
+  for (const v of VIDEO_TITLES) {
+    await upsertTranslation("content", v.id, "en", "title", v.en);
+    await upsertTranslation("content", v.id, "ar", "title", v.ar);
+  }
 
   console.log(`seeded ${TOPICS.length} topics, ${CONTENT.length} contents, ${CONDITIONS.length} conditions, ${SETTINGS.length} settings`);
 }

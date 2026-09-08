@@ -18,12 +18,12 @@ const PROVIDERS: Array<{ id: string; name: string; phone: string; locationId: st
 ];
 
 const SERVICES: Array<{
-  id: string; name: string; enName: string; providerId: string; locationId: string;
+  id: string; name: string; enName: string; arName: string; providerId: string; locationId: string;
 }> = [
-  { id: "svc-rehab-1", name: "فیزیوتراپی", enName: "Physiotherapy", providerId: "prov-rehab-1", locationId: "loc-rehab-1" },
-  { id: "svc-rehab-2", name: "کاردرمانی", enName: "Occupational Therapy", providerId: "prov-rehab-1", locationId: "loc-rehab-1" },
-  { id: "svc-rehab-3", name: "گفتاردرمانی", enName: "Speech Therapy", providerId: "prov-rehab-2", locationId: "loc-rehab-2" },
-  { id: "svc-rehab-4", name: "ماساژ درمانی", enName: "Therapeutic Massage", providerId: "prov-rehab-2", locationId: "loc-rehab-2" },
+  { id: "svc-rehab-1", name: "فیزیوتراپی", enName: "Physiotherapy", arName: "العلاج الطبيعي", providerId: "prov-rehab-1", locationId: "loc-rehab-1" },
+  { id: "svc-rehab-2", name: "کاردرمانی", enName: "Occupational Therapy", arName: "العلاج المهني", providerId: "prov-rehab-1", locationId: "loc-rehab-1" },
+  { id: "svc-rehab-3", name: "گفتاردرمانی", enName: "Speech Therapy", arName: "علاج النطق", providerId: "prov-rehab-2", locationId: "loc-rehab-2" },
+  { id: "svc-rehab-4", name: "ماساژ درمانی", enName: "Therapeutic Massage", arName: "العلاج بالتدليك", providerId: "prov-rehab-2", locationId: "loc-rehab-2" },
 ];
 
 async function upsertTranslation(entityType: string, entityId: string, locale: string, field: string, value: string) {
@@ -43,6 +43,7 @@ async function upsertTranslation(entityType: string, entityId: string, locale: s
 
 async function main() {
   await upsertTranslation("service_category", CATEGORY_ID, "en", "name", "Rehabilitation");
+  await upsertTranslation("service_category", CATEGORY_ID, "ar", "name", "إعادة التأهيل");
 
   await db.insert(serviceCategories).values({
     id: CATEGORY_ID, slug: "rehab", name: "توانبخشی",
@@ -62,6 +63,7 @@ async function main() {
 
   for (const s of SERVICES) {
     await upsertTranslation("service", s.id, "en", "name", s.enName);
+    await upsertTranslation("service", s.id, "ar", "name", s.arName);
     await db.insert(services).values({
       id: s.id, providerId: s.providerId, categoryId: CATEGORY_ID, serviceType: "rehab",
       locationId: s.locationId, name: s.name, durationMinutes: 45, basePrice: "700000",
@@ -72,6 +74,8 @@ async function main() {
   const SLOTS: Array<{ id: string; serviceId: string; hour: number; minute: number }> = [
     { id: "slot-rehab-1", serviceId: "svc-rehab-1", hour: 17, minute: 0 },
     { id: "slot-rehab-2", serviceId: "svc-rehab-2", hour: 17, minute: 30 },
+    { id: "slot-rehab-3", serviceId: "svc-rehab-3", hour: 18, minute: 0 },
+    { id: "slot-rehab-4", serviceId: "svc-rehab-4", hour: 18, minute: 30 },
   ];
   for (const slot of SLOTS) {
     const startsAt = new Date(Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate(), slot.hour, slot.minute));

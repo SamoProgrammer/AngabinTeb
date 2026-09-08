@@ -1,18 +1,24 @@
 import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { serviceCategories, translations } from "@/db/schema";
 import { createCategory, updateCategory } from "@/contexts/catalog/actions";
 import { CategoryForm } from "../category-form";
 
-export default async function AdminCategoryEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function AdminCategoryEditPage({
+  params,
+}: {
+  params: Promise<{ id: string; locale?: string }>;
+}) {
+  const { id, locale } = await params;
+  const tCategories = await getTranslations("admin.categories");
 
   if (id === "new") {
     return (
-      <div>
-        <h1 className="mb-6 text-2xl font-bold">New category</h1>
-        <CategoryForm action={createCategory} />
+      <div className="text-start">
+        <h1 className="mb-6 text-2xl font-bold">{tCategories("newTitle")}</h1>
+        <CategoryForm action={createCategory} locale={locale} />
       </div>
     );
   }
@@ -30,9 +36,9 @@ export default async function AdminCategoryEditPage({ params }: { params: Promis
   }
 
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold">Edit category</h1>
-      <CategoryForm action={updateCategory.bind(null, id)} initial={initial} />
+    <div className="text-start">
+      <h1 className="mb-6 text-2xl font-bold">{tCategories("editTitle")}</h1>
+      <CategoryForm action={updateCategory.bind(null, id)} initial={initial} locale={locale} />
     </div>
   );
 }

@@ -5,6 +5,9 @@ import { availabilitySlots } from "@/db/schema";
 // ponytail: test-only route, delete when e2e is stable
 
 export async function POST() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   await db.execute(sql`DELETE FROM appointment WHERE patient_id = 'test-patient'`);
   await db.execute(sql`DELETE FROM food_intake WHERE user_id = 'test-patient'`);
   await db.execute(sql`DELETE FROM daily_nutrition WHERE user_id = 'test-patient'`);

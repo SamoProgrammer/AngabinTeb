@@ -1,0 +1,1 @@
+ALTER TABLE "diet_program" ADD COLUMN "download_url" text;

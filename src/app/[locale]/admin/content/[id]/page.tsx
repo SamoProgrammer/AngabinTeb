@@ -1,5 +1,6 @@
 import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { contents, contentTopics, translations } from "@/db/schema";
 import { saveContent } from "@/contexts/content/actions";
@@ -12,13 +13,14 @@ export default async function AdminContentEditPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
+  const tContent = await getTranslations("admin.content");
   const topics = await listTopics(locale);
 
   if (id === "new") {
     return (
-      <div>
-        <h1 className="mb-6 text-2xl font-bold">New content</h1>
-        <ContentForm action={saveContent} topics={topics} />
+      <div className="text-start">
+        <h1 className="mb-6 text-2xl font-bold">{tContent("newTitle")}</h1>
+        <ContentForm action={saveContent} topics={topics} locale={locale} />
       </div>
     );
   }
@@ -46,13 +48,14 @@ export default async function AdminContentEditPage({
   }
 
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold">Edit content</h1>
+    <div className="text-start">
+      <h1 className="mb-6 text-2xl font-bold">{tContent("editTitle")}</h1>
       <ContentForm
         action={saveContent}
         initial={initial}
         topics={topics}
-        currentTopicIds={contentTopicRows.map((t) => t.topicId)}
+        currentTopicIds={contentTopicRows.map((tItem) => tItem.topicId)}
+        locale={locale}
       />
     </div>
   );

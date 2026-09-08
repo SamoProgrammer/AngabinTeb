@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { inArray, sql } from "drizzle-orm";
 import { db } from "../src/db";
 import {
   nutrients,
@@ -7,6 +8,7 @@ import {
   foodNutrients,
   nutrientRequirements,
   dietPrograms,
+  translations,
 } from "../src/db/schema";
 
 // SOURCE: USDA FoodData Central (FDC) 2024-04-18   RDA: WHO/FAO
@@ -72,11 +74,52 @@ const DIET_PROGRAMS: Array<{
     description: "برنامه تندرستی و تغذیه سالم برای کارکنان",
   },
   {
+    // Diet page offers 5 contexts (clinics/health_centers/banks/universities/other);
+    // without this row the health_centers tab renders empty.
+    id: "dp-healthcenter-family", name: "برنامه تغذیه خانواده در مراکز بهداشت", organizationContext: "health_centers",
+    planType: "family", durationDays: 30, price: "0", practitionerId: null,
+    description: "برنامه تغذیه خانواده و مادران باردار در مراکز بهداشت",
+  },
+  {
     id: "dp-other-general", name: "برنامه سلامت عمومی", organizationContext: "other",
     planType: "general", durationDays: 21, price: "0", practitionerId: null,
     description: "برنامه سلامت عمومی و تغذیه متعادل",
   },
 ];
+
+async function upsertTranslation(entityType: string, entityId: string, locale: string, field: string, value: string) {
+  await db
+    .insert(translations)
+    .values({ entityType, entityId, locale, field, value })
+    .onConflictDoUpdate({
+      target: [
+        translations.entityType,
+        translations.entityId,
+        translations.locale,
+        translations.field,
+      ],
+      set: { value },
+    });
+}
+
+// listPrograms/getProgramContent overlay name+description — without these, en/ar
+// diet pages render Persian text.
+const DIET_PROGRAM_NAMES: Array<{ id: string; enName: string; arName: string; enDesc: string; arDesc: string }> = [
+  { id: "dp-clinic-weightloss", enName: "Weight-loss program", arName: "برنامج إنقاص الوزن", enDesc: "Supervised weight-loss program", arDesc: "برنامج إنقاص الوزن تحت إشراف أخصائي التغذية" },
+  { id: "dp-university-balance", enName: "Balanced student diet", arName: "نظام غذائي متوازن للطلاب", enDesc: "Affordable balanced nutrition for students", arDesc: "برنامج تغذية متوازن وبأسعار مناسبة للطلاب" },
+  { id: "dp-bank-wellness", enName: "Employee wellness program", arName: "برنامج صحة الموظفين", enDesc: "Healthy nutrition program for employees", arDesc: "برنامج التغذية الصحية للموظفين" },
+  { id: "dp-healthcenter-family", enName: "Family nutrition at health centers", arName: "تغذية الأسرة في المراكز الصحية", enDesc: "Family and maternal nutrition at health centers", arDesc: "برنامج تغذية الأسرة والأمهات الحوامل في المراكز الصحية" },
+  { id: "dp-other-general", enName: "General health program", arName: "برنامج الصحة العامة", enDesc: "General health and balanced nutrition", arDesc: "برنامج الصحة العامة والتغذية المتوازنة" },
+];
+
+async function upsertDietProgramTranslations() {
+  for (const p of DIET_PROGRAM_NAMES) {
+    await upsertTranslation("diet_program", p.id, "en", "name", p.enName);
+    await upsertTranslation("diet_program", p.id, "ar", "name", p.arName);
+    await upsertTranslation("diet_program", p.id, "en", "description", p.enDesc);
+    await upsertTranslation("diet_program", p.id, "ar", "description", p.arDesc);
+  }
+}
 
 async function upsertDietPrograms() {
   for (const p of DIET_PROGRAMS) {
@@ -102,35 +145,35 @@ const FOODS: Array<{
   },
   {
     id: "food-chelo-kateh", name: "چلو کته زعفرانی", category: "rice", mealTypes: ["lunch", "dinner"],
-    per100g: { "n-energy": 140, "n-carbs": 30, "n-protein": 2.7, "n-fat": 1.1, "n-fiber": 0.4, "n-iron": 0.5, "n-calcium": 10, "n-vitc": 0 },
+    per100g: { "n-energy": 139, "n-carbs": 29.8, "n-protein": 2.7, "n-fat": 1.1, "n-fiber": 0.4, "n-iron": 0.5, "n-calcium": 10, "n-vitc": 0 },
     servingUnits: [
-      { id: "su-kateh-kafgeer", name: "کفگیر", grams: 70 },
+      { id: "su-kateh-kafgeer", name: "کفگیر", grams: 180 },
       { id: "su-kateh-plate", name: "بشقاب", grams: 250 },
       { id: "su-kateh-gram", name: "گرم", grams: 1 },
     ],
   },
   {
-    id: "food-tahchin", name: "ته‌چین سنتی", category: "rice", mealTypes: ["lunch", "dinner"],
+    id: "food-tahchin", name: "ته‌چین مرغ سنتی", category: "rice", mealTypes: ["lunch", "dinner"],
     per100g: { "n-energy": 210, "n-carbs": 26, "n-protein": 8.5, "n-fat": 8.2, "n-fiber": 0.6, "n-iron": 1.1, "n-calcium": 35, "n-vitc": 1 },
     servingUnits: [
-      { id: "su-tahchin-slice", name: "برش", grams: 150 },
+      { id: "su-tahchin-slice", name: "برش", grams: 200 },
       { id: "su-tahchin-plate", name: "بشقاب", grams: 300 },
       { id: "su-tahchin-gram", name: "گرم", grams: 1 },
     ],
   },
   {
-    id: "food-ghormeh-sabzi", name: "قورمه‌سبزی", category: "stew", mealTypes: ["lunch", "dinner"],
+    id: "food-ghormeh-sabzi", name: "قورمه‌سبزی با گوشت گوسفندی", category: "stew", mealTypes: ["lunch", "dinner"],
     per100g: { "n-energy": 165, "n-carbs": 6.5, "n-protein": 11.2, "n-fat": 10.5, "n-fiber": 3.2, "n-iron": 2.8, "n-calcium": 45, "n-vitc": 4 },
     servingUnits: [
       { id: "su-ghormeh-bowl", name: "پیاله", grams: 150 },
       { id: "su-ghormeh-plate", name: "بشقاب", grams: 250 },
-      { id: "su-ghormeh-ladle", name: "ملاقه", grams: 100 },
+      { id: "su-ghormeh-ladle", name: "ملاقه", grams: 188 },
       { id: "su-ghormeh-gram", name: "گرم", grams: 1 },
     ],
   },
   {
-    id: "food-mast-khiar", name: "ماست و خیار با نعناع", category: "dairy", mealTypes: ["lunch", "dinner"],
-    per100g: { "n-energy": 65, "n-carbs": 4.5, "n-protein": 3.8, "n-fat": 3.2, "n-fiber": 0.5, "n-iron": 0.2, "n-calcium": 120, "n-vitc": 2 },
+    id: "food-mast-khiar", name: "ماست و خیار نعنایی", category: "dairy", mealTypes: ["lunch", "dinner"],
+    per100g: { "n-energy": 63, "n-carbs": 4.5, "n-protein": 3.8, "n-fat": 3.2, "n-fiber": 0.5, "n-iron": 0.2, "n-calcium": 120, "n-vitc": 2 },
     servingUnits: [
       { id: "su-mast-bowl", name: "پیاله", grams: 150 },
       { id: "su-mast-spoon", name: "قاشق", grams: 25 },
@@ -219,16 +262,6 @@ const FOODS: Array<{
     ],
   },
   {
-    id: "food-ghormeh-sabzi", name: "قورمه سبزی", category: "stew", mealTypes: ["lunch", "dinner"],
-    per100g: { "n-energy": 170, "n-carbs": 8, "n-protein": 12, "n-fat": 10, "n-fiber": 3, "n-iron": 2.6, "n-calcium": 30, "n-vitc": 6 },
-    servingUnits: [
-      { id: "su-gs-plate", name: "بشقاب", grams: 300 },
-      { id: "su-gs-ladle", name: "ملاقه", grams: 100 },
-      { id: "su-gs-spoon", name: "قاشق", grams: 15 },
-      { id: "su-gs-gram", name: "گرم", grams: 1 },
-    ],
-  },
-  {
     id: "food-gheymeh", name: "قیمه", category: "stew", mealTypes: ["lunch", "dinner"],
     per100g: { "n-energy": 210, "n-carbs": 12, "n-protein": 15, "n-fat": 11, "n-fiber": 2.5, "n-iron": 2.2, "n-calcium": 25, "n-vitc": 3 },
     servingUnits: [
@@ -287,16 +320,6 @@ const FOODS: Array<{
     ],
   },
   {
-    id: "food-tahchin", name: "ته‌چین", category: "rice", mealTypes: ["lunch", "dinner"],
-    per100g: { "n-energy": 260, "n-carbs": 22, "n-protein": 13, "n-fat": 13, "n-fiber": 1, "n-iron": 1.5, "n-calcium": 70, "n-vitc": 0 },
-    servingUnits: [
-      { id: "su-tahchin-piece", name: "تکه", grams: 200 },
-      { id: "su-tahchin-spatula", name: "کفگیر", grams: 150 },
-      { id: "su-tahchin-plate", name: "بشقاب", grams: 250 },
-      { id: "su-tahchin-gram", name: "گرم", grams: 1 },
-    ],
-  },
-  {
     id: "food-zereshk-polo", name: "زرشک‌پلو", category: "rice", mealTypes: ["lunch", "dinner"],
     per100g: { "n-energy": 230, "n-carbs": 34, "n-protein": 5, "n-fat": 9, "n-fiber": 1.5, "n-iron": 1.2, "n-calcium": 14, "n-vitc": 1 },
     servingUnits: [
@@ -337,9 +360,9 @@ const FOODS: Array<{
     id: "food-kateh", name: "کته", category: "rice", mealTypes: ["lunch", "dinner"],
     per100g: { "n-energy": 130, "n-carbs": 28.2, "n-protein": 2.7, "n-fat": 0.3, "n-fiber": 0.4, "n-iron": 0.2, "n-calcium": 10, "n-vitc": 0 },
     servingUnits: [
-      { id: "su-kateh-plate", name: "بشقاب", grams: 250 },
-      { id: "su-kateh-ladle", name: "ملاقه", grams: 120 },
-      { id: "su-kateh-gram", name: "گرم", grams: 1 },
+      { id: "su-katehplain-plate", name: "بشقاب", grams: 250 },
+      { id: "su-katehplain-ladle", name: "ملاقه", grams: 120 },
+      { id: "su-katehplain-gram", name: "گرم", grams: 1 },
     ],
   },
   {
@@ -398,15 +421,6 @@ const FOODS: Array<{
       { id: "su-olvie-plate", name: "بشقاب", grams: 150 },
       { id: "su-olvie-tbsp", name: "قاشق غذاخوری", grams: 30 },
       { id: "su-olvie-gram", name: "گرم", grams: 1 },
-    ],
-  },
-  {
-    id: "food-mast-khiar", name: "ماست و خیار", category: "salad", mealTypes: ["lunch", "dinner"],
-    per100g: { "n-energy": 80, "n-carbs": 6, "n-protein": 3, "n-fat": 5, "n-fiber": 0.5, "n-iron": 0.3, "n-calcium": 70, "n-vitc": 2 },
-    servingUnits: [
-      { id: "su-mastkhiar-bowl", name: "کاسه", grams: 150 },
-      { id: "su-mastkhiar-tbsp", name: "قاشق غذاخوری", grams: 30 },
-      { id: "su-mastkhiar-gram", name: "گرم", grams: 1 },
     ],
   },
   {
@@ -522,10 +536,10 @@ const FOODS: Array<{
     id: "food-mast", name: "ماست", category: "dairy", mealTypes: ["breakfast", "lunch", "dinner"],
     per100g: { "n-energy": 60, "n-carbs": 4.5, "n-protein": 3.5, "n-fat": 3.2, "n-fiber": 0, "n-iron": 0.1, "n-calcium": 120, "n-vitc": 1 },
     servingUnits: [
-      { id: "su-mast-bowl", name: "کاسه", grams: 150 },
-      { id: "su-mast-tbsp", name: "قاشق غذاخوری", grams: 30 },
-      { id: "su-mast-cup", name: "پیمانه", grams: 200 },
-      { id: "su-mast-gram", name: "گرم", grams: 1 },
+      { id: "su-mastplain-bowl", name: "کاسه", grams: 150 },
+      { id: "su-mastplain-tbsp", name: "قاشق غذاخوری", grams: 30 },
+      { id: "su-mastplain-cup", name: "پیمانه", grams: 200 },
+      { id: "su-mastplain-gram", name: "گرم", grams: 1 },
     ],
   },
   {
@@ -734,20 +748,39 @@ async function main() {
   await upsertNutrients();
   await upsertRequirements();
   await upsertDietPrograms();
-  for (const f of FOODS) {
-    await db.insert(foods).values({
-      id: f.id, name: f.name, category: f.category, mealTypes: f.mealTypes,
-      source: "usda-fdc", sourceVersion: "2024-04-18",
-    }).onConflictDoNothing();
-    for (const su of f.servingUnits) {
-      await db.insert(servingUnits).values({ id: su.id, foodId: f.id, name: su.name, gramsEquivalent: String(su.grams) })
-        .onConflictDoNothing();
-    }
-    for (const [nutrientId, amount] of Object.entries(f.per100g)) {
-      await db.insert(foodNutrients).values({ foodId: f.id, nutrientId, amountPer100g: String(amount) })
-        .onConflictDoNothing();
-    }
-  }
+  await upsertDietProgramTranslations();
+  // Convergent upserts (cf. scripts/seed.ts personas): reseeds correct names,
+  // serving grams, and per-100g values on stale dev databases. Still pure
+  // upsert — no wipes.
+  // Bulk upserts (was ~900 sequential roundtrips — too slow over remote Neon).
+  await db.insert(foods).values(FOODS.map((f) => ({
+    id: f.id, name: f.name, category: f.category, mealTypes: f.mealTypes,
+    source: "usda-fdc", sourceVersion: "2024-04-18",
+  }))).onConflictDoUpdate({
+    target: foods.id,
+    set: { name: sql`excluded.name`, category: sql`excluded.category`, mealTypes: sql`excluded.meal_types` },
+  });
+  await db.insert(servingUnits).values(FOODS.flatMap((f) => f.servingUnits.map((su) => ({
+    id: su.id, foodId: f.id, name: su.name, gramsEquivalent: String(su.grams),
+  })))).onConflictDoUpdate({
+    target: servingUnits.id,
+    set: { foodId: sql`excluded.food_id`, name: sql`excluded.name`, gramsEquivalent: sql`excluded.grams_equivalent` },
+  });
+  await db.insert(foodNutrients).values(FOODS.flatMap((f) =>
+    Object.entries(f.per100g).map(([nutrientId, amount]) => ({
+      foodId: f.id, nutrientId, amountPer100g: String(amount),
+    }))
+  )).onConflictDoUpdate({
+    target: [foodNutrients.foodId, foodNutrients.nutrientId],
+    set: { amountPer100g: sql`excluded.amount_per_100g` },
+  });
+  // Orphan serving units from the deleted duplicate food blocks (same food id,
+  // unique unit ids — DoNothing let them attach). Delete keeps reseeds convergent.
+  await db.delete(servingUnits).where(inArray(servingUnits.id, [
+    "su-tahchin-piece", "su-tahchin-spatula",
+    "su-gs-plate", "su-gs-ladle", "su-gs-spoon", "su-gs-gram",
+    "su-mastkhiar-bowl", "su-mastkhiar-tbsp", "su-mastkhiar-gram",
+  ]));
   console.log(`seeded ${FOODS.length} foods`);
 }
 

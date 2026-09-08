@@ -8,10 +8,9 @@ import {
   toPersianDigits,
   calculateMacros,
 } from "@/lib/metabolism";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
-import faMessages from "../../../../../messages/fa.json";
-
-const faDiary = faMessages.diary as Record<string, string>;
+import { formatJalaliDate, formatJalaliTime } from "@/lib/format";
+import { DiaryDayPicker } from "./day-picker";
+import { BookOpen, Calendar, ChefHat, ChevronLeft, ChevronRight, Sandwich, Utensils } from "lucide-react";
 
 const dayPattern = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -25,26 +24,9 @@ export default async function DiaryPage({
   const { locale } = await params;
   const { day: dayParam } = await searchParams;
   const user = await requireUser();
+  const t = await getTranslations("diary");
   const isEn = locale === "en";
   const dir = isEn ? "ltr" : "rtl";
-  const timeLocale = locale === "en" ? "en-US" : locale === "ar" ? "ar-EG" : "fa-IR";
-
-  let t: (key: string, values?: Record<string, string | number>) => string = (
-    key,
-    values,
-  ) => {
-    let out: string = faDiary[key] ?? key;
-    if (values) {
-      for (const [k, v] of Object.entries(values)) out = out.replaceAll(`{${k}}`, String(v));
-    }
-    return out;
-  };
-  try {
-    const intlT = await getTranslations("diary");
-    t = (key, values) => intlT(key, values);
-  } catch {
-    // fallback in environments without next-intl server context
-  }
 
   const today = new Date().toISOString().slice(0, 10);
   const rawDay = dayParam ?? today;
@@ -86,7 +68,7 @@ export default async function DiaryPage({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-lowest p-6 rounded-3xl shadow-xs border border-outline-variant/30">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-            <ClinicalIcon name="restaurant" size={26} />
+            <Utensils size={26} aria-hidden="true" />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-extrabold text-on-surface">
@@ -99,8 +81,8 @@ export default async function DiaryPage({
         </div>
 
         <div className="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-xl text-on-surface text-xs sm:text-sm font-bold border border-outline-variant/30 self-start sm:self-auto">
-          <ClinicalIcon name="calendar_today" size={18} className="text-primary" />
-          <span>{t("monitoredOn", { date: toPersianDigits(day) })}</span>
+          <Calendar size={18} className="text-primary" aria-hidden="true" />
+          <span>{t("monitoredOn", { date: formatJalaliDate(`${day}T12:00:00Z`, locale) })}</span>
         </div>
       </div>
 
@@ -113,10 +95,10 @@ export default async function DiaryPage({
             </span>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-3xl sm:text-4xl font-bold text-primary font-data-metric">
-                {formatPersianNumber(energyKcal)}
+                {isEn ? energyKcal.toLocaleString("en-US") : formatPersianNumber(energyKcal)}
               </span>
               <span className="text-xs sm:text-sm text-on-surface-variant">
-                {t("targetLabel", { target: formatPersianNumber(targetTdee) })}
+                {t("targetLabel", { target: isEn ? targetTdee.toLocaleString("en-US") : formatPersianNumber(targetTdee) })}
               </span>
               {/* Preserves numeric kcal value visible in text for Playwright contract */}
               <span className="text-xs text-on-surface-variant opacity-75">
@@ -127,10 +109,10 @@ export default async function DiaryPage({
 
           <div className="text-start sm:text-end">
             <span className="text-base sm:text-lg font-bold text-secondary">
-              {t("remainingLabel", { remaining: formatPersianNumber(remainingKcal) })}
+              {t("remainingLabel", { remaining: isEn ? remainingKcal.toLocaleString("en-US") : formatPersianNumber(remainingKcal) })}
             </span>
             <span className="block text-xs text-on-surface-variant mt-0.5">
-              {t("percentComplete", { percent: toPersianDigits(caloriePercent) })}
+              {t("percentComplete", { percent: isEn ? String(caloriePercent) : toPersianDigits(caloriePercent) })}
             </span>
           </div>
         </div>
@@ -148,9 +130,9 @@ export default async function DiaryPage({
           <div className="bg-surface-container-low/60 p-3 rounded-2xl border border-outline-variant/20">
             <span className="text-xs text-on-surface-variant block">{t("macroProtein")}</span>
             <span className="text-sm sm:text-base font-bold text-on-surface block mt-1">
-              {toPersianDigits(proteinG)}{" "}
+              {isEn ? proteinG : toPersianDigits(proteinG)}{" "}
               <span className="text-xs font-normal text-on-surface-variant">
-                {t("perGram", { goal: toPersianDigits(proteinGoal) })}
+                {t("perGram", { goal: isEn ? proteinGoal : toPersianDigits(proteinGoal) })}
               </span>
             </span>
           </div>
@@ -158,9 +140,9 @@ export default async function DiaryPage({
           <div className="bg-surface-container-low/60 p-3 rounded-2xl border border-outline-variant/20">
             <span className="text-xs text-on-surface-variant block">{t("macroCarbs")}</span>
             <span className="text-sm sm:text-base font-bold text-on-surface block mt-1">
-              {toPersianDigits(carbsG)}{" "}
+              {isEn ? carbsG : toPersianDigits(carbsG)}{" "}
               <span className="text-xs font-normal text-on-surface-variant">
-                {t("perGram", { goal: toPersianDigits(carbGoal) })}
+                {t("perGram", { goal: isEn ? carbGoal : toPersianDigits(carbGoal) })}
               </span>
             </span>
           </div>
@@ -168,9 +150,9 @@ export default async function DiaryPage({
           <div className="bg-surface-container-low/60 p-3 rounded-2xl border border-outline-variant/20">
             <span className="text-xs text-on-surface-variant block">{t("macroFat")}</span>
             <span className="text-sm sm:text-base font-bold text-on-surface block mt-1">
-              {toPersianDigits(fatG)}{" "}
+              {isEn ? fatG : toPersianDigits(fatG)}{" "}
               <span className="text-xs font-normal text-on-surface-variant">
-                {t("perGram", { goal: toPersianDigits(fatGoal) })}
+                {t("perGram", { goal: isEn ? fatGoal : toPersianDigits(fatGoal) })}
               </span>
             </span>
           </div>
@@ -186,13 +168,13 @@ export default async function DiaryPage({
               {t("loggedTitle")}
             </h2>
             <span className="text-xs text-on-surface-variant">
-              {t("loggedCount", { count: toPersianDigits(intakes.length) })}
+              {t("loggedCount", { count: isEn ? intakes.length : toPersianDigits(intakes.length) })}
             </span>
           </div>
 
           {intakes.length === 0 ? (
             <div className="bg-surface-container-lowest rounded-3xl p-8 text-center border border-dashed border-outline-variant/40 flex flex-col items-center justify-center">
-              <ClinicalIcon name="restaurant_menu" size={36} className="text-on-surface-variant/50 mb-2" />
+              <ChefHat size={36} className="text-on-surface-variant/50 mb-2" aria-hidden="true" />
               <p className="text-sm font-bold text-on-surface">
                 {t("emptyTitle")}
               </p>
@@ -209,7 +191,7 @@ export default async function DiaryPage({
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                      <ClinicalIcon name="lunch_dining" size={22} />
+                      <Sandwich size={22} aria-hidden="true" />
                     </div>
                     <div>
                       <h3 className="font-bold text-sm sm:text-base text-on-surface">
@@ -218,7 +200,7 @@ export default async function DiaryPage({
                       <p className="text-xs text-on-surface-variant mt-0.5">
                         {t("servingLine", {
                           unit: i.servingUnitName,
-                          quantity: toPersianDigits(i.quantity),
+                          quantity: isEn ? i.quantity : toPersianDigits(i.quantity),
                         })}
                       </p>
                     </div>
@@ -226,10 +208,7 @@ export default async function DiaryPage({
 
                   <div className="text-end flex flex-col items-end">
                     <span className="text-xs text-on-surface-variant">
-                      {new Date(i.loggedAt).toLocaleTimeString(timeLocale, {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatJalaliTime(i.loggedAt, locale)}
                     </span>
                   </div>
                 </div>
@@ -239,8 +218,38 @@ export default async function DiaryPage({
         </div>
 
         {/* Quick Food Logger Form (5 cols) */}
-        <div className="lg:col-span-5">
-          <LogFood foods={options} />
+        <div className="lg:col-span-5 flex flex-col gap-4">
+          <LogFood foods={options} locale={locale} />
+
+          {/* Quick link to Food Database */}
+          <div className="bg-surface-container-lowest p-4 sm:p-5 rounded-3xl border border-outline-variant/30 flex items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+                <BookOpen size={22} aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-xs sm:text-sm font-bold text-on-surface">
+                  {t("dbTitle")}
+                </h3>
+                <p className="text-[11px] text-on-surface-variant">
+                  {t("dbDesc")}
+                </p>
+              </div>
+            </div>
+            <Link
+              href={`/${locale}/nutrition/foods`}
+              className="text-xs font-bold text-secondary hover:underline shrink-0 flex items-center gap-1"
+            >
+              <span>
+                {t("dbCta")}
+              </span>
+              {isEn ? (
+                <ChevronRight size={16} aria-hidden="true" />
+              ) : (
+                <ChevronLeft size={16} aria-hidden="true" />
+              )}
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -253,6 +262,7 @@ export default async function DiaryPage({
           {t("pickDate")}
         </span>
         <div className="flex flex-wrap items-center gap-2">
+          <DiaryDayPicker locale={locale} day={day} />
           {days.map((d) => {
             const isSelected = d === day;
             return (
@@ -265,7 +275,10 @@ export default async function DiaryPage({
                     : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
                 }`}
               >
-                {toPersianDigits(d)}
+                {formatJalaliDate(`${d}T12:00:00Z`, locale, {
+                  month: "short",
+                  day: "numeric",
+                })}
                 {d === today && t("todaySuffix")}
               </Link>
             );

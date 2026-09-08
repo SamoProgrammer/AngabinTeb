@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition, useMemo } from "react";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { logIntake } from "@/contexts/nutrition/actions";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { useTranslations } from "next-intl";
+import { CircleCheckBig, CirclePlus, RefreshCw, Search } from "lucide-react";
 
 export interface FoodOption {
   id: string;
@@ -11,7 +13,14 @@ export interface FoodOption {
   servingUnits: Array<{ id: string; name: string }>;
 }
 
-export function LogFood({ foods }: { foods: FoodOption[] }) {
+export function LogFood({
+  foods,
+  locale = "fa",
+}: {
+  foods: FoodOption[];
+  locale?: string;
+}) {
+  const [searchTerm, setSearchTerm] = useState("");
   const [foodId, setFoodId] = useState(foods[0]?.id ?? "");
   const [servingUnitId, setServingUnitId] = useState(
     foods[0]?.servingUnits[0]?.id ?? ""
@@ -21,8 +30,39 @@ export function LogFood({ foods }: { foods: FoodOption[] }) {
   const [success, setSuccess] = useState(false);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const pathname = usePathname() || "";
+  const currentLocale = locale || (pathname.split("/")[1] || "fa");
+  const tNs = useTranslations("diary");
 
-  const food = foods.find((f) => f.id === foodId);
+  const SubmitIcon = pending ? RefreshCw : CirclePlus;
+
+  // Playwright E2E contract anchors (aria-labels stay English literals).
+  const t = {
+    title: tNs("logTitle"),
+    subtitle: tNs("logSubtitle"),
+    searchLabel: tNs("logSearchLabel"),
+    searchPlaceholder: tNs("logSearchPh"),
+    clear: tNs("logClear"),
+    foodLabel: tNs("logFood"),
+    itemsFound: (count: number) => tNs("logFoundCount", { count: String(count) }),
+    servingLabel: tNs("logServing"),
+    qtyLabel: tNs("logQty"),
+    errorMsg: tNs("logError"),
+    successMsg: tNs("logSuccess"),
+    viewDiary: tNs("logViewDiary"),
+    buttonText: pending ? tNs("logBusy") : tNs("logSubmit"),
+  };
+
+  // Real-time search filter for quick lookup
+  const filteredFoods = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return foods;
+    const matches = foods.filter((f) => f.name.toLowerCase().includes(term));
+    return matches.length > 0 ? matches : foods;
+  }, [foods, searchTerm]);
+
+  const activeFoodList = filteredFoods.length > 0 ? filteredFoods : foods;
+  const food = activeFoodList.find((f) => f.id === foodId) ?? foods.find((f) => f.id === foodId) ?? foods[0];
 
   function onFoodChange(id: string) {
     setFoodId(id);
@@ -34,48 +74,89 @@ export function LogFood({ foods }: { foods: FoodOption[] }) {
     <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 shadow-xs border border-outline-variant/30">
       <div className="flex items-center gap-3 pb-4 mb-6 border-b border-outline-variant/20">
         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-          <ClinicalIcon name="add_circle" size={24} />
+          <CirclePlus size={24} aria-hidden="true" />
         </div>
         <div>
           <h2 className="text-lg font-bold text-on-surface">
-            ثبت سریع وعده در پرونده
+            {t.title}
           </h2>
           <p className="text-xs text-on-surface-variant">
-            محاسبه آنی کالری و درشت‌مغذی‌ها با مقیاس‌های خانگی
+            {t.subtitle}
           </p>
         </div>
       </div>
 
       <form
-        className="grid grid-cols-1 gap-4 text-right"
+        className="grid grid-cols-1 gap-4 text-start"
         onSubmit={(e) => {
           e.preventDefault();
           setError(null);
           setSuccess(false);
           startTransition(async () => {
             const res = await logIntake({
-              foodId,
+              foodId: food?.id ?? foodId,
               servingUnitId,
               quantity: Number(quantity),
             });
             if (res.ok) {
               setSuccess(true);
               router.refresh();
-              setTimeout(() => setSuccess(false), 3000);
+              setTimeout(() => setSuccess(false), 5000);
             } else {
-              setError("Failed to log intake");
+              setError(t.errorMsg);
             }
           });
         }}
       >
+        {/* Quick Search Filter (Only rendered when there are multiple foods to browse) */}
+        {foods.length > 3 && (
+          <div>
+            <label
+              htmlFor="food-search-filter"
+              className="block text-xs font-bold text-on-surface mb-1"
+            >
+              {t.searchLabel}
+            </label>
+            <div className="relative flex items-center">
+              <input
+                id="food-search-filter"
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={t.searchPlaceholder}
+                className="w-full bg-surface-container-low rounded-xl ps-9 pe-3 py-2 text-on-surface text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 border border-outline-variant/30"
+              />
+              <span className="absolute start-2.5 text-on-surface-variant">
+                <Search size={16} aria-hidden="true" />
+              </span>
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute end-2.5 text-xs text-on-surface-variant hover:text-on-surface"
+                >
+                  {t.clear}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Food Select (Preserves Playwright getByLabel('Food')) */}
         <div>
-          <label
-            htmlFor="food-select"
-            className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
-          >
-            خوراک / غذا <span className="text-on-surface-variant font-normal text-xs">(Food)</span>
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label
+              htmlFor="food-select"
+              className="block text-xs sm:text-sm font-bold text-on-surface"
+            >
+              {t.foodLabel}
+            </label>
+            {searchTerm && (
+              <span className="text-[11px] text-primary font-semibold">
+                {t.itemsFound(activeFoodList.length)}
+              </span>
+            )}
+          </div>
           <select
             id="food-select"
             aria-label="Food"
@@ -83,7 +164,7 @@ export function LogFood({ foods }: { foods: FoodOption[] }) {
             onChange={(e) => onFoodChange(e.target.value)}
             className="w-full bg-surface-container-low rounded-xl px-3.5 py-2.5 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-outline-variant/30"
           >
-            {foods.map((f) => (
+            {activeFoodList.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.name}
               </option>
@@ -97,7 +178,7 @@ export function LogFood({ foods }: { foods: FoodOption[] }) {
             htmlFor="serving-select"
             className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
           >
-            واحد مصرفی سنتی <span className="text-on-surface-variant font-normal text-xs">(Serving)</span>
+            {t.servingLabel}
           </label>
           <select
             id="serving-select"
@@ -120,7 +201,7 @@ export function LogFood({ foods }: { foods: FoodOption[] }) {
             htmlFor="qty-input"
             className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
           >
-            مقدار مصرف <span className="text-on-surface-variant font-normal text-xs">(Quantity)</span>
+            {t.qtyLabel}
           </label>
           <input
             id="qty-input"
@@ -141,9 +222,17 @@ export function LogFood({ foods }: { foods: FoodOption[] }) {
         )}
 
         {success && (
-          <div className="flex items-center gap-1.5 text-primary text-xs font-bold mt-1">
-            <ClinicalIcon name="check_circle" size={16} />
-            <span>با موفقیت در پرونده سلامت ثبت شد.</span>
+          <div className="bg-primary/10 border border-primary/30 p-3 rounded-xl flex items-center justify-between gap-2 text-xs font-bold text-primary mt-1">
+            <div className="flex items-center gap-1.5">
+              <CircleCheckBig size={16} aria-hidden="true" />
+              <span>{t.successMsg}</span>
+            </div>
+            <Link
+              href={`/${currentLocale}/nutrition/diary`}
+              className="text-[11px] underline hover:text-primary-container"
+            >
+              {t.viewDiary}
+            </Link>
           </div>
         )}
 
@@ -154,12 +243,12 @@ export function LogFood({ foods }: { foods: FoodOption[] }) {
           aria-label="Log intake"
           className="w-full bg-primary hover:bg-primary-container text-on-primary py-3 px-6 rounded-xl font-bold text-sm sm:text-base shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
         >
-          <ClinicalIcon
-            name={pending ? "sync" : "add_circle"}
+          <SubmitIcon
             size={20}
             className={pending ? "animate-spin" : ""}
+            aria-hidden="true"
           />
-          <span>{pending ? "در حال ثبت... (Logging…)" : "ثبت در پرونده (Log intake)"}</span>
+          <span>{t.buttonText}</span>
         </button>
       </form>
     </div>

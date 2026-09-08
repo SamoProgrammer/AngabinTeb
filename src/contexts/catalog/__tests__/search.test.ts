@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/translate", () => ({ overlayTranslations: (_entityType: string, rows: unknown[]) => rows }));
+vi.mock("@/lib/translate", () => ({ localizedRows: async (_entityType: string, rows: unknown[]) => rows }));
 
 import { searchAll } from "../queries";
 

@@ -1,19 +1,26 @@
 import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { locations, providers, translations } from "@/db/schema";
 import { createLocation, updateLocation } from "@/contexts/catalog/actions";
 import { LocationForm } from "../location-form";
 
-export default async function AdminLocationEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function AdminLocationEditPage({
+  params,
+}: {
+  params: Promise<{ id: string; locale?: string }>;
+}) {
+  const { id, locale } = await params;
+  const tLocations = await getTranslations("admin.locations");
+
   const providerRows = await db.select({ id: providers.id, name: providers.name }).from(providers).orderBy(providers.name);
 
   if (id === "new") {
     return (
-      <div>
-        <h1 className="mb-6 text-2xl font-bold">New location</h1>
-        <LocationForm action={createLocation} providers={providerRows} />
+      <div className="text-start">
+        <h1 className="mb-6 text-2xl font-bold">{tLocations("newTitle")}</h1>
+        <LocationForm action={createLocation} providers={providerRows} locale={locale} />
       </div>
     );
   }
@@ -37,9 +44,9 @@ export default async function AdminLocationEditPage({ params }: { params: Promis
   }
 
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold">Edit location</h1>
-      <LocationForm action={updateLocation.bind(null, id)} initial={initial} providers={providerRows} />
+    <div className="text-start">
+      <h1 className="mb-6 text-2xl font-bold">{tLocations("editTitle")}</h1>
+      <LocationForm action={updateLocation.bind(null, id)} initial={initial} providers={providerRows} locale={locale} />
     </div>
   );
 }

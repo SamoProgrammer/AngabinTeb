@@ -1,6 +1,6 @@
 import type { BookingStatus } from "./kernel";
 
-export type { BookingStatus, SlotView } from "./kernel";
+export type { BookingStatus } from "./kernel";
 
 export type AppointmentRow = {
   id: string;

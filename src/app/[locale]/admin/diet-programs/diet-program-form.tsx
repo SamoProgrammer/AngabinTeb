@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { redirect } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -19,61 +20,65 @@ function toInput(fd: FormData): Record<string, unknown> {
   return input;
 }
 
-export function DietProgramForm({ action }: { action: Action }) {
+export function DietProgramForm({ action, locale = "fa" }: { action: Action; locale?: string }) {
+  const tCommon = useTranslations("admin.common");
+  const tDiet = useTranslations("admin.dietPrograms");
+  const tCat = useTranslations("admin.categories");
+
   const [state, formAction] = useActionState(async (_prev: ActionResult, fd: FormData) => {
     const result = await action(toInput(fd));
-    if (result.ok) redirect("/admin/diet-programs");
+    if (result.ok) redirect(`/${locale}/admin/diet-programs`);
     return result;
   }, {});
 
   return (
-    <form action={formAction} className="max-w-xl space-y-4">
+    <form action={formAction} className="max-w-xl space-y-4 text-start">
       {state.error && (
         <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{state.error}</p>
       )}
       <label className="block space-y-1 text-sm">
-        Name (Persian) <Input name="nameFa" required />
+        {tCat("nameFa")} <Input name="nameFa" required />
       </label>
       <label className="block space-y-1 text-sm">
-        Name (English) <Input name="nameEn" />
+        {tCat("nameEn")} <Input name="nameEn" />
       </label>
       <label className="block space-y-1 text-sm">
-        Name (Arabic) <Input name="nameAr" />
+        {tCat("nameAr")} <Input name="nameAr" />
       </label>
       <label className="block space-y-1 text-sm">
-        Organization context
+        {tDiet("context")}
         <select name="organizationContext" defaultValue="banks" required
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 outline-none">
-          {["banks", "universities", "health_centers", "clinics", "other"].map((c) => (
-            <option key={c} value={c}>{c}</option>
+          {(["banks", "universities", "health_centers", "clinics", "other"] as const).map((c) => (
+            <option key={c} value={c}>{tDiet(`contexts.${c}`)}</option>
           ))}
         </select>
       </label>
       <label className="block space-y-1 text-sm">
-        Plan type <Input name="planType" required />
+        {tDiet("planType")} <Input name="planType" required />
       </label>
       <label className="block space-y-1 text-sm">
-        Duration (days) <Input type="number" min={1} step={1} name="durationDays" required />
+        {tDiet("durationDays")} <Input type="number" min={1} step={1} name="durationDays" required />
       </label>
       <label className="block space-y-1 text-sm">
-        Price <Input type="number" min={0} step={1} name="price" required />
+        {tCommon("price")} <Input type="number" min={0} step={1} name="price" required />
       </label>
       <label className="block space-y-1 text-sm">
-        Description (Persian)
+        {tDiet("descFa")}
         <textarea name="descriptionFa" rows={4}
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
       </label>
       <label className="block space-y-1 text-sm">
-        Description (English)
+        {tDiet("descEn")}
         <textarea name="descriptionEn" rows={4}
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
       </label>
       <label className="block space-y-1 text-sm">
-        Description (Arabic)
+        {tDiet("descAr")}
         <textarea name="descriptionAr" rows={4}
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
       </label>
-      <Button type="submit">Create</Button>
+      <Button type="submit">{tDiet("createBtn")}</Button>
     </form>
   );
 }

@@ -1,32 +1,11 @@
 export type BookingStatus = "confirmed" | "cancelled" | "completed" | "no_show";
 
-export type SlotView = {
-  capacity: number;
-  bookedCount: number;
-  heldUntil: Date | null;
-};
-
-export function holdExpired(slot: Pick<SlotView, "heldUntil">, now: Date): boolean {
-  return slot.heldUntil !== null && slot.heldUntil <= now;
-}
-
-export function canBook(slot: SlotView, partySize: number, now: Date): boolean {
-  if (!holdExpired(slot, now) && slot.heldUntil !== null) return false;
-  return slot.bookedCount + partySize <= slot.capacity;
-}
+// Capacity and hold enforcement lives in the conditional SQL UPDATE inside
+// bookAppointmentWithUser (src/contexts/booking/actions.ts). This module keeps
+// only the pure predicates the action actually invokes.
 
 export function canCancel(status: BookingStatus): boolean {
   return status === "confirmed";
-}
-
-export function reschedulePlan(
-  slot: SlotView,
-  partySize: number,
-  now: Date,
-): { ok: true } | { ok: false; reason: "capacity" | "held" } {
-  if (!holdExpired(slot, now) && slot.heldUntil !== null) return { ok: false, reason: "held" };
-  if (slot.bookedCount + partySize > slot.capacity) return { ok: false, reason: "capacity" };
-  return { ok: true };
 }
 
 export function validatePartySize(n: unknown): n is 1 | 2 | 3 | 4 {

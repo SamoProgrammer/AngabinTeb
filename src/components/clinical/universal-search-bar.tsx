@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { useTranslations } from "next-intl";
+import { ArrowLeft, ArrowRight, Atom, BadgeCheck, BookOpen, CircleCheckBig, Headset, Search, Stethoscope, Utensils, type LucideIcon } from "lucide-react";
 
 export type SearchCategory = "doctors" | "services" | "nutrition" | "articles";
 
@@ -18,41 +19,19 @@ export interface UniversalSearchBarProps {
 interface TabConfig {
   id: SearchCategory;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   placeholder: string;
   routePath: string;
 }
 
-const TABS: TabConfig[] = [
-  {
-    id: "doctors",
-    label: "پزشکان و متخصصان",
-    icon: "stethoscope",
-    placeholder: "جستجوی نام پزشک، تخصص، خدمت درمانی یا مقاله سلامت...",
-    routePath: "doctors",
-  },
-  {
-    id: "services",
-    label: "خدمات پاراکلینیک",
-    icon: "science",
-    placeholder: "جستجوی خدمات پاراکلینیک، آزمایش خون، چکاپ، تصویربرداری...",
-    routePath: "services",
-  },
-  {
-    id: "nutrition",
-    label: "رژیم و کالری‌شمار",
-    icon: "restaurant",
-    placeholder: "جستجوی غذاها، کالری مواد غذایی، برنامه‌های رژیمی...",
-    routePath: "nutrition",
-  },
-  {
-    id: "articles",
-    label: "مقالات سلامت",
-    icon: "menu_book",
-    placeholder: "جستجوی مقالات پزشکی، بیماری‌ها، راهنمای سلامت...",
-    routePath: "articles",
-  },
-];
+// Tab ids, icons, and route paths are static; labels and placeholders
+// resolve from the "search" message catalog.
+const TAB_IDS = [
+  { id: "doctors", icon: Stethoscope, routePath: "doctors" },
+  { id: "services", icon: Atom, routePath: "services" },
+  { id: "nutrition", icon: Utensils, routePath: "foods" },
+  { id: "articles", icon: BookOpen, routePath: "articles" },
+] as const;
 
 export function UniversalSearchBar({
   locale = "fa",
@@ -66,7 +45,27 @@ export function UniversalSearchBar({
   const [query, setQuery] = useState(initialQuery);
   const router = useRouter();
 
-  const currentTab = TABS.find((t) => t.id === activeTab) ?? TABS[0];
+  const t = useTranslations("search");
+  const tCommon = useTranslations("common");
+
+  const tabs: TabConfig[] = TAB_IDS.map((tab) => ({
+    id: tab.id,
+    label: t(`tabs.${tab.id}.label`),
+    icon: tab.icon,
+    placeholder: t(`tabs.${tab.id}.placeholder`),
+    routePath: tab.routePath,
+  }));
+  const strings = {
+    tablistAria: t("tablistAria"),
+    formAria: t("formAria"),
+    searchButton: tCommon("search"),
+    guarantee1: t("guarantee1"),
+    guarantee2: t("guarantee2"),
+    guarantee3: t("guarantee3"),
+  };
+  const isEn = locale === "en";
+
+  const currentTab = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,16 +79,16 @@ export function UniversalSearchBar({
   };
 
   return (
-    <div className={`w-full ${className}`} dir="rtl">
+    <div className={`w-full ${className}`} dir={isEn ? "ltr" : "rtl"}>
       {/* Search card container */}
       <div className="w-full bg-surface-container-lowest rounded-3xl shadow-tier-1 p-4 sm:p-6 border border-outline-variant/30 transition-shadow hover:shadow-tier-2">
         {/* Category Tabs */}
         <div
           role="tablist"
-          aria-label="دسته‌بندی جستجو"
+          aria-label={strings.tablistAria}
           className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none"
         >
-          {TABS.map((tab) => {
+          {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
@@ -106,7 +105,7 @@ export function UniversalSearchBar({
                     : "bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
                 }`}
               >
-                <ClinicalIcon name={tab.icon} size={18} className="shrink-0" />
+                <tab.icon size={18} className="shrink-0" aria-hidden="true" />
                 <span>{tab.label}</span>
               </button>
             );
@@ -117,14 +116,14 @@ export function UniversalSearchBar({
         <form
           onSubmit={handleSearchSubmit}
           role="search"
-          aria-label="فرم جستجوی یکپارچه"
+          aria-label={strings.formAria}
           className="flex flex-col md:flex-row items-center gap-3"
         >
           <div className="relative w-full flex items-center bg-surface-container-low rounded-2xl px-4 py-2 transition-colors focus-within:bg-surface-container focus-within:ring-2 focus-within:ring-primary/20">
-            <ClinicalIcon
-              name="search"
+            <Search
               size={24}
               className="text-primary me-2 shrink-0"
+              aria-hidden="true"
             />
             <input
               id="main-search-input"
@@ -133,7 +132,7 @@ export function UniversalSearchBar({
               onChange={(e) => setQuery(e.target.value)}
               placeholder={currentTab.placeholder}
               aria-label={currentTab.placeholder}
-              className="w-full bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none py-1 pe-2"
+              className="w-full bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none py-1 pe-2 text-start"
             />
           </div>
 
@@ -141,8 +140,12 @@ export function UniversalSearchBar({
             type="submit"
             className="w-full md:w-auto shrink-0 flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-medium px-6 py-3 rounded-2xl shadow-sm hover:shadow-md transition-all h-12 cursor-pointer"
           >
-            <span>جستجو</span>
-            <ClinicalIcon name="arrow_back" size={20} className="shrink-0" />
+            <span>{strings.searchButton}</span>
+            {isEn ? (
+              <ArrowRight size={20} className="shrink-0" aria-hidden="true" />
+            ) : (
+              <ArrowLeft size={20} className="shrink-0" aria-hidden="true" />
+            )}
           </button>
         </form>
       </div>
@@ -151,16 +154,16 @@ export function UniversalSearchBar({
       {showGuarantees && (
         <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 mt-4 text-on-surface-variant text-xs sm:text-sm font-medium">
           <div className="flex items-center gap-1.5">
-            <ClinicalIcon name="check_circle" size={18} className="text-primary shrink-0" />
-            <span>بدون کارمزد آنلاین (پرداخت در مطب)</span>
+            <CircleCheckBig size={18} className="text-primary shrink-0" aria-hidden="true" />
+            <span>{strings.guarantee1}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <ClinicalIcon name="verified" size={18} className="text-primary shrink-0" />
-            <span>تضمین نوبت پزشک با پروانه رسمی</span>
+            <BadgeCheck size={18} className="text-primary shrink-0" aria-hidden="true" />
+            <span>{strings.guarantee2}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <ClinicalIcon name="support_agent" size={18} className="text-primary shrink-0" />
-            <span>پشتیبانی تلفنی و همراهی بیمار</span>
+            <Headset size={18} className="text-primary shrink-0" aria-hidden="true" />
+            <span>{strings.guarantee3}</span>
           </div>
         </div>
       )}

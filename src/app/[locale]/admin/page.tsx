@@ -1,11 +1,39 @@
 import Link from "next/link";
 import { count } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { users, translations, providers, services, appointments, contents } from "@/db/schema";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
-import { toPersianDigits } from "@/components/catalog/doctor-card";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BriefcaseMedical,
+  Calendar,
+  CalendarDays,
+  CirclePlus,
+  FilePlus,
+  Globe,
+  LayoutDashboard,
+  Newspaper,
+  Stethoscope,
+  UserPlus,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+import { toPersianDigits } from "@/lib/format";
 
-export default async function AdminOverviewPage() {
+export default async function AdminOverviewPage({
+  params,
+}: {
+  params?: Promise<{ locale?: string }>;
+}) {
+  const resolved = params ? await params : {};
+  const locale = resolved.locale === "en" || resolved.locale === "ar" ? resolved.locale : "fa";
+  const prefix = `/${locale}`;
+  const isRtl = locale !== "en";
+  const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
+
+  const t = await getTranslations("admin.overview");
+
   const [
     userCount,
     providerCount,
@@ -22,56 +50,56 @@ export default async function AdminOverviewPage() {
     db.select({ n: count() }).from(translations),
   ]);
 
-  const stats = [
+  const stats: { title: string; value: number; icon: LucideIcon; href: string; note: string }[] = [
     {
-      title: "بیماران و کاربران فعال",
+      title: t("stats.users.title"),
       value: userCount[0]?.n ?? 0,
-      icon: "group",
-      href: "/admin/settings",
-      note: "پروفایل‌های سلامت ثبت‌شده",
+      icon: Users,
+      href: `${prefix}/admin/settings`,
+      note: t("stats.users.note"),
     },
     {
-      title: "پزشکان و ارائه‌دهندگان",
+      title: t("stats.providers.title"),
       value: providerCount[0]?.n ?? 0,
-      icon: "stethoscope",
-      href: "/admin/providers",
-      note: "پزشکان تایید شده بالینی",
+      icon: Stethoscope,
+      href: `${prefix}/admin/providers`,
+      note: t("stats.providers.note"),
     },
     {
-      title: "خدمات درمانی و چکاپ",
+      title: t("stats.services.title"),
       value: serviceCount[0]?.n ?? 0,
-      icon: "medical_services",
-      href: "/admin/services",
-      note: "بسته‌ها و آزمایش‌های فعال",
+      icon: BriefcaseMedical,
+      href: `${prefix}/admin/services`,
+      note: t("stats.services.note"),
     },
     {
-      title: "کل نوبت‌های ثبت‌شده",
+      title: t("stats.appointments.title"),
       value: appointmentCount[0]?.n ?? 0,
-      icon: "calendar_month",
-      href: "/admin/scheduling",
-      note: "مدیریت اسلات‌ها و پذیرش",
+      icon: CalendarDays,
+      href: `${prefix}/admin/scheduling`,
+      note: t("stats.appointments.note"),
     },
     {
-      title: "مقالات و وبینارها",
+      title: t("stats.content.title"),
       value: contentCount[0]?.n ?? 0,
-      icon: "article",
-      href: "/admin/content",
-      note: "محتواهای بالینی منتشرشده",
+      icon: Newspaper,
+      href: `${prefix}/admin/content`,
+      note: t("stats.content.note"),
     },
     {
-      title: "عناوین پایگاه ترجمه",
+      title: t("stats.translations.title"),
       value: translationCount[0]?.n ?? 0,
-      icon: "translate",
-      href: "/admin/settings",
-      note: "دوزبانه فارسی، انگلیسی و عربی",
+      icon: Globe,
+      href: `${prefix}/admin/settings`,
+      note: t("stats.translations.note"),
     },
   ];
 
-  const quickActions = [
-    { title: "تعریف پزشک جدید", href: "/admin/providers/new", icon: "person_add" },
-    { title: "ایجاد خدمت درمانی", href: "/admin/services/new", icon: "add_circle" },
-    { title: "زمان‌بندی اسلات‌ها", href: "/admin/scheduling", icon: "calendar_today" },
-    { title: "انتشار مقاله جدید", href: "/admin/content/new", icon: "post_add" },
+  const quickActions: { title: string; href: string; icon: LucideIcon }[] = [
+    { title: t("quick.newProvider"), href: `${prefix}/admin/providers/new`, icon: UserPlus },
+    { title: t("quick.newService"), href: `${prefix}/admin/services/new`, icon: CirclePlus },
+    { title: t("quick.scheduling"), href: `${prefix}/admin/scheduling`, icon: Calendar },
+    { title: t("quick.newContent"), href: `${prefix}/admin/content/new`, icon: FilePlus },
   ];
 
   return (
@@ -80,25 +108,25 @@ export default async function AdminOverviewPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6 text-start">
         <div>
           <div className="inline-flex items-center gap-2 text-primary font-bold text-xs bg-primary/10 px-2.5 py-1 rounded-full mb-2">
-            <ClinicalIcon name="dashboard" size={16} />
-            <span>مرکز فرماندهی عملیات بالینی</span>
+            <LayoutDashboard size={16} aria-hidden="true" />
+            <span>{t("badge")}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface">
-            داشبورد نظارت و مدیریت سیستم
+            {t("title")}
           </h1>
           <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-            پایش آنی ظرفیت نوبت‌ها، پزشکان، محتوای آموزشی و سوابق سامانه سلامت انگبین طب
+            {t("subtitle")}
           </p>
         </div>
 
         <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-xl text-xs text-primary font-bold self-start sm:self-auto">
           <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          <span>سامانه عملیاتی و پایگاه داده متصل است</span>
+          <span>{t("statusConnected")}</span>
         </div>
       </div>
 
       {/* Metrics Cards Grid */}
-      <section aria-label="آمار و شاخص‌های کلیدی" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <section aria-label="Stats Overview" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {stats.map((stat, idx) => (
           <Link
             key={idx}
@@ -108,26 +136,26 @@ export default async function AdminOverviewPage() {
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-bold text-on-surface-variant">{stat.title}</span>
               <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition-transform">
-                <ClinicalIcon name={stat.icon} size={22} />
+                <stat.icon size={22} aria-hidden="true" />
               </div>
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-extrabold text-on-surface">
-                {toPersianDigits(stat.value)}
+                {locale === "en" ? stat.value : toPersianDigits(stat.value)}
               </span>
             </div>
             <div className="mt-4 pt-3 border-t border-outline-variant/10 flex items-center justify-between text-[11px] text-outline">
               <span>{stat.note}</span>
-              <ClinicalIcon name="arrow_back" size={14} className="group-hover:text-primary transition-colors" />
+              <ArrowIcon size={14} className="group-hover:text-primary transition-colors" aria-hidden="true" />
             </div>
           </Link>
         ))}
       </section>
 
       {/* Quick Actions Bar */}
-      <section aria-label="دسترسی‌های سریع مدیریتی" className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs text-start">
+      <section aria-label="Quick Actions" className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs text-start">
         <h2 className="text-sm sm:text-base font-bold text-on-surface mb-4">
-          عملیات و دسترسی‌های سریع
+          {t("quickActionsTitle")}
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {quickActions.map((qa, idx) => (
@@ -136,7 +164,7 @@ export default async function AdminOverviewPage() {
               href={qa.href}
               className="p-4 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-xs sm:text-sm font-semibold flex items-center gap-2.5 transition-colors border border-outline-variant/10"
             >
-              <ClinicalIcon name={qa.icon} size={20} className="text-primary" />
+              <qa.icon size={20} className="text-primary" aria-hidden="true" />
               <span>{qa.title}</span>
             </Link>
           ))}

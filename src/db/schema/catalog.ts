@@ -17,6 +17,8 @@ export const practitioners = pgTable("practitioner", {
   specialtyId: text("specialty_id"), // FK service_category.id (specialties live there)
   bio: text("bio"),                  // Persian base
   credentials: text("credentials"),
+  medicalCouncilCode: text("medical_council_code"),
+  landlinePhone: text("landline_phone"),
   cvUrl: text("cv_url"),
   videoUrl: text("video_url"),
 });

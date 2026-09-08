@@ -9,6 +9,9 @@ export const users = pgTable("user", {
   phoneNumber: text("phone_number").unique(),
   phoneNumberVerified: boolean("phone_number_verified").default(false),
   role: text("role").notNull().default("patient"), // patient | provider | admin
+  nationalId: text("national_id"),
+  fatherName: text("father_name"),
+  gender: text("gender"), // male | female
   image: text("image"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

@@ -8,6 +8,23 @@ export const activityFactors: Record<ActivityLevel, number> = {
   very_active: 1.9,
 };
 
+export type Sex = "male" | "female";
+
+export interface BodyParams {
+  sex: Sex;
+  weightKg: number;
+  heightCm: number;
+  age: number;
+}
+
+export interface MacroSplit {
+  proteinGrams: number;
+  carbGrams: number;
+  fatGrams: number;
+}
+
+// Canonical raw equations (Mifflin-St Jeor). No guards, no rounding —
+// adapters (client widget via lib/metabolism, server via queries.ts) own that.
 export type RequirementRow = {
   nutrientId: string;
   sex: "male" | "female" | "any";
@@ -52,13 +69,30 @@ export function requirementFor(
   return any ? Number(any.amount) : null;
 }
 
-export function bmr(input: { sex: "male" | "female"; weightKg: number; heightCm: number; age: number }): number {
+export function bmr(input: BodyParams): number {
   const base = 10 * input.weightKg + 6.25 * input.heightCm - 5 * input.age;
   return input.sex === "male" ? base + 5 : base - 161;
 }
 
+export function tdeeForFactor(bmrValue: number, factor: number): number {
+  return bmrValue * factor;
+}
+
 export function tdee(bmrValue: number, level: ActivityLevel): number {
-  return bmrValue * activityFactors[level];
+  return tdeeForFactor(bmrValue, activityFactors[level]);
+}
+
+export function bmi(weightKg: number, heightCm: number): number {
+  const heightM = heightCm / 100;
+  return weightKg / (heightM * heightM);
+}
+
+export function macroSplit(tdeeValue: number): MacroSplit {
+  return {
+    proteinGrams: (tdeeValue * 0.25) / 4,
+    carbGrams: (tdeeValue * 0.5) / 4,
+    fatGrams: (tdeeValue * 0.25) / 9,
+  };
 }
 
 export function deficits(
@@ -68,4 +102,17 @@ export function deficits(
   return Object.entries(required)
     .filter(([id, req]) => (actual[id] ?? 0) < req)
     .map(([id, req]) => ({ nutrientId: id, deficit: req - (actual[id] ?? 0) }));
+}
+
+// Paid-claim gate (ticket 13 / spec F1). Free programs (price 0) are open;
+// priced programs serve their download only to users holding a claim row
+// (any status: pending/active/completed all count — owners re-access).
+// Pure so the gate is unit-testable; getProgramContent wires it to the DB.
+export function isPricedProgram(price: string | number): boolean {
+  return Number(price) > 0;
+}
+
+export function canAccessProgramContent(price: string | number, hasClaim: boolean): boolean {
+  if (!isPricedProgram(price)) return true;
+  return hasClaim;
 }

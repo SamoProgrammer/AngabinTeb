@@ -1,13 +1,37 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
-import { getPhysiology, dayIntake } from "@/contexts/nutrition/queries";
+import { getPhysiology, dayIntake, listPrograms } from "@/contexts/nutrition/queries";
 import {
   formatPersianNumber,
   toPersianDigits,
   calculateBmi,
   calculateMacros,
 } from "@/lib/metabolism";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { formatJalaliTime } from "@/lib/format";
+import {
+  Accessibility,
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Calculator,
+  ChartPie,
+  ChevronLeft,
+  ChevronRight,
+  CircleCheckBig,
+  Droplet,
+  Flag,
+  Flower2,
+  Gauge,
+  NotebookPen,
+  Pencil,
+  Plus,
+  ReceiptText,
+  Ruler,
+  Scale,
+  Utensils,
+  Zap,
+} from "lucide-react";
 
 export default async function NutritionHomePage({
   params,
@@ -16,14 +40,17 @@ export default async function NutritionHomePage({
 }) {
   const user = await requireUser();
   const { locale } = await params;
+  const t = await getTranslations("nutrition");
+  const tm = await getTranslations("metabolism");
   const today = new Date().toISOString().slice(0, 10);
-
-  const [profile, intakeData] = await Promise.all([
+  const [profile, intakeData, featuredPrograms] = await Promise.all([
     getPhysiology(user.id),
     dayIntake(user.id, today),
+    listPrograms("clinics", locale),
   ]);
 
   // Anthropometrics
+  const hasProfile = Boolean(profile?.weightKg);
   const currentWeight = profile?.weightKg ? Number(profile.weightKg) : 69.0;
   const targetWeight = currentWeight > 65 ? currentWeight - 6 : 63.0;
   const heightCm = profile?.heightCm ? Number(profile.heightCm) : 175;
@@ -60,36 +87,92 @@ export default async function NutritionHomePage({
 
   // Circular gauge progress (0-100, rendered as a conic-gradient ring)
   const calorieSweep = Math.min(100, Math.max(0, caloriePercent));
+  const isRtl = locale !== "en";
+  const ArrowIcon = locale === "en" ? ArrowRight : ArrowLeft;
+  const ChevronIcon = locale === "en" ? ChevronRight : ChevronLeft;
+
+  const formatNum = (n: number, decimals = 0) => {
+    if (locale === "en") return n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    return formatPersianNumber(n, { decimals });
+  };
+  const formatDigits = (val: string | number) => {
+    if (locale === "en") return String(val);
+    return toPersianDigits(val);
+  };
+
+  const bmiLabel =
+    bmiInfo.bmi < 18.5
+      ? tm("bmiUnderweight")
+      : bmiInfo.bmi < 25
+        ? tm("bmiNormal")
+        : bmiInfo.bmi < 30
+          ? tm("bmiOverweight")
+          : tm("bmiObese");
+
+  const planDays = (d: number) => t("dashPlanDays", { d: locale === "en" ? String(d) : toPersianDigits(d) });
 
   return (
-    <div className="flex flex-col gap-8 text-start" dir="rtl">
+    <div className="flex flex-col gap-8 text-start" dir={isRtl ? "rtl" : "ltr"}>
       {/* 1. Header & Anthropometric Metric Bar (Screen #14) */}
-      <section aria-label="شاخص‌های آنتروپومتریک بدنی">
+      <section aria-label={t("dashAnthroAria")}>
         <div className="flex flex-col mb-4">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">
-            پیشخوان پایش تغذیه و سلامت
+            {t("dashPageTitle")}
           </h1>
           <p className="text-sm sm:text-base text-on-surface-variant mt-1">
-            خوش‌آمدید! وضعیت فعلی شاخص‌های بدنی، تراز کالری و بیلان تغذیه امروز شما.
+            {t("dashPageSubtitle")}
           </p>
         </div>
+
+        {/* Onboarding Notice for users without a saved profile */}
+        {!hasProfile && (
+          <div className="mb-6 bg-gradient-to-r from-secondary/15 via-surface-container-low to-primary/15 border border-secondary/30 rounded-3xl p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-secondary text-on-secondary flex items-center justify-center shrink-0 shadow-xs">
+                <Accessibility size={26} aria-hidden="true" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-on-surface">
+                  {t("dashNoProfileTitle")}
+                </h2>
+                <p className="text-xs sm:text-sm text-on-surface-variant mt-0.5">
+                  {t("dashNoProfileDesc")}
+                </p>
+              </div>
+            </div>
+            <Link
+              href={`/${locale}/nutrition/body`}
+              className="bg-secondary hover:bg-secondary/90 text-on-secondary text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow-xs transition-all shrink-0 flex items-center gap-1.5"
+            >
+              <Pencil size={18} aria-hidden="true" />
+              <span>{t("dashNoProfileCta")}</span>
+            </Link>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Current Weight */}
           <div className="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl shadow-xs border border-outline-variant/30 flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-xs sm:text-sm font-semibold text-on-surface-variant">
-                وزن فعلی
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs sm:text-sm font-semibold text-on-surface-variant">
+                  {t("dashCurrentWeight")}
+                </span>
+                {!hasProfile && (
+                  <span className="text-[10px] text-secondary font-bold bg-secondary/10 px-1.5 py-0.2 rounded">
+                    {t("dashSampleBadge")}
+                  </span>
+                )}
+              </div>
               <div className="flex items-baseline gap-1 mt-1">
                 <span className="text-2xl sm:text-3xl font-bold text-primary font-data-metric">
-                  {formatPersianNumber(currentWeight, { decimals: 1 })}
+                  {formatNum(currentWeight, 1)}
                 </span>
-                <span className="text-xs text-on-surface-variant">کیلوگرم</span>
+                <span className="text-xs text-on-surface-variant">{t("dashKgUnit")}</span>
               </div>
             </div>
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-              <ClinicalIcon name="monitor_weight" size={26} />
+              <Scale size={26} aria-hidden="true" />
             </div>
           </div>
 
@@ -97,17 +180,17 @@ export default async function NutritionHomePage({
           <div className="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl shadow-xs border border-outline-variant/30 flex items-center justify-between">
             <div className="flex flex-col">
               <span className="text-xs sm:text-sm font-semibold text-on-surface-variant">
-                وزن هدف
+                {t("dashTargetWeight")}
               </span>
               <div className="flex items-baseline gap-1 mt-1">
                 <span className="text-2xl sm:text-3xl font-bold text-secondary font-data-metric">
-                  {formatPersianNumber(targetWeight, { decimals: 1 })}
+                  {formatNum(targetWeight, 1)}
                 </span>
-                <span className="text-xs text-on-surface-variant">کیلوگرم</span>
+                <span className="text-xs text-on-surface-variant">{t("dashKgUnit")}</span>
               </div>
             </div>
             <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
-              <ClinicalIcon name="flag" size={26} />
+              <Flag size={26} aria-hidden="true" />
             </div>
           </div>
 
@@ -115,17 +198,17 @@ export default async function NutritionHomePage({
           <div className="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl shadow-xs border border-outline-variant/30 flex items-center justify-between">
             <div className="flex flex-col">
               <span className="text-xs sm:text-sm font-semibold text-on-surface-variant">
-                قد ثبت‌شده
+                {t("dashRecordedHeight")}
               </span>
               <div className="flex items-baseline gap-1 mt-1">
                 <span className="text-2xl sm:text-3xl font-bold text-on-surface font-data-metric">
-                  {toPersianDigits(heightCm)}
+                  {formatDigits(heightCm)}
                 </span>
-                <span className="text-xs text-on-surface-variant">سانتی‌متر</span>
+                <span className="text-xs text-on-surface-variant">{t("dashCmUnit")}</span>
               </div>
             </div>
             <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-on-surface shrink-0">
-              <ClinicalIcon name="straighten" size={26} />
+              <Ruler size={26} aria-hidden="true" />
             </div>
           </div>
 
@@ -133,19 +216,19 @@ export default async function NutritionHomePage({
           <div className="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl shadow-xs border border-outline-variant/30 flex items-center justify-between">
             <div className="flex flex-col">
               <span className="text-xs sm:text-sm font-semibold text-on-surface-variant">
-                شاخص توده بدنی (BMI)
+                {t("dashBmiTitle")}
               </span>
               <div className="flex items-baseline gap-1.5 mt-1">
                 <span className="text-2xl sm:text-3xl font-bold text-primary font-data-metric">
-                  {formatPersianNumber(bmiInfo.bmi, { decimals: 1 })}
+                  {formatNum(bmiInfo.bmi, 1)}
                 </span>
                 <span className="text-xs font-bold text-primary">
-                  ({bmiInfo.label})
+                  ({bmiLabel})
                 </span>
               </div>
             </div>
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-              <ClinicalIcon name="health_metrics" size={26} />
+              <Gauge size={26} aria-hidden="true" />
             </div>
           </div>
         </div>
@@ -153,27 +236,27 @@ export default async function NutritionHomePage({
 
       {/* 2. Today's Intake & Macro Balance Interactive Widget (Screen #14) */}
       <section
-        aria-label="بیلان انرژی و تراز درشت‌مغذی‌ها"
+        aria-label={t("dashMacroAria")}
         className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 shadow-xs border border-outline-variant/30"
       >
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-outline-variant/20 mb-6">
           <div>
             <div className="flex items-center gap-2">
-              <ClinicalIcon name="pie_chart" size={24} className="text-primary" />
+              <ChartPie size={24} className="text-primary" aria-hidden="true" />
               <h2 className="text-xl sm:text-2xl font-bold text-on-surface">
-                بیلان انرژی و تراز درشت‌مغذی‌ها (امروز)
+                {t("dashMacroTitle")}
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-              پایش بلادرنگ هیدراتاسیون، کالری، و تعادل هورمونی قند و پروتئین در پلتفرم انگبین طب
+              {t("dashMacroSubtitle")}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-3 py-1 bg-surface-container-high rounded-xl text-on-surface-variant text-xs sm:text-sm font-semibold">
-              محدوده سوخت‌وساز پایه: {formatPersianNumber(bmr)} Kcal
+              {t("dashBmrRange")} {formatNum(bmr)} Kcal
             </span>
             <span className="px-3 py-1 bg-primary/10 text-primary font-bold rounded-xl text-xs sm:text-sm">
-              هدف کل: {formatPersianNumber(tdee)} Kcal
+              {t("dashTotalTarget")} {formatNum(tdee)} Kcal
             </span>
           </div>
         </div>
@@ -197,28 +280,28 @@ export default async function NutritionHomePage({
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
                 <span className="text-xs text-on-surface-variant font-medium">
-                  کالری دریافت‌شده
+                  {t("dashConsumedCal")}
                 </span>
                 <span className="text-3xl sm:text-4xl font-extrabold text-primary my-1 font-data-metric">
-                  {formatPersianNumber(consumedKcal)}
+                  {formatNum(consumedKcal)}
                 </span>
                 <span className="text-xs sm:text-sm font-bold text-secondary">
-                  {formatPersianNumber(remainingKcal)} کالری تا سقف مجاز
+                  {formatNum(remainingKcal)} {t("dashRemainingToCap")}
                 </span>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 w-full mt-4 text-center">
               <div className="bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/30">
-                <span className="text-xs text-on-surface-variant block">مجاز روزانه</span>
+                <span className="text-xs text-on-surface-variant block">{t("dashDailyAllowance")}</span>
                 <p className="text-base sm:text-lg font-bold text-on-surface mt-0.5">
-                  {formatPersianNumber(tdee)} <span className="text-xs font-normal">کالری</span>
+                  {formatNum(tdee)} <span className="text-xs font-normal">{t("dashCalUnit")}</span>
                 </p>
               </div>
               <div className="bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/30">
-                <span className="text-xs text-on-surface-variant block">باقی‌مانده مجاز</span>
+                <span className="text-xs text-on-surface-variant block">{t("dashRemainingAllowance")}</span>
                 <p className="text-base sm:text-lg font-bold text-secondary mt-0.5">
-                  {formatPersianNumber(remainingKcal)} <span className="text-xs font-normal">کالری</span>
+                  {formatNum(remainingKcal)} <span className="text-xs font-normal">{t("dashCalUnit")}</span>
                 </p>
               </div>
             </div>
@@ -232,18 +315,18 @@ export default async function NutritionHomePage({
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-secondary" />
                   <span className="text-sm sm:text-base font-bold text-on-surface">
-                    کربوهیدرات پیچیده و ساده
+                    {t("dashCarbsTitle")}
                   </span>
                   <span className="text-xs text-on-surface-variant hidden sm:inline">
-                    (نان سنگک، برنج طارم، جو دوسر)
+                    {t("dashCarbsExamples")}
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1 text-on-surface">
                   <span className="font-bold text-sm sm:text-base">
-                    {toPersianDigits(consumedCarbs)}
+                    {formatDigits(consumedCarbs)}
                   </span>
                   <span className="text-xs text-on-surface-variant">
-                    / {toPersianDigits(carbTarget)} گرم ({toPersianDigits(carbsPct)}٪)
+                    / {formatDigits(carbTarget)} {t("dashGramUnit")} ({formatDigits(carbsPct)}%)
                   </span>
                 </div>
               </div>
@@ -255,9 +338,9 @@ export default async function NutritionHomePage({
               </div>
               <div className="flex justify-between items-center text-xs text-on-surface-variant">
                 <span>
-                  {toPersianDigits(Math.max(0, carbTarget - consumedCarbs))} گرم مجاز برای سایر وعده‌ها
+                  {formatDigits(Math.max(0, carbTarget - consumedCarbs))} {t("dashCarbsRemainingHint")}
                 </span>
-                <span className="text-secondary font-bold">تثبیت قند خون: عالی</span>
+                <span className="text-secondary font-bold">{t("dashCarbsStatus")}</span>
               </div>
             </div>
 
@@ -267,18 +350,18 @@ export default async function NutritionHomePage({
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-primary" />
                   <span className="text-sm sm:text-base font-bold text-on-surface">
-                    پروتئین خالص
+                    {t("dashProteinTitle")}
                   </span>
                   <span className="text-xs text-on-surface-variant hidden sm:inline">
-                    (سینه مرغ، تخم‌مرغ رسمی، عدس)
+                    {t("dashProteinExamples")}
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1 text-on-surface">
                   <span className="font-bold text-sm sm:text-base">
-                    {toPersianDigits(consumedProtein)}
+                    {formatDigits(consumedProtein)}
                   </span>
                   <span className="text-xs text-on-surface-variant">
-                    / {toPersianDigits(proteinTarget)} گرم ({toPersianDigits(proteinPct)}٪)
+                    / {formatDigits(proteinTarget)} {t("dashGramUnit")} ({formatDigits(proteinPct)}%)
                   </span>
                 </div>
               </div>
@@ -290,9 +373,9 @@ export default async function NutritionHomePage({
               </div>
               <div className="flex justify-between items-center text-xs text-on-surface-variant">
                 <span>
-                  {toPersianDigits(Math.max(0, proteinTarget - consumedProtein))} گرم مانده تا تکمیل نیاز عضله‌سازی
+                  {formatDigits(Math.max(0, proteinTarget - consumedProtein))} {t("dashProteinRemainingHint")}
                 </span>
-                <span className="text-primary font-bold">شاخص آمینواسید: متعادل</span>
+                <span className="text-primary font-bold">{t("dashProteinStatus")}</span>
               </div>
             </div>
 
@@ -302,18 +385,18 @@ export default async function NutritionHomePage({
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-tertiary" />
                   <span className="text-sm sm:text-base font-bold text-on-surface">
-                    چربی‌های مفید و غیراشباع
+                    {t("dashFatTitle")}
                   </span>
                   <span className="text-xs text-on-surface-variant hidden sm:inline">
-                    (روغن زیتون فرابکر، گردوی تویسرکان)
+                    {t("dashFatExamples")}
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1 text-on-surface">
                   <span className="font-bold text-sm sm:text-base">
-                    {toPersianDigits(consumedFat)}
+                    {formatDigits(consumedFat)}
                   </span>
                   <span className="text-xs text-on-surface-variant">
-                    / {toPersianDigits(fatTarget)} گرم ({toPersianDigits(fatPct)}٪)
+                    / {formatDigits(fatTarget)} {t("dashGramUnit")} ({formatDigits(fatPct)}%)
                   </span>
                 </div>
               </div>
@@ -325,25 +408,25 @@ export default async function NutritionHomePage({
               </div>
               <div className="flex justify-between items-center text-xs text-on-surface-variant">
                 <span>
-                  {toPersianDigits(Math.max(0, fatTarget - consumedFat))} گرم مانده (مناسب چاشنی زیتون پرورده)
+                  {formatDigits(Math.max(0, fatTarget - consumedFat))} {t("dashFatRemainingHint")}
                 </span>
-                <span className="text-tertiary font-bold">پروفایل لیپید: سلامت قلب</span>
+                <span className="text-tertiary font-bold">{t("dashFatStatus")}</span>
               </div>
             </div>
 
             {/* Hydration Indicator */}
             <div className="flex items-center justify-between bg-surface-container p-3 sm:p-4 rounded-2xl">
               <div className="flex items-center gap-2">
-                <ClinicalIcon name="water_drop" size={20} className="text-primary" />
+                <Droplet size={20} className="text-primary" aria-hidden="true" />
                 <span className="text-xs sm:text-sm font-semibold text-on-surface">
-                  مصرف آب و عرقیجات سنتی:
+                  {t("dashHydrationTitle")}
                 </span>
                 <span className="text-xs sm:text-sm font-bold text-primary">
-                  ۶ لیوان از ۸ لیوان (۷۵٪)
+                  {t("dashHydrationValue")}
                 </span>
               </div>
               <span className="text-xs text-on-surface-variant bg-surface-container-lowest px-2.5 py-1 rounded-lg">
-                هیدراتاسیون مناسب
+                {t("dashHydrationTag")}
               </span>
             </div>
           </div>
@@ -351,16 +434,16 @@ export default async function NutritionHomePage({
       </section>
 
       {/* 3. Key Operational Action Shortcuts (Bento Grid) (Screen #14) */}
-      <section aria-label="میانبرهای سریع بالینی">
+      <section aria-label={t("dashShortcutsAria")}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <ClinicalIcon name="bolt" size={22} className="text-primary" />
+            <Zap size={22} className="text-primary" aria-hidden="true" />
             <h2 className="text-xl font-bold text-on-surface">
-              دستورات و میانبرهای سریع بالینی
+              {t("dashShortcutsTitle")}
             </h2>
           </div>
           <span className="text-xs text-on-surface-variant">
-            دسترسی مستقیم به ماژول‌های پرونده تغذیه
+            {t("dashShortcutsSubtitle")}
           </span>
         </div>
 
@@ -372,23 +455,23 @@ export default async function NutritionHomePage({
           >
             <div className="flex items-start justify-between">
               <div className="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                <ClinicalIcon name="restaurant" size={24} />
+                <Utensils size={24} aria-hidden="true" />
               </div>
               <span className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
-                <ClinicalIcon name="arrow_back" size={18} />
+                <ArrowIcon size={18} aria-hidden="true" />
               </span>
             </div>
             <div className="mt-4">
               <h3 className="font-bold text-base text-on-surface group-hover:text-primary transition-colors">
-                ثبت وعده در دفترچه کالری‌شمار
+                {t("dashAction1Title")}
               </h3>
               <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                ثبت خوراک و میان‌وعده‌های مصرفی با مقیاس‌های سنتی و محاسبه آنی کالری.
+                {t("dashAction1Desc")}
               </p>
             </div>
             <div className="mt-4 pt-2 text-primary font-bold text-xs flex items-center gap-1 border-t border-outline-variant/20">
-              <span>ورود به ثبت سریع</span>
-              <ClinicalIcon name="chevron_left" size={16} />
+              <span>{t("dashAction1Cta")}</span>
+              <ChevronIcon size={16} aria-hidden="true" />
             </div>
           </Link>
 
@@ -399,23 +482,23 @@ export default async function NutritionHomePage({
           >
             <div className="flex items-start justify-between">
               <div className="w-12 h-12 rounded-xl bg-tertiary text-on-tertiary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                <ClinicalIcon name="calculate" size={24} />
+                <Calculator size={24} aria-hidden="true" />
               </div>
               <span className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant group-hover:text-tertiary transition-colors">
-                <ClinicalIcon name="arrow_back" size={18} />
+                <ArrowIcon size={18} aria-hidden="true" />
               </span>
             </div>
             <div className="mt-4">
               <h3 className="font-bold text-base text-on-surface group-hover:text-tertiary transition-colors">
-                محاسبه شاخص‌های فیزیولوژیک
+                {t("dashAction2Title")}
               </h3>
               <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                تنظیم مجدد BMR و TDEE طبق تغییرات هفتگی وزن و سطح تحرک ورزشی.
+                {t("dashAction2Desc")}
               </p>
             </div>
             <div className="mt-4 pt-2 text-tertiary font-bold text-xs flex items-center gap-1 border-t border-outline-variant/20">
-              <span>محاسبه‌گر متابولیسم</span>
-              <ClinicalIcon name="chevron_left" size={16} />
+              <span>{t("dashAction2Cta")}</span>
+              <ChevronIcon size={16} aria-hidden="true" />
             </div>
           </Link>
 
@@ -426,23 +509,23 @@ export default async function NutritionHomePage({
           >
             <div className="flex items-start justify-between">
               <div className="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                <ClinicalIcon name="menu_book" size={24} />
+                <BookOpen size={24} aria-hidden="true" />
               </div>
               <span className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant group-hover:text-secondary transition-colors">
-                <ClinicalIcon name="arrow_back" size={18} />
+                <ArrowIcon size={18} aria-hidden="true" />
               </span>
             </div>
             <div className="mt-4">
               <h3 className="font-bold text-base text-on-surface group-hover:text-secondary transition-colors">
-                بانک ارزش غذایی خوراک‌ها
+                {t("dashAction3Title")}
               </h3>
               <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                اطلاعات کالری و درشت‌مغذی‌ها بر اساس پیمانه‌های معمول روزمره.
+                {t("dashAction3Desc")}
               </p>
             </div>
             <div className="mt-4 pt-2 text-secondary font-bold text-xs flex items-center gap-1 border-t border-outline-variant/20">
-              <span>جستجو در غذاها</span>
-              <ClinicalIcon name="chevron_left" size={16} />
+              <span>{t("dashAction3Cta")}</span>
+              <ChevronIcon size={16} aria-hidden="true" />
             </div>
           </Link>
 
@@ -453,43 +536,43 @@ export default async function NutritionHomePage({
           >
             <div className="flex items-start justify-between">
               <div className="w-12 h-12 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                <ClinicalIcon name="clinical_notes" size={24} />
+                <NotebookPen size={24} aria-hidden="true" />
               </div>
               <span className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
-                <ClinicalIcon name="arrow_back" size={18} />
+                <ArrowIcon size={18} aria-hidden="true" />
               </span>
             </div>
             <div className="mt-4">
               <h3 className="font-bold text-base text-on-surface group-hover:text-primary transition-colors">
-                برنامه‌های رژیم بالینی
+                {t("dashAction4Title")}
               </h3>
               <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                برنامه‌های غذایی کنترل قند، چربی کبد و مدیریت وزن.
+                {t("dashAction4Desc")}
               </p>
             </div>
             <div className="mt-4 pt-2 text-primary font-bold text-xs flex items-center gap-1 border-t border-outline-variant/20">
-              <span>مشاهده برنامه‌ها</span>
-              <ClinicalIcon name="chevron_left" size={16} />
+              <span>{t("dashAction4Cta")}</span>
+              <ChevronIcon size={16} aria-hidden="true" />
             </div>
           </Link>
         </div>
       </section>
 
       {/* 4. Today's Logged Meals Summary (Screen #14) */}
-      <section aria-label="دفترچه وعده‌های غذایی امروز">
+      <section aria-label={t("dashLoggedMealsAria")}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-2">
-            <ClinicalIcon name="receipt_long" size={22} className="text-primary" />
+            <ReceiptText size={22} className="text-primary" aria-hidden="true" />
             <h2 className="text-xl font-bold text-on-surface">
-              دفترچه وعده‌های غذایی امروز
+              {t("dashLoggedMealsTitle")}
             </h2>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs sm:text-sm text-on-surface-variant">
-              مجموع انرژی مصرف‌شده:
+              {t("dashTotalConsumedEnergy")}
             </span>
             <span className="text-sm sm:text-base font-bold text-primary">
-              {formatPersianNumber(consumedKcal)} Kcal
+              {formatNum(consumedKcal)} Kcal
             </span>
           </div>
         </div>
@@ -497,19 +580,19 @@ export default async function NutritionHomePage({
         {!intakeData?.intakes || intakeData.intakes.length === 0 ? (
           <div className="bg-surface-container-lowest rounded-3xl p-8 shadow-xs border border-outline-variant/30 flex flex-col items-center justify-center text-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-              <ClinicalIcon name="restaurant" size={30} />
+              <Utensils size={30} aria-hidden="true" />
             </div>
             <div className="max-w-md">
               <p className="text-sm sm:text-base text-on-surface font-medium leading-relaxed">
-                امروز وعده‌ای ثبت نشده است. با ثبت اولین وعده، نمودار تراز درشت‌مغذی‌ها و کالری مصرفی شما فعال می‌شود.
+                {t("dashEmptyDiaryMsg")}
               </p>
             </div>
             <Link
               href={`/${locale}/nutrition/diary`}
               className="bg-primary hover:bg-primary-container text-on-primary text-xs sm:text-sm font-bold px-6 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
             >
-              <ClinicalIcon name="add" size={18} />
-              <span>ثبت اولین وعده</span>
+              <Plus size={18} aria-hidden="true" />
+              <span>{t("dashEmptyDiaryCta")}</span>
             </Link>
           </div>
         ) : (
@@ -523,30 +606,27 @@ export default async function NutritionHomePage({
                   <div className="flex items-center justify-between pt-1 mb-3">
                     <div className="flex items-center gap-2">
                       <span className="p-2 rounded-xl bg-primary/10 text-primary">
-                        <ClinicalIcon name="restaurant" size={20} />
+                        <Utensils size={20} aria-hidden="true" />
                       </span>
                       <div>
                         <h3 className="font-bold text-sm sm:text-base text-on-surface">{intake.foodName}</h3>
                         <span className="text-[11px] text-on-surface-variant">
-                          {new Date(intake.loggedAt).toLocaleTimeString("fa-IR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {formatJalaliTime(intake.loggedAt, locale)}
                         </span>
                       </div>
                     </div>
                   </div>
                   <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant/20 flex items-center justify-between text-xs">
-                    <span className="text-on-surface-variant">مقدار مصرف:</span>
+                    <span className="text-on-surface-variant">{t("dashIntakeQuantity")}</span>
                     <span className="font-bold text-on-surface">
-                      {toPersianDigits(intake.quantity)} {intake.servingUnitName}
+                      {formatDigits(intake.quantity)} {intake.servingUnitName}
                     </span>
                   </div>
                 </div>
                 <div className="mt-4 pt-2 flex items-center justify-between border-t border-outline-variant/20 text-xs">
                   <span className="text-primary font-medium flex items-center gap-1">
-                    <ClinicalIcon name="check_circle" size={14} />
-                    <span>ثبت‌شده در پرونده</span>
+                    <CircleCheckBig size={14} aria-hidden="true" />
+                    <span>{t("dashIntakeLoggedStatus")}</span>
                   </span>
                 </div>
               </div>
@@ -554,20 +634,20 @@ export default async function NutritionHomePage({
             {/* Quick add more card */}
             <div className="bg-surface-container-low/70 rounded-2xl p-4 border border-dashed border-primary/40 flex flex-col justify-between items-center text-center">
               <div className="w-12 h-12 rounded-full bg-surface-container-lowest text-secondary flex items-center justify-center my-2 shadow-2xs">
-                <ClinicalIcon name="add" size={24} />
+                <Plus size={24} aria-hidden="true" />
               </div>
               <div>
-                <h3 className="font-bold text-sm sm:text-base text-on-surface">ثبت وعده جدید</h3>
+                <h3 className="font-bold text-sm sm:text-base text-on-surface">{t("dashQuickAddTitle")}</h3>
                 <p className="text-xs text-on-surface-variant mt-1">
-                  سقف مجاز باقی‌مانده: {toPersianDigits(remainingKcal)} Kcal
+                  {t("dashQuickAddCap")} {formatDigits(remainingKcal)} Kcal
                 </p>
               </div>
               <Link
                 href={`/${locale}/nutrition/diary`}
                 className="mt-3 bg-primary hover:bg-primary-container text-on-primary text-xs font-bold px-4 py-2 rounded-xl shadow-xs transition-all flex items-center gap-1"
               >
-                <ClinicalIcon name="add" size={16} />
-                <span>ثبت در دفترچه</span>
+                <Plus size={16} aria-hidden="true" />
+                <span>{t("dashQuickAddCta")}</span>
               </Link>
             </div>
           </div>
@@ -575,104 +655,74 @@ export default async function NutritionHomePage({
       </section>
 
       {/* 5. Featured Clinical Diet Plans Preview (Screen #14 & #16) */}
-      <section aria-label="برنامه‌های بالینی ویژه">
+      <section aria-label={t("dashFeaturedAria")}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <ClinicalIcon name="spa" size={22} className="text-primary" />
+            <Flower2 size={22} className="text-primary" aria-hidden="true" />
             <h2 className="text-xl font-bold text-on-surface">
-              برنامه‌های رژیم درمانی منتخب انگبین طب
+              {t("dashFeaturedPlansTitle")}
             </h2>
           </div>
           <Link
             href={`/${locale}/nutrition/diet`}
             className="text-xs sm:text-sm font-bold text-primary hover:text-primary-container transition-colors flex items-center gap-1"
           >
-            <span>مشاهده همه پروتکل‌ها</span>
-            <ClinicalIcon name="chevron_left" size={18} />
+            <span>{t("dashViewAllPlans")}</span>
+            <ChevronIcon size={18} aria-hidden="true" />
           </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Plan 1 */}
-          <div className="bg-surface-container-lowest rounded-2xl p-5 shadow-xs border border-outline-variant/30 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="bg-primary/10 text-primary text-[11px] font-bold px-2 py-0.5 rounded-full">
-                  کبد چرب و سندرم متابولیک
-                </span>
-                <span className="text-xs text-on-surface-variant font-medium">۳۰ روزه</span>
+          {featuredPrograms.slice(0, 3).map((p) => (
+            <div
+              key={p.id}
+              className="bg-surface-container-lowest rounded-2xl p-5 shadow-xs border border-outline-variant/30 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="bg-primary/10 text-primary text-[11px] font-bold px-2 py-0.5 rounded-full">
+                    {p.planType}
+                  </span>
+                  <span className="text-xs text-on-surface-variant font-medium">{planDays(p.durationDays)}</span>
+                </div>
+                <h3 className="font-bold text-base text-on-surface">
+                  {p.name}
+                </h3>
+                {p.description && (
+                  <p className="text-xs text-on-surface-variant mt-1.5 leading-relaxed">
+                    {p.description}
+                  </p>
+                )}
               </div>
-              <h3 className="font-bold text-base text-on-surface">
-                برنامه طلایی پاکسازی کبد و مقاومت انسولین
-              </h3>
-              <p className="text-xs text-on-surface-variant mt-1.5 leading-relaxed">
-                مهندسی غذایی جهت شکستن رسوب چربی احشایی با کاسنی، روغن زیتون بکر و حبوبات سنتی.
-              </p>
+              <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between">
+                <span className="text-xs text-on-surface-variant">
+                  {Number(p.price) > 0
+                    ? `${formatNum(Number(p.price))} ${t("dietCurrency")}`
+                    : t("dietFree")}
+                </span>
+                <Link
+                  href={`/${locale}/nutrition/diet/${p.id}`}
+                  className="text-primary font-bold text-xs hover:underline"
+                >
+                  {t("dashReviewPlan")}
+                </Link>
+              </div>
             </div>
-            <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between">
-              <span className="text-xs text-on-surface-variant">طراحی: دکتر لیلا سادات</span>
+          ))}
+
+          {featuredPrograms.length === 0 && (
+            <div className="col-span-full bg-surface-container-lowest rounded-2xl p-6 text-center border border-dashed border-outline-variant/40">
+              <p className="text-xs text-on-surface-variant">
+                {t("dashFeaturedEmpty")}
+              </p>
               <Link
                 href={`/${locale}/nutrition/diet`}
                 className="text-primary font-bold text-xs hover:underline"
               >
-                بررسی برنامه
+                {t("dashViewAllPlans")}
               </Link>
             </div>
-          </div>
-
-          {/* Plan 2 */}
-          <div className="bg-surface-container-lowest rounded-2xl p-5 shadow-xs border border-outline-variant/30 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="bg-secondary/10 text-secondary text-[11px] font-bold px-2 py-0.5 rounded-full">
-                  دیابت و پایش گلیسمی
-                </span>
-                <span className="text-xs text-on-surface-variant font-medium">۶۰ روزه</span>
-              </div>
-              <h3 className="font-bold text-base text-on-surface">
-                پروتکل بالینی کنترل بار گلیسمی سفره ایرانی
-              </h3>
-              <p className="text-xs text-on-surface-variant mt-1.5 leading-relaxed">
-                حفظ برنج و نان سنتی با تکیه بر شاخص گلیسمی کته و سالاد شیرازی با آبغوره جهرم.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between">
-              <span className="text-xs text-on-surface-variant">طراحی: دکتر احمد رضایی</span>
-              <Link
-                href={`/${locale}/nutrition/diet`}
-                className="text-secondary font-bold text-xs hover:underline"
-              >
-                بررسی برنامه
-              </Link>
-            </div>
-          </div>
-
-          {/* Plan 3 */}
-          <div className="bg-surface-container-lowest rounded-2xl p-5 shadow-xs border border-outline-variant/30 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="bg-tertiary/10 text-tertiary text-[11px] font-bold px-2 py-0.5 rounded-full">
-                  کارمندان و سلامت شرکتی
-                </span>
-                <span className="text-xs text-on-surface-variant font-medium">۹۰ روزه</span>
-              </div>
-              <h3 className="font-bold text-base text-on-surface">
-                بسته سلامت سازمانی و رفع خستگی مفرط اداری
-              </h3>
-              <p className="text-xs text-on-surface-variant mt-1.5 leading-relaxed">
-                تعدیل میان‌وعده‌ها و وعده ناهار اداری جهت پیشگیری از افت انرژی پس از صرف غذا.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center justify-between">
-              <span className="text-xs text-on-surface-variant">طراحی: کلینیک متابولیک</span>
-              <Link
-                href={`/${locale}/nutrition/diet`}
-                className="text-tertiary font-bold text-xs hover:underline"
-              >
-                بررسی برنامه
-              </Link>
-            </div>
-          </div>
+          )}
         </div>
       </section>
     </div>

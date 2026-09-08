@@ -1,157 +1,66 @@
+"use client";
+
 import Link from "next/link";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { useTranslations } from "next-intl";
+import { BadgeCheck, Hospital, BookOpen, Navigation, ShieldPlus, Stethoscope, Siren, UserCheck } from "lucide-react";
 
 export interface ClinicalFooterProps {
   locale?: string;
 }
 
 export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
+  const t = useTranslations("footer");
   const isEn = locale === "en";
-  const isAr = locale === "ar";
+  const year = new Date().getFullYear();
+
+  const link = (key: string, path: string) => ({
+    label: t(key),
+    href: `/${locale}${path}`,
+  });
 
   const content = {
-    emergency: isEn
-      ? "Notice: Angabin Teb is not an emergency dispatch service. In critical situations, call emergency services (115)."
-      : isAr
-        ? "تنبيه: انگبین طب ليست خدمة طوارئ طبية. في الحالات الحرجة يرجى الاتصال بالطوارئ (115)."
-        : "توجه: انگبین طب سامانه اعزام اورژانس پزشکی نیست. در شرایط بحرانی با ۱۱۵ تماس بگیرید.",
-    guarantee: isEn
-      ? "All medical appointments are booked with zero online fees — pay directly at the clinic."
-      : isAr
-        ? "جميع المواعيد الطبية تُحجز بدون أي رسوم إلكترونية مع الدفع المباشر في العيادة."
-        : "تمامی نوبت‌های پزشکی بدون اخذ کارمزد آنلاین و با پرداخت حضوری در مطب رزرو می‌شوند.",
-    brandTitle: isEn ? "Angabin Teb" : "انگبین طب",
-    brandSubtitle: isEn
-      ? "Clinical Health & Nutrition Platform"
-      : isAr
-        ? "منصة الصحة والتغذية السريرية"
-        : "سامانه سلامت و تغذیه بالینی",
-    description: isEn
-      ? "Angabin Teb provides appointment booking for specialist doctors, diagnostic services, and clinical nutrition programs. All appointments are booked at official rates with in-clinic payment."
-      : isAr
-        ? "انگبین طب هي منصة لحجز مواعيد الأطباء، الخدمات التشخيصية والبرامج الغذائية. تُحجز جميع المواعيد بالتعرفة الرسمية مع الدفع في العيادة."
-        : "انگبین طب سامانه نوبت‌دهی پزشکان متخصص، خدمات پاراکلینیک و برنامه‌های تغذیه بالینی است. کلیه نوبت‌ها با پرداخت در مطب و مطابق تعرفه مصوب رزرو می‌شوند.",
-    councilBadge: isEn
-      ? "Member of Medical Council"
-      : isAr
-        ? "عضو منظمة النظام الطبي"
-        : "عضو سازمان نظام پزشکی کشور",
-    securityBadge: isEn
-      ? "Electronic Health Record Security"
-      : isAr
-        ? "أمان السجل الصحي الإلكتروني"
-        : "امنیت پرونده سلامت الکترونیک",
-    col1Title: isEn ? "Quick Access" : isAr ? "وصول سريع" : "دسترسی سریع",
-    col1Links: isEn
-      ? [
-          { label: "Doctors Booking", href: `/${locale}/doctors` },
-          { label: "Clinical & Diagnostic Services", href: `/${locale}/services` },
-          { label: "Body Analysis & BMR", href: `/${locale}/nutrition/body` },
-          { label: "Food Diary & Diet", href: `/${locale}/nutrition/diary` },
-          { label: "My Appointments", href: `/${locale}/appointments` },
-        ]
-      : isAr
-        ? [
-            { label: "حجز الأطباء", href: `/${locale}/doctors` },
-            { label: "الخدمات السريرية والتشخيصية", href: `/${locale}/services` },
-            { label: "تحليل الجسم وBMR", href: `/${locale}/nutrition/body` },
-            { label: "سجل الوجبات والحمية", href: `/${locale}/nutrition/diary` },
-            { label: "مواعيدي", href: `/${locale}/appointments` },
-          ]
-        : [
-            { label: "نوبت‌دهی پزشکان", href: `/${locale}/doctors` },
-            { label: "خدمات درمانی و پاراکلینیک", href: `/${locale}/services` },
-            { label: "آنالیز بدن و BMR", href: `/${locale}/nutrition/body` },
-            { label: "یادداشت غذایی و رژیم", href: `/${locale}/nutrition/diary` },
-            { label: "پیگیری نوبت‌های من", href: `/${locale}/appointments` },
-          ],
-    col2Title: isEn ? "Clinical Services" : isAr ? "الخدمات السريرية" : "خدمات بالینی",
-    col2Links: isEn
-      ? [
-          { label: "Laboratory & Health Checkup", href: `/${locale}/services` },
-          { label: "Ultrasound & Imaging", href: `/${locale}/services` },
-          { label: "Specialist Physician Visits", href: `/${locale}/doctors` },
-          { label: "Nutrition & Metabolism Clinic", href: `/${locale}/nutrition` },
-          { label: "Therapeutic Diet Protocols", href: `/${locale}/nutrition/diet` },
-        ]
-      : isAr
-        ? [
-            { label: "المختبر والفحص الشامل", href: `/${locale}/services` },
-            { label: "الموجات فوق الصوتية والتصوير", href: `/${locale}/services` },
-            { label: "استشارات الأطباء الاستشاريين", href: `/${locale}/doctors` },
-            { label: "عيادة التغذية والأيض", href: `/${locale}/nutrition` },
-            { label: "برامج الحمية العلاجية", href: `/${locale}/nutrition/diet` },
-          ]
-        : [
-            { label: "آزمایشگاه و چکاپ سلامت", href: `/${locale}/services` },
-            { label: "تصویربرداری و سونوگرافی", href: `/${locale}/services` },
-            { label: "ویزیت پزشکان متخصص", href: `/${locale}/doctors` },
-            { label: "کلینیک تغذیه و متابولیسم", href: `/${locale}/nutrition` },
-            { label: "برنامه‌های غذایی درمانی", href: `/${locale}/nutrition/diet` },
-          ],
-    col3Title: isEn ? "Knowledge Hub" : isAr ? "قاعدة المعرفة" : "پایگاه دانش و مقالات",
-    col3Links: isEn
-      ? [
-          { label: "Scientific & Clinical Articles", href: `/${locale}/articles` },
-          { label: "Health Educational Videos", href: `/${locale}/videos` },
-          { label: "Frequently Asked Questions", href: `/${locale}/faq` },
-          { label: "Specialized Medical Diets", href: `/${locale}/nutrition/diet` },
-          { label: "Food Nutrition Database", href: `/${locale}/foods` },
-        ]
-      : isAr
-        ? [
-            { label: "المقالات الطبية والسريرية", href: `/${locale}/articles` },
-            { label: "الفيديوهات التعليمية الصحية", href: `/${locale}/videos` },
-            { label: "الأسئلة الشائعة (FAQ)", href: `/${locale}/faq` },
-            { label: "الأنظمة الغذائية التخصصية", href: `/${locale}/nutrition/diet` },
-            { label: "قاعدة بيانات الأغذية", href: `/${locale}/foods` },
-          ]
-        : [
-            { label: "مقالات علمی و بالینی", href: `/${locale}/articles` },
-            { label: "ویدیوهای آموزشی سلامت", href: `/${locale}/videos` },
-            { label: "پرسش‌های متداول (FAQ)", href: `/${locale}/faq` },
-            { label: "رژیم‌های درمانی تخصصی", href: `/${locale}/nutrition/diet` },
-            { label: "پایگاه داده تغذیه ایرانی", href: `/${locale}/foods` },
-          ],
-    col4Title: isEn ? "Accreditation & Trust" : isAr ? "الاعتمادات والموثوقية" : "مجوزها و اعتبارسنجی",
-    col4Links: isEn
-      ? [
-          { label: "About Angabin Teb", href: `/${locale}/about` },
-          { label: "Contact Clinical Support", href: `/${locale}/contact` },
-          { label: "In-Clinic Payment Guide", href: `/${locale}/faq` },
-          { label: "Patient Privacy & Terms", href: `/${locale}/about` },
-          { label: "Feedback & Care Rights", href: `/${locale}/support` },
-        ]
-      : isAr
-        ? [
-            { label: "عن انگبین طب", href: `/${locale}/about` },
-            { label: "التواصل مع الدعم الطبي", href: `/${locale}/contact` },
-            { label: "دليل الدفع في العيادة", href: `/${locale}/faq` },
-            { label: "الخصوصية وشروط المرضى", href: `/${locale}/about` },
-            { label: "الشكاوى ورضا المرضى", href: `/${locale}/support` },
-          ]
-        : [
-            { label: "درباره انگبین طب", href: `/${locale}/about` },
-            { label: "ارتباط با پشتیبانی پزشکی", href: `/${locale}/contact` },
-            { label: "راهنمای پرداخت حضوری در مطب", href: `/${locale}/faq` },
-            { label: "قوانین و حریم خصوصی بیماران", href: `/${locale}/about` },
-            { label: "شکایات و بازخورد درمان", href: `/${locale}/support` },
-          ],
-    copyright: isEn
-      ? `© ${new Date().getFullYear()} All rights reserved for Angabin Teb. Designed according to clinical healthcare standards.`
-      : isAr
-        ? `© ${new Date().getFullYear()} جميع الحقوق محفوظة لمنصة انگبین طب. مصممة وفقاً للمعايير الصحية السريرية.`
-        : `© ${new Date().getFullYear()} تمامی حقوق این سامانه متعلق به انگبین طب است. طراحی شده مطابق استانداردهای سلامت بالینی.`,
-    emergencyContact: isEn
-      ? "National Emergency: 115"
-      : isAr
-        ? "رقم الطوارئ الوطني: 115"
-        : "شماره تماس اورژانس کشور: ۱۱۵",
-    supportContact: isEn
-      ? "Platform Support: +98-21-88224000"
-      : isAr
-        ? "دعم المنصة: 021-88224000"
-        : "پشتیبانی سامانه: ۰۲۱-۸۸۲۲۴۰۰۰",
+    emergency: t("emergencyDisclaimer"),
+    guarantee: t("bookingGuarantee"),
+    brandTitle: t("aboutTitle"),
+    brandSubtitle: t("aboutSubtitle"),
+    description: t("aboutText"),
+    councilBadge: t("medicalCouncil"),
+    securityBadge: t("ehrSecurity"),
+    col1Title: t("col1Title"),
+    col1Links: [
+      link("col1Link1", "/booking/categories"),
+      link("col1Link2", "/booking/doctors"),
+      link("col1Link3", "/booking/diagnostic-services"),
+      link("col1Link4", "/services"),
+      link("col1Link5", "/profile/reservations"),
+    ],
+    col2Title: t("col2Title"),
+    col2Links: [
+      link("col2Link1", "/nutrition/diet"),
+      link("col2Link2", "/foods"),
+      link("col2Link3", "/nutrition/diary"),
+      link("col2Link4", "/food-analysis/personal"),
+    ],
+    col3Title: t("col3Title"),
+    col3Links: [
+      link("col3Link1", "/articles"),
+      link("col3Link2", "/knowledge/pamphlet"),
+      link("col3Link3", "/knowledge/videos"),
+      link("col3Link4", "/knowledge/faq"),
+      link("col3Link5", "/nutrition-knowledge"),
+    ],
+    col4Title: t("col4Title"),
+    col4Links: [
+      link("col4Link1", "/about-us"),
+      link("col4Link2", "/contact-us"),
+      link("col4Link3", "/work-with-us"),
+      link("col4Link4", "/notes/site-help"),
+      link("col4Link5", "/complains"),
+      link("col4Link6", "/terms-and-conditions"),
+    ],
+    copyright: t("rights", { year: String(year) }),
+    emergencyContact: t("emergencyCall"),
+    supportContact: t("contactLine"),
   };
 
   return (
@@ -162,7 +71,7 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
       {/* Emergency disclaimer banner */}
       <div className="bg-error-container/40 border-b border-error/20 px-4 py-3 text-center">
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 text-xs md:text-sm font-semibold text-error">
-          <ClinicalIcon name="emergency" size={20} fill className="text-error shrink-0" />
+          <Siren size={20} fill="currentColor" className="text-error shrink-0" aria-hidden="true" />
           <span>{content.emergency}</span>
         </div>
       </div>
@@ -170,7 +79,7 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
       {/* Booking transparency banner */}
       <div className="bg-primary/5 border-b border-primary/15 px-4 py-2.5 text-center">
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 text-xs md:text-sm font-medium text-primary">
-          <ClinicalIcon name="verified_user" size={18} fill className="text-primary shrink-0" />
+          <UserCheck size={18} fill="currentColor" className="text-primary shrink-0" aria-hidden="true" />
           <span>{content.guarantee}</span>
         </div>
       </div>
@@ -182,7 +91,7 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-on-primary shadow-tier-1">
-                <ClinicalIcon name="local_hospital" size={24} fill />
+                <Hospital size={24} fill="currentColor" aria-hidden="true" />
               </div>
               <div className="flex flex-col text-start">
                 <span className="text-lg font-bold text-on-surface leading-tight">
@@ -198,12 +107,12 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-on-surface-variant">
               <span className="inline-flex items-center gap-1">
-                <ClinicalIcon name="verified" size={15} className="text-primary" />
+                <BadgeCheck size={15} className="text-primary" aria-hidden="true" />
                 <span>{content.councilBadge}</span>
               </span>
               <span className="text-outline-variant">•</span>
               <span className="inline-flex items-center gap-1">
-                <ClinicalIcon name="health_and_safety" size={15} className="text-primary" />
+                <ShieldPlus size={15} className="text-primary" aria-hidden="true" />
                 <span>{content.securityBadge}</span>
               </span>
             </div>
@@ -213,7 +122,7 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
           {/* Column 1 */}
           <div className="text-start">
             <h3 className="text-sm font-bold text-on-surface mb-3 flex items-center gap-1.5">
-              <ClinicalIcon name="near_me" size={16} className="text-primary" />
+              <Navigation size={16} className="text-primary" aria-hidden="true" />
               {content.col1Title}
             </h3>
             <ul className="space-y-2 text-xs md:text-sm text-on-surface-variant">
@@ -230,7 +139,7 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
           {/* Column 2 */}
           <div className="text-start">
             <h3 className="text-sm font-bold text-on-surface mb-3 flex items-center gap-1.5">
-              <ClinicalIcon name="stethoscope" size={16} className="text-primary" />
+              <Stethoscope size={16} className="text-primary" aria-hidden="true" />
               {content.col2Title}
             </h3>
             <ul className="space-y-2 text-xs md:text-sm text-on-surface-variant">
@@ -247,7 +156,7 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
           {/* Column 3 */}
           <div className="text-start">
             <h3 className="text-sm font-bold text-on-surface mb-3 flex items-center gap-1.5">
-              <ClinicalIcon name="menu_book" size={16} className="text-primary" />
+              <BookOpen size={16} className="text-primary" aria-hidden="true" />
               {content.col3Title}
             </h3>
             <ul className="space-y-2 text-xs md:text-sm text-on-surface-variant">
@@ -264,7 +173,7 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
           {/* Column 4 */}
           <div className="text-start">
             <h3 className="text-sm font-bold text-on-surface mb-3 flex items-center gap-1.5">
-              <ClinicalIcon name="verified" size={16} className="text-primary" />
+              <BadgeCheck size={16} className="text-primary" aria-hidden="true" />
               {content.col4Title}
             </h3>
             <ul className="space-y-2 text-xs md:text-sm text-on-surface-variant">

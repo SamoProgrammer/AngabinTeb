@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { topics } from "@/db/schema";
 import { saveTopic } from "@/contexts/content/actions";
@@ -6,36 +7,43 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default async function AdminTopicsPage() {
+  const tTopics = await getTranslations("admin.topics");
+  const tCommon = await getTranslations("admin.common");
+
   const rows = await db.select().from(topics).orderBy(topics.name);
+
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold">Topics</h1>
-      <form action={async (fd) => { await saveTopic(fd); }} className="mb-8 flex max-w-xl items-end gap-3">
+    <div className="text-start">
+      <h1 className="mb-6 text-2xl font-bold">{tTopics("title")}</h1>
+      <form action={async (fd) => { "use server"; await saveTopic(fd); }} className="mb-8 flex max-w-xl items-end gap-3">
         <label className="block flex-1 space-y-1 text-sm">
-          Slug <Input name="slug" required />
+          {tCommon("slug")} <Input name="slug" required />
         </label>
         <label className="block flex-1 space-y-1 text-sm">
-          Name (Persian) <Input name="name" required />
+          {tTopics("nameFa")} <Input name="name" required />
         </label>
-        <Button type="submit">Create</Button>
+        <Button type="submit">{tCommon("create")}</Button>
       </form>
       <Table>
         <TableHeader>
-          <TableRow><TableHead>Name</TableHead><TableHead>Slug</TableHead></TableRow>
+          <TableRow>
+            <TableHead>{tCommon("name")}</TableHead>
+            <TableHead>{tCommon("slug")}</TableHead>
+          </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.map((t) => (
-            <TableRow key={t.id}>
+          {rows.map((topicItem) => (
+            <TableRow key={topicItem.id}>
               <TableCell colSpan={2}>
-                <form action={async (fd) => { await saveTopic(fd); }} className="flex items-end gap-3">
-                  <input type="hidden" name="id" value={t.id} />
+                <form action={async (fd) => { "use server"; await saveTopic(fd); }} className="flex items-end gap-3">
+                  <input type="hidden" name="id" value={topicItem.id} />
                   <label className="block flex-1 space-y-1 text-sm">
-                    Name <Input name="name" defaultValue={t.name} required />
+                    {tCommon("name")} <Input name="name" defaultValue={topicItem.name} required />
                   </label>
                   <label className="block flex-1 space-y-1 text-sm">
-                    Slug <Input name="slug" defaultValue={t.slug} required />
+                    {tCommon("slug")} <Input name="slug" defaultValue={topicItem.slug} required />
                   </label>
-                  <Button type="submit" variant="outline">Save</Button>
+                  <Button type="submit" variant="outline">{tCommon("save")}</Button>
                 </form>
               </TableCell>
             </TableRow>

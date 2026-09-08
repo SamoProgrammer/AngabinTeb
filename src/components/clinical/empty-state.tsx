@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { resolveIcon } from "@/components/clinical/icons";
 
 interface StateProps {
   title: string;
@@ -16,6 +16,7 @@ function StateShell({
   actionLabel,
   tone,
 }: StateProps & { icon: string; tone: "empty" | "error" }) {
+  const Icon = resolveIcon(icon);
   return (
     <div className="bg-surface-container-lowest rounded-2xl shadow-tier-1 border border-outline-variant/30 p-10 flex flex-col items-center gap-3 text-center">
       <span
@@ -23,7 +24,7 @@ function StateShell({
           tone === "error" ? "bg-error/10 text-error" : "bg-primary/10 text-primary"
         }`}
       >
-        <ClinicalIcon name={icon} size={30} />
+        <Icon size={30} aria-hidden="true" />
       </span>
       <h2 className="text-base sm:text-lg font-bold text-on-surface">{title}</h2>
       {hint && (

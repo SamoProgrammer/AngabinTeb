@@ -33,5 +33,6 @@ export function proxy(req: NextRequest) {
   const accept = req.headers.get("accept-language") ?? "";
   const preferred = locales.find((l) => accept.toLowerCase().includes(l));
   const target = preferred ?? defaultLocale;
-  return NextResponse.redirect(new URL(`/${target}${pathname}${req.nextUrl.search}`, req.url));
+  // Bare-link 307 (temporary): locale prefix only, path + searchParams preserved.
+  return NextResponse.redirect(new URL(`/${target}${pathname}${req.nextUrl.search}`, req.url), 307);
 }

@@ -2,12 +2,25 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { listServices } from "@/contexts/catalog/queries";
 import { ServiceCard, type ServiceData } from "@/components/catalog/service-card";
-import { toPersianDigits } from "@/components/catalog/doctor-card";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { toPersianDigits } from "@/lib/format";
+import {
+  AudioWaveform,
+  Banknote,
+  ChevronLeft,
+  ChevronRight,
+  CircleCheckBig,
+  Droplets,
+  Headset,
+  Scale,
+  Scan,
+  Search,
+  ShieldPlus,
+  TestTube,
+  UserCheck,
+  Utensils,
+  type LucideIcon,
+} from "lucide-react";
 import { EmptyState, ErrorState } from "@/components/clinical/empty-state";
-import faMessages from "../../../../../messages/fa.json";
-
-const faServices = faMessages.services as Record<string, string>;
 
 const pageSize = 12;
 
@@ -26,13 +39,13 @@ function pageHref(
   return `/${locale}/services?${params.toString()}`;
 }
 
-const CATEGORIES = [
+const CATEGORIES: Array<{ id: string; labelKey: string; slug: string; icon?: LucideIcon }> = [
   { id: "all", labelKey: "catAll", slug: "" },
-  { id: "lab", labelKey: "catLab", slug: "laboratory", icon: "bloodtype" },
-  { id: "imaging", labelKey: "catImaging", slug: "imaging", icon: "radiology" },
-  { id: "inbody", labelKey: "catPhysio", slug: "physiology", icon: "monitor_weight" },
-  { id: "cardio", labelKey: "catCardio", slug: "cardiology", icon: "ecg" },
-  { id: "nutrition", labelKey: "catNutrition", slug: "nutrition", icon: "restaurant" },
+  { id: "lab", labelKey: "catLab", slug: "laboratory", icon: Droplets },
+  { id: "imaging", labelKey: "catImaging", slug: "imaging", icon: Scan },
+  { id: "inbody", labelKey: "catPhysio", slug: "physiology", icon: Scale },
+  { id: "cardio", labelKey: "catCardio", slug: "cardiology", icon: AudioWaveform },
+  { id: "nutrition", labelKey: "catNutrition", slug: "nutrition", icon: Utensils },
 ];
 
 export default async function ServicesPage({
@@ -46,26 +59,10 @@ export default async function ServicesPage({
   const { category, city, q, fasting, page } = await searchParams;
   const p = Number(page ?? 1);
   const current = Number.isFinite(p) ? Math.max(1, p) : 1;
-  const isEn = locale === "en";
-  const dir = isEn ? "ltr" : "rtl";
-  const fmt = (n: number | string) => (isEn ? String(n) : toPersianDigits(n));
-
-  let t: (key: string, values?: Record<string, string | number>) => string = (
-    key,
-    values,
-  ) => {
-    let out: string = faServices[key] ?? key;
-    if (values) {
-      for (const [k, v] of Object.entries(values)) out = out.replaceAll(`{${k}}`, String(v));
-    }
-    return out;
-  };
-  try {
-    const intlT = await getTranslations("services");
-    t = (key, values) => intlT(key, values);
-  } catch {
-    // fallback in environments without next-intl server context
-  }
+  const t = await getTranslations("services");
+  const dir = locale === "en" ? "ltr" : "rtl";
+  const fmt = (n: number | string) =>
+    locale === "en" ? String(n) : toPersianDigits(n);
 
   let dbServices: ServiceData[] = [];
   let total = 0;
@@ -116,7 +113,7 @@ export default async function ServicesPage({
         <div className="relative max-w-7xl mx-auto flex flex-col items-start justify-between gap-6">
           <div className="flex flex-col gap-3 max-w-4xl text-start">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full w-fit">
-              <ClinicalIcon name="verified_user" size={18} />
+              <UserCheck size={18} aria-hidden="true" />
               <span className="text-xs sm:text-sm font-medium">{t("heroBadge")}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-on-surface tracking-tight">
@@ -129,15 +126,15 @@ export default async function ServicesPage({
             {/* Trust Metric Pills */}
             <div className="flex flex-wrap items-center gap-3 pt-2 text-on-surface text-xs sm:text-sm">
               <div className="flex items-center gap-2 bg-surface-container-lowest px-3 py-2 rounded-xl shadow-xs border border-outline-variant/20">
-                <ClinicalIcon name="payments" size={18} className="text-primary" />
+                <Banknote size={18} className="text-primary" aria-hidden="true" />
                 <span>{t("pillInPerson")}</span>
               </div>
               <div className="flex items-center gap-2 bg-surface-container-lowest px-3 py-2 rounded-xl shadow-xs border border-outline-variant/20">
-                <ClinicalIcon name="health_and_safety" size={18} className="text-secondary" />
+                <ShieldPlus size={18} className="text-secondary" aria-hidden="true" />
                 <span>{t("pillInsurance")}</span>
               </div>
               <div className="flex items-center gap-2 bg-surface-container-lowest px-3 py-2 rounded-xl shadow-xs border border-outline-variant/20">
-                <ClinicalIcon name="lab_profile" size={18} className="text-primary" />
+                <TestTube size={18} className="text-primary" aria-hidden="true" />
                 <span>{t("pillEhr")}</span>
               </div>
             </div>
@@ -168,7 +165,7 @@ export default async function ServicesPage({
                       : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
                   }`}
                 >
-                  {cat.icon && <ClinicalIcon name={cat.icon} size={16} />}
+                  {cat.icon ? <cat.icon size={16} aria-hidden="true" /> : null}
                   <span>{t(cat.labelKey)}</span>
                 </Link>
               );
@@ -188,7 +185,7 @@ export default async function ServicesPage({
                 className="w-full bg-surface-container-low rounded-xl pe-10 ps-4 py-2 text-xs sm:text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               />
               <div className="absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant/60">
-                <ClinicalIcon name="search" size={18} />
+                <Search size={18} aria-hidden="true" />
               </div>
               {category && <input type="hidden" name="category" value={category} />}
             </form>
@@ -208,7 +205,7 @@ export default async function ServicesPage({
                   : "border-outline-variant/30 text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              <ClinicalIcon name="check_circle" size={16} />
+              <CircleCheckBig size={16} aria-hidden="true" />
               <span>{t("fastingOnly")}</span>
             </Link>
           </div>
@@ -253,7 +250,7 @@ export default async function ServicesPage({
                 href={pageHref(locale, category ?? "", q ?? "", fasting ?? "", current - 1)}
                 className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
               >
-                <ClinicalIcon name="chevron_right" size={16} />
+                <ChevronRight size={16} aria-hidden="true" />
                 <span>{t("pagePrev")}</span>
               </Link>
             ) : (
@@ -273,7 +270,7 @@ export default async function ServicesPage({
                 className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
               >
                 <span>{t("pageNext")}</span>
-                <ClinicalIcon name="chevron_left" size={16} />
+                <ChevronLeft size={16} aria-hidden="true" />
               </Link>
             ) : (
               <div />
@@ -322,7 +319,7 @@ export default async function ServicesPage({
 
           <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-tier-1 border border-outline-variant/30 w-full md:w-80 text-start flex flex-col gap-3">
             <div className="flex items-center gap-2 text-primary">
-              <ClinicalIcon name="support_agent" size={24} />
+              <Headset size={24} aria-hidden="true" />
               <span className="text-sm font-bold">{t("supportTitle")}</span>
             </div>
             <p className="text-xs text-on-surface-variant leading-relaxed">

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { supportRequests, notifications } from "@/db/schema";
+import { supportRequests, notifications, clinicalMessages } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 
 function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
@@ -61,4 +61,9 @@ export async function updateRequestStatus(id: string, status: "open" | "in_progr
 export async function markNotificationsRead(_formData: FormData) {
   const user = await requireUser();
   await db.update(notifications).set({ read: true }).where(eq(notifications.userId, user.id));
+}
+
+export async function markMessagesRead() {
+  const user = await requireUser();
+  await db.update(clinicalMessages).set({ isRead: true }).where(eq(clinicalMessages.recipientUserId, user.id));
 }

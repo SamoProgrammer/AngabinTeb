@@ -1,4 +1,7 @@
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { BadgeDollarSign, Headset, Shield, type LucideIcon } from "lucide-react";
 
 export interface MetricItem {
   value: string;
@@ -8,79 +11,93 @@ export interface MetricItem {
 }
 
 export interface TrustPillar {
-  icon: string;
+  icon: LucideIcon;
   title: string;
   description: string;
   iconColorClass?: string;
 }
 
 export interface TrustMetricsProps {
+  locale?: string;
   className?: string;
   metrics?: MetricItem[];
   pillars?: TrustPillar[];
 }
 
-const DEFAULT_METRICS: MetricItem[] = [
-  {
-    value: "بیش از ۵۰",
-    label: "پزشک متخصص",
-    subtext: "دارای پروانه معتبر نظام پزشکی",
-    colorClass: "text-primary",
-  },
-  {
-    value: "۱۰۰٪",
-    label: "پرداخت مستقیم در مطب",
-    subtext: "بدون هرگونه کارمزد آنلاین",
-    colorClass: "text-secondary",
-  },
-  {
-    value: "۲۴ ساعته",
-    label: "پشتیبانی روزانه بیماران",
-    subtext: "پاسخگویی به سوالات و راهنمایی مراجعان",
-    colorClass: "text-primary",
-  },
-];
-
-const DEFAULT_PILLARS: TrustPillar[] = [
-  {
-    icon: "shield",
-    title: "حفاظت از پرونده بالینی",
-    description:
-      "تمامی اطلاعات آزمایش‌ها، نوبت‌ها و داده‌های غذایی کاربران در محیطی امن و محرمانه نگهداری می‌شود.",
-    iconColorClass: "text-primary",
-  },
-  {
-    icon: "price_check",
-    title: "تعرفه مصوب وزارت بهداشت",
-    description:
-      "هزینه کلیه ویزیت‌ها و خدمات درمانی مطابق تعرفه رسمی دریافت شده و هیچ کارمزد آنلاینی اخذ نمی‌شود.",
-    iconColorClass: "text-secondary",
-  },
-  {
-    icon: "support_agent",
-    title: "پشتیبانی اختصاصی بیمار",
-    description:
-      "پاسخگویی به سوالات مربوط به نوبت‌دهی، راهنمایی شرایط مراجعه و پیگیری درخواست‌های مراجعان.",
-    iconColorClass: "text-primary",
-  },
-];
-
 export function TrustMetrics({
+  locale = "fa",
   className = "",
-  metrics = DEFAULT_METRICS,
-  pillars = DEFAULT_PILLARS,
+  metrics,
+  pillars,
 }: TrustMetricsProps) {
+  const t = useTranslations("trust");
+  const isEn = locale === "en";
+
+  const defaultMetrics: MetricItem[] = [
+    {
+      value: t("metric1Value"),
+      label: t("metric1Label"),
+      subtext: t("metric1Sub"),
+      colorClass: "text-primary",
+    },
+    {
+      value: t("metric2Value"),
+      label: t("metric2Label"),
+      subtext: t("metric2Sub"),
+      colorClass: "text-secondary",
+    },
+    {
+      value: t("metric3Value"),
+      label: t("metric3Label"),
+      subtext: t("metric3Sub"),
+      colorClass: "text-primary",
+    },
+  ];
+
+  const defaultPillars: TrustPillar[] = [
+    {
+      icon: Shield,
+      title: t("pillar1Title"),
+      description: t("pillar1Desc"),
+      iconColorClass: "text-primary",
+    },
+    {
+      icon: BadgeDollarSign,
+      title: t("pillar2Title"),
+      description: t("pillar2Desc"),
+      iconColorClass: "text-secondary",
+    },
+    {
+      icon: Headset,
+      title: t("pillar3Title"),
+      description: t("pillar3Desc"),
+      iconColorClass: "text-primary",
+    },
+  ];
+
+  const activeMetrics = metrics ?? defaultMetrics;
+  const activePillars = pillars ?? defaultPillars;
+  const ariaLabel = t("aria");
+
   return (
-    <section className={`w-full ${className}`} dir="rtl" aria-label="شاخص‌های اعتماد و شفافیت بالینی">
+    <section
+      className={`w-full ${className}`}
+      dir={isEn ? "ltr" : "rtl"}
+      aria-label={ariaLabel}
+    >
       <div className="bg-surface-container-low rounded-3xl p-6 sm:p-8 md:p-10 border border-outline-variant/30">
         {/* Clinical Counter Badges */}
-        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 text-center mb-8`}>
-          {metrics.map((item, idx) => (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center mb-8">
+          {activeMetrics.map((item, idx) => (
             <div
               key={idx}
               className="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl shadow-tier-1 border border-outline-variant/20 hover:shadow-tier-2 transition-all flex flex-col items-center justify-center"
             >
-              <span className={`text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight block ${item.colorClass ?? "text-primary"}`}>
+              <span
+                className={`text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight block ${
+                  item.colorClass ?? "text-primary"
+                }`}
+              >
                 {item.value}
               </span>
               <span className="text-xs sm:text-sm font-bold text-on-surface block mt-1.5">
@@ -95,16 +112,16 @@ export function TrustMetrics({
 
         {/* 3 Trust Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-start">
-          {pillars.map((pillar, idx) => (
+          {activePillars.map((pillar, idx) => (
             <div
               key={idx}
               className="flex items-start gap-4 bg-surface-container-lowest p-5 rounded-2xl shadow-tier-1 border border-outline-variant/20 hover:shadow-tier-2 transition-all"
             >
               <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
-                <ClinicalIcon
-                  name={pillar.icon}
+                <pillar.icon
                   size={28}
                   className={pillar.iconColorClass ?? "text-primary"}
+                  aria-hidden="true"
                 />
               </div>
               <div className="flex-1 min-w-0">

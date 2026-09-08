@@ -5,7 +5,17 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Atom,
+  CircleAlert,
+  CircleCheckBig,
+  Hospital,
+  Lock,
+  ShieldCheck,
+  Smartphone,
+} from "lucide-react";
 
 interface SignInPageProps {
   params: Promise<{ locale: string }> | { locale: string };
@@ -18,7 +28,7 @@ function SignInForm({ locale }: { locale: string }) {
   const rawReturnUrl = searchParams.get("returnUrl") || searchParams.get("callbackUrl");
   const returnUrl = (rawReturnUrl && !rawReturnUrl.includes("/signin"))
     ? rawReturnUrl
-    : `/${locale}/appointments`;
+    : `/${locale}/profile/reservations`;
 
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -100,19 +110,19 @@ function SignInForm({ locale }: { locale: string }) {
   }
 
   // Quick Demo Login for developers and test patients
-  async function handleDemoLogin() {
+  async function handleDemoLogin(requestedRole: "patient" | "admin" = "patient") {
     setIsDemoPending(true);
     setErrorMessage(null);
     try {
-      const res = await fetch("/api-test/login", { method: "POST" });
+      const res = await fetch(`/api-test/login?role=${requestedRole}`, { method: "POST" });
       if (!res.ok) throw new Error("Demo login endpoint unavailable");
       const { signedCookie } = await res.json();
       if (signedCookie) {
         document.cookie = `better-auth.session_token=${signedCookie}; path=/; max-age=86400; SameSite=Lax`;
       }
-      window.location.href = returnUrl;
+      window.location.href = requestedRole === "admin" ? `/${locale}/admin` : returnUrl;
     } catch {
-      setErrorMessage("خطا در ورود تستی. لطفاً از طریق پیامک وارد شوید.");
+      setErrorMessage(t("demoError"));
       setIsDemoPending(false);
     }
   }
@@ -133,7 +143,7 @@ function SignInForm({ locale }: { locale: string }) {
               href={`/${locale}`}
               className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-on-primary shadow-tier-1 hover:scale-105 transition-transform"
             >
-              <ClinicalIcon name="local_hospital" size={32} fill />
+              <Hospital size={32} fill="currentColor" aria-hidden="true" />
             </Link>
             <h1 className="text-xl sm:text-2xl font-extrabold text-on-surface tracking-tight">
               {t("signin")}
@@ -146,7 +156,7 @@ function SignInForm({ locale }: { locale: string }) {
           {/* Error Banner */}
           {errorMessage && (
             <div className="mt-6 p-3.5 rounded-2xl bg-error-container/40 border border-error/30 text-error text-xs sm:text-sm flex items-start gap-2.5 animate-in fade-in duration-200">
-              <ClinicalIcon name="error" size={18} fill className="shrink-0 mt-0.5" />
+              <CircleAlert size={18} fill="currentColor" className="shrink-0 mt-0.5" aria-hidden="true" />
               <span className="leading-relaxed">{errorMessage}</span>
             </div>
           )}
@@ -163,7 +173,7 @@ function SignInForm({ locale }: { locale: string }) {
                 </label>
                 <div className="relative rounded-2xl border border-outline-variant/60 bg-surface focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                   <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none text-on-surface-variant">
-                    <ClinicalIcon name="phone_iphone" size={20} />
+                    <Smartphone size={20} aria-hidden="true" />
                   </div>
                   <input
                     id="phone-input"
@@ -178,9 +188,7 @@ function SignInForm({ locale }: { locale: string }) {
                   />
                 </div>
                 <p className="text-[11px] text-on-surface-variant/80 ps-1">
-                  {isEn
-                    ? "Example: 09121234567 (11-digit Iranian mobile)"
-                    : "مثال: ۰۹۱۲۱۲۳۴۵۶۷ (شماره موبایل ۱۱ رقمی)"}
+                  {t("phoneExample")}
                 </p>
               </div>
 
@@ -197,7 +205,11 @@ function SignInForm({ locale }: { locale: string }) {
                 ) : (
                   <>
                     <span>{t("sendOtp")}</span>
-                    <ClinicalIcon name={isEn ? "arrow_forward" : "arrow_back"} size={16} />
+                    {isEn ? (
+                      <ArrowRight size={16} aria-hidden="true" />
+                    ) : (
+                      <ArrowLeft size={16} aria-hidden="true" />
+                    )}
                   </>
                 )}
               </button>
@@ -230,7 +242,7 @@ function SignInForm({ locale }: { locale: string }) {
 
                 <div className="relative rounded-2xl border border-outline-variant/60 bg-surface focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                   <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none text-on-surface-variant">
-                    <ClinicalIcon name="lock" size={20} />
+                    <Lock size={20} aria-hidden="true" />
                   </div>
                   <input
                     id="otp-input"
@@ -261,7 +273,7 @@ function SignInForm({ locale }: { locale: string }) {
                   </>
                 ) : (
                   <>
-                    <ClinicalIcon name="check_circle" size={18} fill />
+                    <CircleCheckBig size={18} fill="currentColor" aria-hidden="true" />
                     <span>{t("verifyOtp")}</span>
                   </>
                 )}
@@ -287,21 +299,30 @@ function SignInForm({ locale }: { locale: string }) {
             </div>
             <div className="relative flex justify-center text-xs">
               <span className="bg-surface-container-lowest px-3 text-on-surface-variant">
-                {isEn ? "Testing & Development" : "تست و توسعه سریع"}
+                {t("demoLogin")}
               </span>
             </div>
           </div>
 
           {/* Quick Demo Login Option */}
-          <div>
+          <div className="flex flex-col sm:flex-row gap-2.5">
             <button
               type="button"
               disabled={isDemoPending}
-              onClick={handleDemoLogin}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-secondary/40 bg-secondary/10 py-2.5 px-4 text-xs sm:text-sm font-bold text-secondary hover:bg-secondary/20 transition-all cursor-pointer disabled:opacity-60"
+              onClick={() => handleDemoLogin("patient")}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-2xl border border-secondary/40 bg-secondary/10 py-2.5 px-3 text-xs font-bold text-secondary hover:bg-secondary/20 transition-all cursor-pointer disabled:opacity-60"
             >
-              <ClinicalIcon name="science" size={18} />
-              <span>{isDemoPending ? t("demoLoggingIn") : t("demoLogin")}</span>
+              <Atom size={16} aria-hidden="true" />
+              <span>{isDemoPending ? t("demoLoggingIn") : t("demoPatient")}</span>
+            </button>
+            <button
+              type="button"
+              disabled={isDemoPending}
+              onClick={() => handleDemoLogin("admin")}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-2xl border border-primary/40 bg-primary/10 py-2.5 px-3 text-xs font-bold text-primary hover:bg-primary/20 transition-all cursor-pointer disabled:opacity-60"
+            >
+              <ShieldCheck size={16} aria-hidden="true" />
+              <span>{isDemoPending ? t("demoLoggingIn") : t("demoAdmin")}</span>
             </button>
           </div>
 
@@ -317,7 +338,11 @@ function SignInForm({ locale }: { locale: string }) {
             href={`/${locale}`}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface-variant hover:text-primary transition-colors"
           >
-            <ClinicalIcon name={isEn ? "arrow_back" : "arrow_forward"} size={16} />
+            {isEn ? (
+              <ArrowLeft size={16} aria-hidden="true" />
+            ) : (
+              <ArrowRight size={16} aria-hidden="true" />
+            )}
             <span>{t("backToHome")}</span>
           </Link>
         </div>

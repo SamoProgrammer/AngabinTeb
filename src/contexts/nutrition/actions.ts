@@ -204,6 +204,7 @@ const dietProgramSchema = z.object({
   planType: z.string().min(1),
   durationDays: z.number().int().positive(),
   price: z.string().regex(/^\d+$/),
+  downloadUrl: z.string().url().optional(),
   descriptionFa: z.string().optional(),
   descriptionEn: z.string().optional(),
   descriptionAr: z.string().optional(),
@@ -225,6 +226,7 @@ export async function createDietProgram(input: z.infer<typeof dietProgramSchema>
       price: data.price,
       practitionerId: null,
       description: data.descriptionFa ?? null,
+      downloadUrl: data.downloadUrl ?? null,
     });
     for (const [locale, value] of [["en", data.nameEn], ["ar", data.nameAr]] as const) {
       if (value) await tx.insert(translations).values({ entityType: "diet_program", entityId: id, locale, field: "name", value });

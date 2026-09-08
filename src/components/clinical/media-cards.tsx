@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { useTranslations } from "next-intl";
+import { ArrowLeft, ArrowRight, BookOpen, CirclePlay, Play, Timer, User, Video } from "lucide-react";
 import { toPersianDigits } from "@/components/catalog/doctor-card";
 
 export interface ArticleData {
@@ -31,20 +34,28 @@ export function ArticleCard({
     id,
     slug,
     title,
-    summary = article.body ?? "بررسی علمی و بالینی تازه‌ترین یافته‌های پزشکی و تغذیه سلامت.",
-    authorName = "دکتر آرش رادمنش",
-    readingTimeMinutes = 5,
-    category = "مقاله سلامت",
+    summary,
+    authorName,
+    readingTimeMinutes,
+    category,
     imageUrl,
     href,
   } = article;
 
+  const isEn = locale === "en";
+  const tCommon = useTranslations("common");
   const targetHref = href ?? `/${locale}/articles/${slug || id}`;
-  const displayReadingTime = `${toPersianDigits(readingTimeMinutes)} دقیقه مطالعه`;
+
+  let displayReadingTime: string | null = null;
+  if (readingTimeMinutes !== undefined && readingTimeMinutes !== null) {
+    const localizedMinutes =
+      locale === "fa" ? toPersianDigits(readingTimeMinutes) : String(readingTimeMinutes);
+    displayReadingTime = tCommon("readingTime", { minutes: localizedMinutes });
+  }
 
   return (
     <article
-      dir="rtl"
+      dir={isEn ? "ltr" : "rtl"}
       className={`group bg-surface-container-lowest rounded-2xl overflow-hidden shadow-tier-1 hover:shadow-tier-2 transition-all duration-300 flex flex-col justify-between text-start border border-outline-variant/30 ${className}`}
     >
       <div>
@@ -59,7 +70,7 @@ export function ArticleCard({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-primary/5 text-primary">
-              <ClinicalIcon name="menu_book" size={48} className="opacity-40" />
+              <BookOpen size={48} className="opacity-40" aria-hidden="true" />
             </div>
           )}
           {category && (
@@ -76,23 +87,33 @@ export function ArticleCard({
               {title}
             </h3>
           </Link>
-          <p className="text-xs text-on-surface-variant line-clamp-3 leading-relaxed mb-3">
-            {summary}
-          </p>
+          {summary && (
+            <p className="text-xs text-on-surface-variant line-clamp-3 leading-relaxed mb-3">
+              {summary}
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Footer Meta */}
-      <div className="p-4 sm:p-5 pt-0 flex items-center justify-between text-on-surface-variant text-xs border-t border-outline-variant/10 mt-2">
-        <span className="flex items-center gap-1.5 font-medium">
-          <ClinicalIcon name="person" size={16} className="text-primary shrink-0" />
-          <span>{authorName}</span>
-        </span>
-        <span className="flex items-center gap-1 text-on-surface-variant/80">
-          <ClinicalIcon name="timer" size={16} className="shrink-0" />
-          <span>{displayReadingTime}</span>
-        </span>
-      </div>
+      {/* Footer Meta — rendered only for stored fields */}
+      {(authorName || displayReadingTime) && (
+        <div className="p-4 sm:p-5 pt-0 flex items-center justify-between text-on-surface-variant text-xs border-t border-outline-variant/10 mt-2">
+          {authorName ? (
+            <span className="flex items-center gap-1.5 font-medium">
+              <User size={16} className="text-primary shrink-0" aria-hidden="true" />
+              <span>{authorName}</span>
+            </span>
+          ) : (
+            <span />
+          )}
+          {displayReadingTime && (
+            <span className="flex items-center gap-1 text-on-surface-variant/80">
+              <Timer size={16} className="shrink-0" aria-hidden="true" />
+              <span>{displayReadingTime}</span>
+            </span>
+          )}
+        </div>
+      )}
     </article>
   );
 }
@@ -126,21 +147,34 @@ export function VideoCard({
     id,
     slug,
     title,
-    summary = "مصاحبه تصویری پیرامون نکات بالینی و راهکارهای ارتقای سلامت.",
-    speakerName = "دکتر لیلا سادات",
-    durationMinutes = 12,
+    summary,
+    speakerName,
+    durationMinutes,
     durationLabel,
     thumbnailUrl,
-    category = "ویدیو پزشکی",
+    category,
     href,
   } = video;
 
-  const targetHref = href ?? `/${locale}/videos/${slug || id}`;
-  const displayDuration = durationLabel ?? `${toPersianDigits(durationMinutes)} دقیقه`;
+  const isEn = locale === "en";
+  const tCommon = useTranslations("common");
+  // No /videos/[slug] route exists — video detail renders via the article reader.
+  const targetHref = href ?? `/${locale}/articles/${slug || id}`;
+
+  let displayDuration: string | null = durationLabel ?? null;
+  if (!displayDuration && durationMinutes !== undefined && durationMinutes !== null) {
+    const localizedMinutes =
+      locale === "fa" ? toPersianDigits(durationMinutes) : String(durationMinutes);
+    displayDuration = tCommon("videoDuration", { minutes: localizedMinutes });
+  }
+
+  const playAria = tCommon("playVideo", { title });
+
+  const watchVideoText = tCommon("watchVideo");
 
   return (
     <div
-      dir="rtl"
+      dir={isEn ? "ltr" : "rtl"}
       className={`group bg-surface-container-lowest rounded-2xl overflow-hidden shadow-tier-1 hover:shadow-tier-2 transition-all duration-300 flex flex-col justify-between text-start border border-outline-variant/30 ${className}`}
     >
       <div>
@@ -155,26 +189,28 @@ export function VideoCard({
             />
           ) : (
             <div className="w-full h-full bg-primary/20 flex items-center justify-center">
-              <ClinicalIcon name="play_circle" size={56} className="text-primary/50" />
+              <CirclePlay size={56} className="text-primary/50" aria-hidden="true" />
             </div>
           )}
 
           {/* Centered Play Button Overlay */}
           <Link
             href={targetHref}
-            aria-label={`پخش ویدیو ${title}`}
+            aria-label={playAria}
             className="absolute inset-0 bg-inverse-surface/30 flex items-center justify-center group-hover:bg-inverse-surface/20 transition-colors"
           >
             <div className="w-14 h-14 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <ClinicalIcon name="play_arrow" size={32} fill className="shrink-0 ms-0.5" />
+              <Play size={32} fill="currentColor" className="shrink-0 ms-0.5" aria-hidden="true" />
             </div>
           </Link>
 
-          {/* Duration Chip on Thumbnail */}
-          <span className="absolute bottom-2.5 start-2.5 bg-inverse-surface/85 text-inverse-on-surface px-2 py-0.5 rounded-lg text-xs font-medium flex items-center gap-1 shadow-xs">
-            <ClinicalIcon name="videocam" size={14} className="shrink-0" />
-            <span>{displayDuration}</span>
-          </span>
+          {/* Duration Chip on Thumbnail — stored duration only */}
+          {displayDuration && (
+            <span className="absolute bottom-2.5 start-2.5 bg-inverse-surface/85 text-inverse-on-surface px-2 py-0.5 rounded-lg text-xs font-medium flex items-center gap-1 shadow-xs">
+              <Video size={14} className="shrink-0" aria-hidden="true" />
+              <span>{displayDuration}</span>
+            </span>
+          )}
 
           {/* Category Chip */}
           {category && (
@@ -191,24 +227,34 @@ export function VideoCard({
               {title}
             </h3>
           </Link>
-          <p className="text-xs text-on-surface-variant line-clamp-3 leading-relaxed mb-3">
-            {summary}
-          </p>
+          {summary && (
+            <p className="text-xs text-on-surface-variant line-clamp-3 leading-relaxed mb-3">
+              {summary}
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Footer Meta and Action */}
+      {/* Footer Meta and Action — speaker shown only when stored */}
       <div className="p-4 sm:p-5 pt-0 flex items-center justify-between text-on-surface-variant text-xs border-t border-outline-variant/10 mt-2">
-        <span className="flex items-center gap-1.5 font-medium">
-          <ClinicalIcon name="person" size={16} className="text-primary shrink-0" />
-          <span>{speakerName}</span>
-        </span>
+        {speakerName ? (
+          <span className="flex items-center gap-1.5 font-medium">
+            <User size={16} className="text-primary shrink-0" aria-hidden="true" />
+            <span>{speakerName}</span>
+          </span>
+        ) : (
+          <span />
+        )}
         <Link
           href={targetHref}
           className="flex items-center gap-1 text-primary font-bold hover:underline cursor-pointer"
         >
-          <span>تماشای ویدیو</span>
-          <ClinicalIcon name="arrow_back" size={16} className="shrink-0" />
+          <span>{watchVideoText}</span>
+          {isEn ? (
+            <ArrowRight size={16} className="shrink-0" aria-hidden="true" />
+          ) : (
+            <ArrowLeft size={16} className="shrink-0" aria-hidden="true" />
+          )}
         </Link>
       </div>
     </div>

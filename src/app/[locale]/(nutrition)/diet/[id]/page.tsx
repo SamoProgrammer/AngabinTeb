@@ -1,10 +1,21 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/contexts/identity/actions";
 import { getProgramContent } from "@/contexts/nutrition/queries";
 import { isPricedProgram } from "@/contexts/nutrition/kernel";
 import { formatPersianNumber, toPersianDigits } from "@/lib/metabolism";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BadgeCheck,
+  CircleCheckBig,
+  Download,
+  FilePenLine,
+  Lock,
+  Stethoscope,
+  Utensils,
+} from "lucide-react";
 
 export default async function DietDetailPage({
   params,
@@ -18,15 +29,23 @@ export default async function DietDetailPage({
   const content = await getProgramContent(id, user.id, locale);
   if (!content) notFound();
 
+  const t = await getTranslations("nutrition");
+  const durationText = (days: number) =>
+    t("dietDetailDuration", { days: locale === "en" ? String(days) : toPersianDigits(days) });
+  const formatPrice = (v: number | string) =>
+    locale === "en" ? Number(v).toLocaleString("en-US") : formatPersianNumber(Number(v));
+  const formatPhone = (v: string) => (locale === "en" ? v : toPersianDigits(v));
+  const BackIcon = locale === "en" ? ArrowLeft : ArrowRight;
+
   return (
-    <div className="flex flex-col gap-6 text-start" dir="rtl">
+    <div className="flex flex-col gap-6 text-start" dir={locale === "en" ? "ltr" : "rtl"}>
       <Link
         href=".."
         aria-label="BackToDiet"
         className="inline-flex items-center gap-1.5 self-start text-xs font-bold text-on-surface-variant hover:text-primary transition-colors"
       >
-        <ClinicalIcon name="arrow_forward" size={16} />
-        <span>بازگشت به برنامه‌های رژیمی (Back)</span>
+        <BackIcon size={16} aria-hidden="true" />
+        <span>{t("dietDetailBack")}</span>
       </Link>
 
       <section
@@ -35,18 +54,18 @@ export default async function DietDetailPage({
       >
         <div className="flex flex-wrap items-center gap-2">
           <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full">
-            {content.planType || "پروتکل بالینی"}
+            {content.planType || t("dietDetailDefaultPlanType")}
           </span>
           <span className="bg-secondary-container/20 text-secondary text-xs font-bold px-3 py-1 rounded-full">
-            دوره {toPersianDigits(content.durationDays)} روزه
+            {durationText(content.durationDays)}
           </span>
           {content.hasClaim && (
             <span
               aria-label="Owned"
               className="bg-emerald-100 text-emerald-900 text-xs font-bold px-3 py-1 rounded-full inline-flex items-center gap-1"
             >
-              <ClinicalIcon name="verified" size={14} />
-              <span>متعلق به شما (Owned)</span>
+              <BadgeCheck size={14} aria-hidden="true" />
+              <span>{t("dietDetailOwned")}</span>
             </span>
           )}
         </div>
@@ -61,10 +80,11 @@ export default async function DietDetailPage({
         )}
         {content.practitionerName && (
           <p className="text-xs text-on-surface-variant flex items-center gap-1.5">
-            <ClinicalIcon name="stethoscope" size={16} className="text-primary" />
+            <Stethoscope size={16} className="text-primary" aria-hidden="true" />
             <span>
-              پایشگر: {content.practitionerName}
-              {content.practitionerPhone && ` • تلفن: ${toPersianDigits(content.practitionerPhone)}`}
+              {t("dietDetailPractitioner")} {content.practitionerName}
+              {content.practitionerPhone &&
+                ` • ${t("dietDetailPhonePrefix")} ${formatPhone(content.practitionerPhone)}`}
             </span>
           </p>
         )}
@@ -75,24 +95,23 @@ export default async function DietDetailPage({
             className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col gap-3"
           >
             <p className="flex items-center gap-2 text-sm font-extrabold text-amber-900">
-              <ClinicalIcon name="lock" size={20} />
-              <span>دریافت این برنامه نیازمند ثبت درخواست است (Claim required)</span>
+              <Lock size={20} aria-hidden="true" />
+              <span>{t("dietDetailClaimRequired")}</span>
             </p>
             <p className="text-xs text-amber-900/80 leading-relaxed">
-              تعرفه دوره:{" "}
+              {t("dietDetailFeeLabel")}{" "}
               <strong className="font-data-metric">
-                {formatPersianNumber(Number(content.price))} تومان
+                {formatPrice(content.price)} {t("dietDetailCurrency")}
               </strong>
-              . پس از ثبت درخواست، فایل برنامه برای حساب شما فعال می‌شود و بدون ثبت مجدد در
-              دسترس می‌ماند.
+              . {t("dietDetailClaimExpl")}
             </p>
             <Link
               href={`../?context=${content.organizationContext}&claim=${content.id}`}
               aria-label="Claim"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl shadow-xs transition-all"
             >
-              <ClinicalIcon name="check_circle" size={18} />
-              <span>بازبینی و ثبت درخواست (Claim)</span>
+              <CircleCheckBig size={18} aria-hidden="true" />
+              <span>{t("dietDetailClaimBtn")}</span>
             </Link>
           </div>
         ) : (
@@ -103,14 +122,12 @@ export default async function DietDetailPage({
                 aria-label="Download"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all"
               >
-                <ClinicalIcon name="download" size={18} />
-                <span>دریافت فایل برنامه (Download)</span>
+                <Download size={18} aria-hidden="true" />
+                <span>{t("dietDetailDownloadBtn")}</span>
               </a>
             ) : (
               <p className="text-xs text-on-surface-variant bg-surface-container-low rounded-2xl p-4 leading-relaxed">
-                فایل قابل دانلود هنوز برای این برنامه پیوست نشده است. محتوای بالای صفحه همان
-                چیزی است که این برنامه ارائه می‌دهد؛ به‌محض پیوست فایل، از همین‌جا قابل دریافت
-                خواهد بود.
+                {t("dietDetailNoFileNotice")}
               </p>
             )}
             {!content.hasClaim && !isPricedProgram(content.price) && (
@@ -119,11 +136,31 @@ export default async function DietDetailPage({
                 aria-label="Claim"
                 className="text-xs font-bold text-primary hover:underline self-start"
               >
-                ثبت درخواست برای سوابق من (Claim)
+                <span>{t("dietDetailClaimForRecords")}</span>
               </Link>
             )}
           </div>
         )}
+      </section>
+
+      {/* Next Steps: Connect to Daily Tracker */}
+      <section className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Utensils size={22} aria-hidden="true" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-on-surface">{t("dietDetailDiaryTitle")}</h3>
+            <p className="text-xs text-on-surface-variant">{t("dietDetailDiaryDesc")}</p>
+          </div>
+        </div>
+        <Link
+          href={`/${locale}/nutrition/diary`}
+          className="bg-primary hover:bg-primary/90 text-on-primary text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-2xs flex items-center gap-1.5 shrink-0"
+        >
+          <FilePenLine size={16} aria-hidden="true" />
+          <span>{t("dietDetailDiaryBtn")}</span>
+        </Link>
       </section>
     </div>
   );

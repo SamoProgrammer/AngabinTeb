@@ -15,13 +15,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Stack
 
-Next 16.3.3 App Router (Turbopack) · React 19 · TS 7.0.2 (oxlint only, NO typescript-eslint) · Tailwind v4 · Drizzle 0.45 + postgres.js 3.4 · better-auth 1.7.2 · next-intl 4 · Node 26.7 · Postgres 17 (docker compose) · **bun** (never pnpm/npm/yarn) · Vazirmatn + Plus Jakarta Sans · Material Symbols Outlined.
+Next 16.3.3 App Router (Turbopack) · React 19 · TS 7.0.2 (oxlint only, NO typescript-eslint) · Tailwind v4 · Drizzle 0.45 + postgres.js 3.4 · better-auth 1.7.2 · next-intl 4 · Node 26.7 · Postgres 17 (docker compose) · **bun** (never pnpm/npm/yarn) · Vazirmatn + Plus Jakarta Sans · lucide-react icons (no icon font).
 
 ## Where things live
 
 ```
 src/app/[locale]/          # App Router: (discovery), (booking), (account), (auth), (nutrition), (content), (marketing), admin/
-src/components/clinical/   # Domain assemblies: DoctorCard, ServiceCard, UniversalSearchBar, TrustMetrics, MetabolismCalculator, ClinicalIcon
+src/components/clinical/   # Domain assemblies: DoctorCard, ServiceCard, UniversalSearchBar, TrustMetrics, MetabolismCalculator, icons.ts (Material→Lucide map + resolveIcon)
 src/components/layout/     # Global chrome: ClinicalHeader (mega-dropdowns, auth menu), ClinicalFooter, MobileNav, AdminShell
 src/components/ui/         # shadcn (base-ui variant) vendored
 src/contexts/{identity,catalog,booking,nutrition,content,support}/  # kernel.ts queries.ts actions.ts model.ts
@@ -50,7 +50,7 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
 
 - **Design Tokens & Typography (Tailwind v4):** Persian Clinical Wellness palette configured in `src/app/globals.css` via `@theme inline` (`--color-primary`: #005f4c, `--color-secondary`: #904d00, `--color-tertiary`: #005f54, porcelain surfaces). Elevation tokens: `shadow-tier-1` to `shadow-tier-3`. Fonts loaded via `next/font/google` in `src/app/fonts.ts` (`--font-vazirmatn`, `--font-plus-jakarta-sans`).
 - **Strict RTL & Logical Properties:** Always use logical Tailwind properties (`ps/pe`, `text-start`, `ms/me`, `border-s/border-e`, `start-0/end-0`). Physical properties (`pl/pr`, `left/right`) are strictly forbidden.
-- **Iconography (`ClinicalIcon`):** Use `<ClinicalIcon name="..." size={...} fill={...} />` rendering Google Material Symbols Outlined font ligatures (e.g. `local_hospital`, `stethoscope`, `restaurant`, `calculate`, `event_available`, `notifications`).
+- **Iconography (lucide-react):** Direct imports only — `import { Stethoscope } from "lucide-react"`, render `<Stethoscope size={...} aria-hidden="true" />` preserving size/className. `fill={true}` becomes `fill="currentColor"`. Dynamic names use `resolveIcon(name)` from `@/components/clinical/icons` (falls back to `CircleHelp`, never text). Canonical Material→Lucide picks live in `icons.ts` — reuse, don't invent. `ClinicalIcon` and the Material Symbols webfont are deleted; no `fonts.googleapis` icon links.
 - **Global Chrome & Layout Structure:** 3-tier chrome: sticky `ClinicalHeader` (4 mega-dropdown clinical hubs, locale switcher, reactive auth button/menu), bottom `MobileNav` for phones (`md:hidden`), and `ClinicalFooter` with 115 emergency banner, zero-fee guarantee, and `pb-16 md:pb-0` mobile dock clearance.
 - **Nutrition Engine & Persian Measures:** Metabolic math uses Mifflin-St Jeor equation in `src/lib/metabolism.ts` (calculates BMR, TDEE, macronutrient distribution). Daily food diary integrates traditional Iranian portion units (`کف دست`, `لیوان`, `قاشق`, `بشقاب`).
 - `proxy.ts` not `middleware.ts` — locale negotiation + optimistic redirects only; every page/action re-verifies session server-side (CVE-2025-29927). Bare links (`/services/...`, `/nutrition/...`) are redirected via `proxy.ts` to `/${locale}/...` preserving searchParams.
@@ -58,7 +58,7 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
 - `cookies()`/`headers()`/`params`/`searchParams` are async only (Next 16).
 - `postgres.js` results expose `.count` not `.rowCount` (capacity guard).
 - `better-auth` adapter uses `usePlural: true`; `role` is `additionalFields` (input:false).
-- `overlayTranslations(entityType, rows, overrides, locale, fields)` — 5 args, entityType first, locale in key. Translation queries use Drizzle `inArray` (not raw SQL `ANY`) for PostgreSQL type safety.
+- `localizedRows(entityType, rows, locale, fields, dbc = db)` — 4 args, entityType first; fetches overrides internally (translation queries use Drizzle `inArray`, not raw SQL `ANY`).
 - `bookAppointment` → `bookAppointmentWithUser(user, input)` seam for `/api-test` routes.
 - Slot capacity guarded by conditional `UPDATE ... booked_count + $party <= capacity` — never reimplement with SELECT+check.
 - `generateSlots` uses `SELECT ... FOR UPDATE` on service row to serialize concurrent generation.
@@ -70,7 +70,7 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
 
 - **HEAD:** `0ee010f` (Stitch UI/UX overhaul complete, reactive auth header, clean i18n routing)
 - **Shipped UI/UX Modernization (Google Stitch 50-Screen System):**
-  - **Design System & Tokens:** Tailwind v4 Persian Clinical Wellness palette, Vazirmatn Persian typography, Material Symbols Outlined iconography, elevation shadows tier 1–3.
+  - **Design System & Tokens:** Tailwind v4 Persian Clinical Wellness palette, Vazirmatn Persian typography, Lucide iconography (migrated from Material Symbols; see Iconography), elevation shadows tier 1–3.
   - **Global Chrome:** `ClinicalHeader` (4 clinical mega-dropdown hubs, locale switcher, session-aware account menu), `ClinicalFooter` (emergency 115 banner, zero-commission guarantee, accreditation seals), `MobileNav` (5-tab mobile dock with route indicators).
   - **Landing Page (Screen 13):** Universal search bar, 360 Health Topics, Live Interactive Metabolism Calculator widget, Doctor Spotlight, Clinical Services, Health Articles, and Trust/Accreditation metrics.
   - **Booking Flow (Screens 2, 4, 11):** Doctors directory with specialty filters, Doctor profile with credentials and schedules, Service catalog with category tabs, Service detail, Slot booking calendar (morning/evening slot categorization), and Digital reservation receipt card.

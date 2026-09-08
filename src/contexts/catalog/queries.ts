@@ -1,20 +1,13 @@
 import "server-only";
-import { sql, eq, and, inArray } from "drizzle-orm";
+import { cache } from "react";
+import { sql, eq, and, or } from "drizzle-orm";
 import { db } from "@/db";
-import { providers, practitioners, services, locations, serviceCategories, translations, diagnosticServices, contents } from "@/db/schema";
-import { overlayTranslations } from "@/lib/translate";
+import { providers, practitioners, services, locations, serviceCategories, diagnosticServices, contents } from "@/db/schema";
+import { localizedRows } from "@/lib/translate";
 import type { SearchResult, DoctorCard, ServiceCard } from "./model";
 export type { SearchResult, DoctorCard, ServiceCard };
 
-export async function fetchOverrides(entityType: string, ids: string[]) {
-  if (ids.length === 0) return [];
-  return db
-    .select()
-    .from(translations)
-    .where(and(eq(translations.entityType, entityType), inArray(translations.entityId, ids)));
-}
-
-export async function searchAll(term: string, locale: string): Promise<SearchResult[]> {
+export const searchAll = cache(async (term: string, locale: string): Promise<SearchResult[]> => {
   if (!term.trim()) return [];
   const q = sql`plainto_tsquery('simple', ${term.trim()})`;
 
@@ -48,11 +41,8 @@ export async function searchAll(term: string, locale: string): Promise<SearchRes
     ))
     .limit(20);
 
-  const overrides = await fetchOverrides("service", svc.map((r) => r.id));
-  const docOverrides = await fetchOverrides("provider", docs.map((r) => r.id));
-
-  const localizedServices = overlayTranslations("service", svc, overrides, locale, ["name"]);
-  const localizedDocs = overlayTranslations("provider", docs, docOverrides, locale, ["name"]);
+  const localizedServices = await localizedRows("service", svc, locale, ["name"]);
+  const localizedDocs = await localizedRows("provider", docs, locale, ["name"]);
 
   const cnt = await db
     .select({ id: contents.id, slug: contents.slug, title: contents.title })
@@ -63,7 +53,7 @@ export async function searchAll(term: string, locale: string): Promise<SearchRes
     ))
     .limit(10);
 
-  const contentOverrides = await fetchOverrides("content", cnt.map((r) => r.id));
+  const contentOverrides = await localizedRows("content", cnt, locale, ["title"]);
 
   const results: SearchResult[] = [
     ...localizedServices.map((s) => ({
@@ -80,7 +70,7 @@ export async function searchAll(term: string, locale: string): Promise<SearchRes
       subtitle: (d.bio as string) ?? (d.specialtyName as string) ?? "",
       href: `/doctors/${d.id}`,
     })),
-    ...overlayTranslations("content", cnt, contentOverrides, locale, ["title"]).map((c) => ({
+    ...contentOverrides.map((c) => ({
       type: "content" as const,
       id: c.id,
       title: c.title as string,
@@ -89,9 +79,45 @@ export async function searchAll(term: string, locale: string): Promise<SearchRes
     })),
   ];
   return results.sort((a, b) => a.title.localeCompare(b.title, locale));
-}
+});
 
-export async function listDoctors(locale: string, specialtyId?: string, cityId?: string): Promise<DoctorCard[]> {
+export const listDoctors = cache(async (
+  locale: string,
+  specialtyId?: string,
+  cityId?: string,
+  page = 1,
+  pageSize = 12,
+): Promise<{ rows: DoctorCard[]; total: number }> => {
+  // Pages pass either a category id or a slug (?specialty=cardiology).
+  // Resolve slugs to ids so the filter matches seeded rows instead of
+  // silently returning zero results.
+  let specialtyDbId: string | undefined;
+  if (specialtyId) {
+    const [cat] = await db
+      .select({ id: serviceCategories.id })
+      .from(serviceCategories)
+      .where(
+        or(
+          eq(serviceCategories.id, specialtyId),
+          eq(serviceCategories.slug, specialtyId),
+        ),
+      );
+    if (!cat) return { rows: [], total: 0 };
+    specialtyDbId = cat.id;
+  }
+  const where = and(
+    eq(providers.kind, "person"),
+    eq(providers.isActive, true),
+    specialtyDbId ? eq(practitioners.specialtyId, specialtyDbId) : undefined,
+    cityId ? eq(locations.cityId, cityId) : undefined,
+  );
+  const [count] = await db
+    .select({ total: sql<number>`count(*)::int` })
+    .from(providers)
+    .innerJoin(practitioners, eq(practitioners.providerId, providers.id))
+    .leftJoin(serviceCategories, eq(serviceCategories.id, practitioners.specialtyId))
+    .leftJoin(locations, eq(locations.id, providers.primaryLocationId))
+    .where(where);
   const rows = await db
     .select({
       id: providers.id,
@@ -99,45 +125,84 @@ export async function listDoctors(locale: string, specialtyId?: string, cityId?:
       specialty: serviceCategories.name,
       cityId: locations.cityId,
       imageUrl: providers.imageUrl,
+      medicalCouncilCode: practitioners.medicalCouncilCode,
     })
     .from(providers)
     .innerJoin(practitioners, eq(practitioners.providerId, providers.id))
     .leftJoin(serviceCategories, eq(serviceCategories.id, practitioners.specialtyId))
     .leftJoin(locations, eq(locations.id, providers.primaryLocationId))
-    .where(and(
-      eq(providers.kind, "person"),
-      eq(providers.isActive, true),
-      specialtyId ? eq(practitioners.specialtyId, specialtyId) : undefined,
-      cityId ? eq(locations.cityId, cityId) : undefined,
-    ))
-    .orderBy(providers.name);
-  return overlayTranslations("provider", rows, await fetchOverrides("provider", rows.map((r) => r.id)), locale, ["name"]) as DoctorCard[];
-}
+    .where(where)
+    .orderBy(providers.name)
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
+  return {
+    rows: (await localizedRows("provider", rows, locale, ["name"])) as DoctorCard[],
+    total: count?.total ?? 0,
+  };
+});
 
-export async function listServices(locale: string, categoryId?: string, cityId?: string): Promise<ServiceCard[]> {
+export const listServices = cache(async (
+  locale: string,
+  categoryId?: string,
+  cityId?: string,
+  page = 1,
+  pageSize = 12,
+): Promise<{ rows: ServiceCard[]; total: number }> => {
+  // Pages pass either a category id or a slug (?category=laboratory).
+  // Resolve slugs to ids so the filter matches seeded rows instead of
+  // silently returning zero results.
+  let categoryDbId: string | undefined;
+  if (categoryId) {
+    const [cat] = await db
+      .select({ id: serviceCategories.id })
+      .from(serviceCategories)
+      .where(
+        or(
+          eq(serviceCategories.id, categoryId),
+          eq(serviceCategories.slug, categoryId),
+        ),
+      );
+    if (!cat) return { rows: [], total: 0 };
+    categoryDbId = cat.id;
+  }
+  const where = and(
+    eq(services.isActive, true),
+    categoryDbId ? eq(services.categoryId, categoryDbId) : undefined,
+    cityId ? eq(locations.cityId, cityId) : undefined,
+  );
+  const [count] = await db
+    .select({ total: sql<number>`count(*)::int` })
+    .from(services)
+    .innerJoin(providers, eq(services.providerId, providers.id))
+    .leftJoin(serviceCategories, eq(serviceCategories.id, services.categoryId))
+    .leftJoin(locations, eq(locations.id, services.locationId))
+    .where(where);
   const rows = await db
     .select({
       id: services.id,
       name: services.name,
       providerName: providers.name,
       serviceType: services.serviceType,
+      category: serviceCategories.name,
       cityId: locations.cityId,
       price: services.basePrice,
+      durationMinutes: services.durationMinutes,
     })
     .from(services)
     .innerJoin(providers, eq(services.providerId, providers.id))
+    .leftJoin(serviceCategories, eq(serviceCategories.id, services.categoryId))
     .leftJoin(locations, eq(locations.id, services.locationId))
-    .where(and(
-      eq(services.isActive, true),
-      categoryId ? eq(services.categoryId, categoryId) : undefined,
-      cityId ? eq(locations.cityId, cityId) : undefined,
-    ))
+    .where(where)
     .orderBy(services.name)
-    .limit(50);
-  return overlayTranslations("service", rows, await fetchOverrides("service", rows.map((r) => r.id)), locale, ["name"]) as ServiceCard[];
-}
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
+  return {
+    rows: (await localizedRows("service", rows, locale, ["name"])) as ServiceCard[],
+    total: count?.total ?? 0,
+  };
+});
 
-export async function getDoctor(id: string, locale: string) {
+export const getDoctor = cache(async (id: string, locale: string) => {
   const [row] = await db
     .select({
       id: providers.id,
@@ -149,6 +214,8 @@ export async function getDoctor(id: string, locale: string) {
       credentials: practitioners.credentials,
       cvUrl: practitioners.cvUrl,
       videoUrl: practitioners.videoUrl,
+      medicalCouncilCode: practitioners.medicalCouncilCode,
+      landlinePhone: practitioners.landlinePhone,
       specialtyName: serviceCategories.name,
       addressLine: locations.addressLine,
       cityId: locations.cityId,
@@ -161,10 +228,10 @@ export async function getDoctor(id: string, locale: string) {
     .leftJoin(locations, eq(locations.id, providers.primaryLocationId))
     .where(eq(providers.id, id));
   if (!row) return null;
-  return overlayTranslations("provider", [row], await fetchOverrides("provider", [id]), locale, ["name", "bio"])[0];
-}
+  return (await localizedRows("provider", [row], locale, ["name", "bio"]))[0];
+});
 
-export async function getService(id: string, locale: string) {
+export const getService = cache(async (id: string, locale: string) => {
   const [row] = await db
     .select({
       id: services.id,
@@ -172,6 +239,7 @@ export async function getService(id: string, locale: string) {
       name: services.name,
       providerId: services.providerId,
       providerName: providers.name,
+      providerPhone: providers.phone,
       durationMinutes: services.durationMinutes,
       basePrice: services.basePrice,
       locationId: services.locationId,
@@ -183,13 +251,23 @@ export async function getService(id: string, locale: string) {
     .leftJoin(locations, eq(locations.id, services.locationId))
     .where(and(eq(services.id, id), eq(services.isActive, true)));
   if (!row) return null;
-  return overlayTranslations("service", [row], await fetchOverrides("service", [id]), locale, ["name"])[0];
-}
+  return (await localizedRows("service", [row], locale, ["name"]))[0];
+});
 
-export async function getPrepInfo(serviceId: string) {
+export const listProviderServices = cache(async (providerId: string, locale: string) => {
+  const rows = await db
+    .select({ id: services.id, name: services.name, basePrice: services.basePrice })
+    .from(services)
+    .where(and(eq(services.providerId, providerId), eq(services.isActive, true)))
+    .orderBy(services.name)
+    .limit(10);
+  return localizedRows("service", rows, locale, ["name"]);
+});
+
+export const getPrepInfo = cache(async (serviceId: string) => {
   const [row] = await db
     .select({ prepInstructions: diagnosticServices.prepInstructions, fastingHours: diagnosticServices.fastingHours })
     .from(diagnosticServices)
     .where(eq(diagnosticServices.serviceId, serviceId));
   return row ?? null;
-}
+});

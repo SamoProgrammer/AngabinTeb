@@ -1,20 +1,13 @@
 import "server-only";
-import { sql, eq, and, gte, lt, inArray } from "drizzle-orm";
+import { cache } from "react";
+import { sql, eq, and, gte, lt } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, translations, providers } from "@/db/schema";
-import { overlayTranslations } from "@/lib/translate";
-import { bmr, tdee, type ActivityLevel } from "./kernel";
-import type { FoodCard, FoodDetail, FoodOption, ProgramCard } from "./model";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, providers } from "@/db/schema";
+import { localizedRows } from "@/lib/translate";
+import { bmr, tdee, canAccessProgramContent, type ActivityLevel } from "./kernel";
+import type { FoodCard, FoodDetail, FoodOption, ProgramCard, ProgramContent } from "./model";
 
-async function fetchDietOverrides(entityType: string, ids: string[]) {
-  if (ids.length === 0) return [];
-  return db
-    .select()
-    .from(translations)
-    .where(and(eq(translations.entityType, entityType), inArray(translations.entityId, ids)));
-}
-
-export async function getPhysiology(userId: string) {
+export const getPhysiology = cache(async (userId: string) => {
   const [row] = await db.select().from(physiologyProfiles).where(eq(physiologyProfiles.userId, userId));
   if (!row) return null;
   const age = Math.floor((Date.now() - new Date(row.birthDate).getTime()) / (365.25 * 24 * 3600 * 1000));
@@ -25,9 +18,9 @@ export async function getPhysiology(userId: string) {
     bmr: Math.round(bmrValue),
     tdee: Math.round(tdee(bmrValue, row.activityLevel as ActivityLevel)),
   };
-}
+});
 
-export async function dayIntake(userId: string, day: string) {
+export const dayIntake = cache(async (userId: string, day: string) => {
   const start = `${day}T00:00:00Z`;
   const nextDay = new Date(start);
   nextDay.setUTCDate(nextDay.getUTCDate() + 1);
@@ -61,9 +54,9 @@ export async function dayIntake(userId: string, day: string) {
       ? { "n-energy": Number(rollup.energyKcal), "n-carbs": Number(rollup.carbsG), "n-protein": Number(rollup.proteinG), "n-fat": Number(rollup.fatG) }
       : {},
   };
-}
+});
 
-export async function searchFoods(_locale: string, term: string, category?: string, page = 1): Promise<{ rows: FoodCard[]; total: number }> {
+export const searchFoods = cache(async (_locale: string, term: string, category?: string, page = 1): Promise<{ rows: FoodCard[]; total: number }> => {
   const where = and(
     term.trim() ? sql`to_tsvector('simple', ${foods.name}) @@ plainto_tsquery('simple', ${term.trim()})` : undefined,
     category ? eq(foods.category, category) : undefined,
@@ -80,9 +73,9 @@ export async function searchFoods(_locale: string, term: string, category?: stri
     .from(foods)
     .where(where);
   return { rows, total: count?.total ?? 0 };
-}
+});
 
-export async function getFoodDetail(id: string, _locale: string): Promise<FoodDetail | null> {
+export const getFoodDetail = cache(async (id: string, _locale: string): Promise<FoodDetail | null> => {
   const [food] = await db.select().from(foods).where(eq(foods.id, id));
   if (!food) return null;
   const [servingUnitsRows, nutrientRows] = await Promise.all([
@@ -110,9 +103,9 @@ export async function getFoodDetail(id: string, _locale: string): Promise<FoodDe
     servingUnits: servingUnitsRows,
     nutrients: nutrientRows,
   };
-}
+});
 
-export async function getFoodAdmin(id: string) {
+export const getFoodAdmin = cache(async (id: string) => {
   const [food] = await db.select().from(foods).where(eq(foods.id, id));
   if (!food) return null;
   const [servingUnitsRows, nutrientRows] = await Promise.all([
@@ -134,9 +127,9 @@ export async function getFoodAdmin(id: string) {
       .orderBy(nutrients.name),
   ]);
   return { ...food, servingUnits: servingUnitsRows, nutrients: nutrientRows };
-}
+});
 
-export async function foodPickerOptions(_locale: string): Promise<FoodOption[]> {
+export const foodPickerOptions = cache(async (_locale: string): Promise<FoodOption[]> => {
   const rows = await db
     .select({
       id: foods.id,
@@ -154,9 +147,9 @@ export async function foodPickerOptions(_locale: string): Promise<FoodOption[]> 
     map.set(row.id, option);
   }
   return [...map.values()];
-}
+});
 
-export async function listPrograms(context: string, locale: string): Promise<ProgramCard[]> {
+export const listPrograms = cache(async (context: string, locale: string): Promise<ProgramCard[]> => {
   const rows = await db
     .select({
       id: dietPrograms.id,
@@ -173,12 +166,68 @@ export async function listPrograms(context: string, locale: string): Promise<Pro
     .leftJoin(providers, eq(dietPrograms.practitionerId, providers.id))
     .where(eq(dietPrograms.organizationContext, context))
     .orderBy(dietPrograms.name);
-  return overlayTranslations("diet_program", rows, await fetchDietOverrides("diet_program", rows.map((r) => r.id)), locale, ["name", "description"]) as ProgramCard[];
-}
+  return (await localizedRows("diet_program", rows, locale, ["name", "description"])) as ProgramCard[];
+});
 
-export async function myClaims(userId: string): Promise<Array<{ programId: string; status: string }>> {
-  return db
+export const myClaims = cache(async (
+  userId: string,
+  dbc: typeof db = db,
+): Promise<Array<{ programId: string; status: string }>> => {
+  // All statuses: a completed claim is still ownership — owners re-access
+  // without re-claiming, so completed rows must stay visible here.
+  return dbc
     .select({ programId: dietClaims.programId, status: dietClaims.status })
     .from(dietClaims)
-    .where(and(eq(dietClaims.userId, userId), sql`${dietClaims.status} != 'completed'`));
-}
+    .where(eq(dietClaims.userId, userId));
+});
+
+// Claim-gated serving point (ticket 13 / spec F1). The ONLY path that hands
+// out a program's download: priced programs require a claim row (any status),
+// otherwise downloadUrl is nulled server-side — hiding buttons is not enough.
+// The optional db override mirrors the booking seam: tests run this against a
+// disposable database without touching the dev database.
+export const getProgramContent = cache(async (
+  programId: string,
+  userId: string,
+  locale: string,
+  dbc: typeof db = db,
+): Promise<ProgramContent | null> => {
+  const [row] = await dbc
+    .select({
+      id: dietPrograms.id,
+      name: dietPrograms.name,
+      description: dietPrograms.description,
+      organizationContext: dietPrograms.organizationContext,
+      planType: dietPrograms.planType,
+      durationDays: dietPrograms.durationDays,
+      price: dietPrograms.price,
+      downloadUrl: dietPrograms.downloadUrl,
+      practitionerName: providers.name,
+      practitionerPhone: providers.phone,
+    })
+    .from(dietPrograms)
+    .leftJoin(providers, eq(dietPrograms.practitionerId, providers.id))
+    .where(eq(dietPrograms.id, programId));
+  if (!row) return null;
+
+  const claims = await dbc
+    .select({ id: dietClaims.id })
+    .from(dietClaims)
+    .where(and(eq(dietClaims.userId, userId), eq(dietClaims.programId, programId)));
+  const hasClaim = claims.length > 0;
+  const allowed = canAccessProgramContent(row.price, hasClaim);
+
+  const [overlaid] = await localizedRows(
+    "diet_program",
+    [row],
+    locale,
+    ["name", "description"],
+    dbc,
+  );
+  return {
+    ...(overlaid as typeof row),
+    hasClaim,
+    accessDenied: !allowed,
+    downloadUrl: allowed ? row.downloadUrl : null,
+  };
+});

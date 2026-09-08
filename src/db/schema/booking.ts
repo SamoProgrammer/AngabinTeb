@@ -14,7 +14,12 @@ export const appointments = pgTable(
     status: text("status").notNull().default("confirmed"), // confirmed | cancelled | completed | no_show
     paymentStatus: text("payment_status").notNull().default("unpaid"), // unpaid | paid_at_location | refunded
     price: numeric("price", { precision: 12, scale: 0 }).notNull(),
+    depositFee: numeric("deposit_fee", { precision: 12, scale: 0 }).notNull().default("0"),
+    paymentMethod: text("payment_method").default("location"), // wallet | gateway | location
+    trackingCode: text("tracking_code"),
     notes: text("notes"),
+    patientName: text("patient_name"),
+    patientPhone: text("patient_phone"),
     idempotencyKey: text("idempotency_key").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

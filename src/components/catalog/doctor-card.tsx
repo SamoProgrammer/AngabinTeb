@@ -1,24 +1,11 @@
+"use client";
+
 import Link from "next/link";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { useTranslations } from "next-intl";
+import { BadgeCheck, CalendarDays, MapPin, Clock, Star, Stethoscope } from "lucide-react";
 
-const PERSIAN_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
-
-export function toPersianDigits(input: number | string | null | undefined): string {
-  if (input === null || input === undefined) return "";
-  return String(input).replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)] ?? digit);
-}
-
-export function formatPrice(price: number | string | null | undefined): string {
-  if (price === null || price === undefined || price === "") return "";
-  const str = String(price).trim();
-  if (str.includes("تومان")) return str;
-
-  const rawNum = typeof price === "number" ? price : parseFloat(str.replace(/[,٬]/g, ""));
-  if (isNaN(rawNum)) return str;
-
-  const withCommas = rawNum.toLocaleString("en-US");
-  return `${toPersianDigits(withCommas)} تومان`;
-}
+import { toPersianDigits, formatPrice } from "@/lib/format";
+export { toPersianDigits, formatPrice };
 
 export interface DoctorData {
   id: string;
@@ -54,7 +41,7 @@ export function DoctorCard({
   const {
     id,
     name,
-    specialty = "متخصص بالینی",
+    specialty = null,
     academicTitle = doctor.credentials ?? null,
     medicalCouncilCode,
     imageUrl,
@@ -67,30 +54,51 @@ export function DoctorCard({
     isVerified = false,
   } = doctor;
 
+  const t = useTranslations("doctors");
+  const isEn = locale === "en";
+  const dir = isEn ? "ltr" : "rtl";
+
   const targetHref = href ?? `/${locale}/doctors/${slug || id}`;
-  const displayRating = rating === undefined || rating === null ? null : toPersianDigits(rating);
-  const displayReviews = reviewsCount === undefined || reviewsCount === null ? null : toPersianDigits(reviewsCount);
-  const displaySlot = nextSlot ? toPersianDigits(nextSlot) : null;
-  const displayFee = fee === undefined || fee === null || fee === "" ? null : formatPrice(fee);
+  const displaySpecialty = specialty ?? t("fallbackSpecialty");
+  const displayRating = rating === undefined || rating === null ? null : (isEn ? String(rating) : toPersianDigits(rating));
+  const displayReviews = reviewsCount === undefined || reviewsCount === null ? null : (isEn ? String(reviewsCount) : toPersianDigits(reviewsCount));
+  const displaySlot = nextSlot ? (isEn ? String(nextSlot) : toPersianDigits(nextSlot)) : null;
+  const displayFee = fee === undefined || fee === null || fee === "" ? null : formatPrice(fee, locale);
+
+  const reviewsLabel = t("cardReviews", { count: displayReviews ?? "" });
+
+  const councilLabel = t("cardCouncil", {
+    code:
+      locale === "fa" || locale === "ar"
+        ? toPersianDigits(medicalCouncilCode)
+        : String(medicalCouncilCode ?? ""),
+  });
+
+  const slotLabel = t("cardNextSlot");
+  const clinicLabel = t("cardClinic");
+  const feeLabel = t("cardFee");
+  const payAtClinicLabel = t("cardPayAtClinic");
+  const ctaLabel = t("cardCta");
+  const ctaAria = t("cardCtaAria");
 
   return (
     <div
-      dir="rtl"
+      dir={dir}
       className={`bg-surface-container-lowest p-5 rounded-2xl shadow-tier-1 hover:shadow-tier-2 transition-all duration-300 flex flex-col justify-between text-start relative border border-outline-variant/30 ${className}`}
     >
       {/* Top Rating Pill */}
       {displayRating && (
         <div className="absolute top-4 end-4 flex items-center gap-1 bg-surface-container-low px-2.5 py-1 rounded-full text-secondary text-xs font-bold shadow-xs">
-          <ClinicalIcon
-            name="star"
+          <Star
             size={16}
-            fill
+            fill="currentColor"
             className="text-secondary shrink-0"
+            aria-hidden="true"
           />
           <span>{displayRating}</span>
           {displayReviews && (
             <span className="text-on-surface-variant font-normal">
-              {`(${displayReviews} نظر)`}
+              {reviewsLabel}
             </span>
           )}
         </div>
@@ -108,7 +116,7 @@ export function DoctorCard({
             />
           ) : (
             <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
-              <ClinicalIcon name="stethoscope" size={28} />
+              <Stethoscope size={28} aria-hidden="true" />
             </div>
           )}
 
@@ -120,16 +128,16 @@ export function DoctorCard({
                 </Link>
               </h3>
               {isVerified && (
-                <ClinicalIcon
-                  name="verified"
+                <BadgeCheck
                   size={18}
                   className="text-primary shrink-0"
+                  aria-hidden="true"
                 />
               )}
             </div>
 
             <p className="text-xs text-on-surface-variant truncate font-medium mb-0.5">
-              {specialty}
+              {displaySpecialty}
             </p>
 
             {academicTitle && (
@@ -140,7 +148,7 @@ export function DoctorCard({
 
             {medicalCouncilCode && (
               <p className="text-[10px] text-on-surface-variant/70 font-mono">
-                {`نظام پزشکی: ${toPersianDigits(medicalCouncilCode)}`}
+                {councilLabel}
               </p>
             )}
           </div>
@@ -152,12 +160,12 @@ export function DoctorCard({
           {nextSlot && (
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1 text-on-surface-variant">
-                <ClinicalIcon
-                  name="schedule"
+                <Clock
                   size={16}
                   className="text-primary shrink-0"
+                  aria-hidden="true"
                 />
-                <span>نوبت آزاد بعدی:</span>
+                <span>{slotLabel}</span>
               </span>
               <span className="font-bold text-on-surface">{displaySlot}</span>
             </div>
@@ -167,12 +175,12 @@ export function DoctorCard({
           {clinicAddress && (
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1 text-on-surface-variant">
-                <ClinicalIcon
-                  name="location_on"
+                <MapPin
                   size={16}
                   className="text-on-surface-variant shrink-0"
+                  aria-hidden="true"
                 />
-                <span>محل مطب:</span>
+                <span>{clinicLabel}</span>
               </span>
               <span className="truncate max-w-[160px]">{clinicAddress}</span>
             </div>
@@ -181,11 +189,11 @@ export function DoctorCard({
           {/* Approved Tariff */}
           {displayFee && (
             <div className="flex items-center justify-between pt-1 border-t border-outline-variant/20">
-              <span className="text-on-surface-variant">حق ویزیت مصوب:</span>
+              <span className="text-on-surface-variant">{feeLabel}</span>
               <div className="flex items-center gap-1.5">
                 <span className="font-bold text-on-surface">{displayFee}</span>
                 <span className="bg-primary/10 text-primary text-[10px] font-medium px-1.5 py-0.5 rounded">
-                  پرداخت در مطب
+                  {payAtClinicLabel}
                 </span>
               </div>
             </div>
@@ -196,11 +204,11 @@ export function DoctorCard({
       {/* Booking CTA Button */}
       <Link
         href={targetHref}
-        aria-label="رزرو نوبت حضوری"
+        aria-label={ctaAria}
         className="w-full bg-primary hover:bg-primary-container text-on-primary text-sm font-medium py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm"
       >
-        <ClinicalIcon name="calendar_month" size={18} className="shrink-0" />
-        <span>مشاهده نوبت‌ها</span>
+        <CalendarDays size={18} className="shrink-0" aria-hidden="true" />
+        <span>{ctaLabel}</span>
       </Link>
     </div>
   );

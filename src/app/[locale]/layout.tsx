@@ -32,12 +32,6 @@ export default async function LocaleLayout({
       dir={locale === "en" ? "ltr" : "rtl"}
       className={`${vazirmatn.variable} ${plusJakartaSans.variable}`}
     >
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap"
-          rel="stylesheet"
-        />
-      </head>
       <body
         className={`${
           locale === "en" ? plusJakartaSans.className : vazirmatn.className
@@ -45,7 +39,7 @@ export default async function LocaleLayout({
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ClinicalHeader locale={locale} />
-          <main className="min-h-screen pt-20">{children}</main>
+          <main className="flex-1 w-full">{children}</main>
           <ClinicalFooter locale={locale} />
           <MobileNav locale={locale} />
         </NextIntlClientProvider>

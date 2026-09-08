@@ -22,3 +22,19 @@ export type ProgramCard = {
   practitionerName: string | null;
   practitionerPhone: string | null;
 };
+export type ProgramContent = {
+  id: string;
+  name: string;
+  description: string | null;
+  organizationContext: string;
+  planType: string;
+  durationDays: number;
+  price: string;
+  practitionerName: string | null;
+  practitionerPhone: string | null;
+  hasClaim: boolean;
+  // Priced program with no claim row: content page shows the denial, not the file.
+  accessDenied: boolean;
+  // Populated only when the claim gate passes; never leaks to unclaimed callers.
+  downloadUrl: string | null;
+};

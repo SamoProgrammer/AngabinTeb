@@ -6,6 +6,7 @@ export type ContentCard = {
   id: string;
   slug: string;
   title: string;
+  body: string;
   videoUrl: string | null;
   publishedAt: Date | null;
 };

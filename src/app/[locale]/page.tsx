@@ -9,11 +9,16 @@ import { ArticleCard, VideoCard } from "@/components/clinical/media-cards";
 import { UniversalSearchBar } from "@/components/clinical/universal-search-bar";
 import { MetabolismCalculator } from "@/components/clinical/metabolism-calculator";
 import { TrustMetrics } from "@/components/clinical/trust-metrics";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bandage,
+  FlaskConical,
+  HousePlus,
+  Stethoscope,
+  type LucideIcon,
+} from "lucide-react";
 import { EmptyState, ErrorState } from "@/components/clinical/empty-state";
-import faMessages from "../../../messages/fa.json";
-
-const faLanding = faMessages.landing as Record<string, string>;
 
 export default async function HomePage({
   params,
@@ -21,17 +26,9 @@ export default async function HomePage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const isEn = locale === "en";
-  const dir = isEn ? "ltr" : "rtl";
-  const forwardArrow = isEn ? "arrow_forward" : "arrow_back";
-
-  let t = (key: string): string => faLanding[key] ?? key;
-  try {
-    const intlT = await getTranslations("landing");
-    t = (key: string) => intlT(key);
-  } catch {
-    // fallback in environments without next-intl server context
-  }
+  const t = await getTranslations("landing");
+  const dir = locale === "en" ? "ltr" : "rtl";
+  const ForwardArrow = locale === "en" ? ArrowRight : ArrowLeft;
 
   let doctors: DoctorData[] = [];
   let doctorsError = false;
@@ -43,6 +40,7 @@ export default async function HomePage({
       specialty: d.specialty ?? t("fallbackSpecialty"),
       cityId: d.cityId,
       imageUrl: d.imageUrl,
+      medicalCouncilCode: d.medicalCouncilCode,
       slug: d.id,
       isVerified: false,
     }));
@@ -82,41 +80,40 @@ export default async function HomePage({
     contentError = true;
   }
 
-  const quickActions = [
+  const clinicalHubs: Array<{
+    title: string;
+    desc: string;
+    cta: string;
+    href: string;
+    icon: LucideIcon;
+  }> = [
     {
-      titleKey: "qaDoctorsTitle",
-      descKey: "qaDoctorsDesc",
-      ctaKey: "qaDoctorsCta",
-      href: `/${locale}/doctors`,
-      icon: "stethoscope",
+      title: t("hubDoctorsTitle"),
+      desc: t("hubDoctorsDesc"),
+      cta: t("hubDoctorsCta"),
+      href: `/${locale}/booking/categories`,
+      icon: Stethoscope,
     },
     {
-      titleKey: "qaServicesTitle",
-      descKey: "qaServicesDesc",
-      ctaKey: "qaServicesCta",
+      title: t("hubDiagnosticsTitle"),
+      desc: t("hubDiagnosticsDesc"),
+      cta: t("hubDiagnosticsCta"),
+      href: `/${locale}/booking/diagnostic-services`,
+      icon: FlaskConical,
+    },
+    {
+      title: t("hubTherapyTitle"),
+      desc: t("hubTherapyDesc"),
+      cta: t("hubTherapyCta"),
       href: `/${locale}/services`,
-      icon: "science",
+      icon: Bandage,
     },
     {
-      titleKey: "qaMetabolismTitle",
-      descKey: "qaMetabolismDesc",
-      ctaKey: "qaMetabolismCta",
-      href: "#metabolism-section",
-      icon: "calculate",
-    },
-    {
-      titleKey: "qaDiaryTitle",
-      descKey: "qaDiaryDesc",
-      ctaKey: "qaDiaryCta",
-      href: `/${locale}/nutrition/diary`,
-      icon: "restaurant",
-    },
-    {
-      titleKey: "qaDietTitle",
-      descKey: "qaDietDesc",
-      ctaKey: "qaDietCta",
+      title: t("hubHomeTitle"),
+      desc: t("hubHomeDesc"),
+      cta: t("hubHomeCta"),
       href: `/${locale}/nutrition/diet`,
-      icon: "spa",
+      icon: HousePlus,
     },
   ];
 
@@ -146,7 +143,7 @@ export default async function HomePage({
         </section>
       </div>
 
-      {/* 2. 5-Fold Quick Action Feature Cards */}
+      {/* 2. 4 Clinical Hubs Feature Cards */}
       <section
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 w-full"
         aria-label={t("systemsAria")}
@@ -157,30 +154,33 @@ export default async function HomePage({
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {quickActions.map((action, idx) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {clinicalHubs.map((action, idx) => {
+            const HubIcon = action.icon;
+            return (
             <Link
               key={idx}
               href={action.href}
-              className="group flex flex-col justify-between bg-surface-container-lowest p-4 sm:p-5 rounded-2xl shadow-tier-1 hover:shadow-tier-2 transition-all duration-300 hover:-translate-y-1 text-start border border-outline-variant/30"
+              className="group flex flex-col justify-between bg-surface-container-lowest p-5 rounded-2xl shadow-tier-1 hover:shadow-tier-2 transition-all duration-300 hover:-translate-y-1 text-start border border-outline-variant/30"
             >
               <div>
                 <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3.5 group-hover:bg-primary group-hover:text-on-primary transition-colors shrink-0">
-                  <ClinicalIcon name={action.icon} size={26} />
+                  <HubIcon size={26} aria-hidden="true" />
                 </div>
-                <h3 className="text-sm sm:text-base font-bold text-on-surface mb-1.5">
-                  {t(action.titleKey)}
+                <h3 className="text-base font-bold text-on-surface mb-1.5">
+                  {action.title}
                 </h3>
                 <p className="text-xs text-on-surface-variant leading-relaxed">
-                  {t(action.descKey)}
+                  {action.desc}
                 </p>
               </div>
               <div className="mt-4 pt-2 flex items-center text-primary text-xs font-bold gap-1 group-hover:gap-1.5 transition-all border-t border-outline-variant/15">
-                <span>{t(action.ctaKey)}</span>
-                <ClinicalIcon name={forwardArrow} size={16} />
+                <span>{action.cta}</span>
+                <ForwardArrow size={16} aria-hidden="true" />
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -200,7 +200,7 @@ export default async function HomePage({
             className="flex items-center gap-1 text-primary text-sm font-bold hover:underline"
           >
             <span>{t("doctorsViewAll")}</span>
-            <ClinicalIcon name={forwardArrow} size={16} />
+            <ForwardArrow size={16} aria-hidden="true" />
           </Link>
         </div>
 
@@ -247,7 +247,7 @@ export default async function HomePage({
               className="flex items-center gap-1 text-primary text-sm font-bold hover:underline shrink-0"
             >
               <span>{t("servicesViewAll")}</span>
-              <ClinicalIcon name={forwardArrow} size={16} />
+              <ForwardArrow size={16} aria-hidden="true" />
             </Link>
           </div>
 
@@ -278,10 +278,8 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* 5. Interactive Metabolism Calculator Section */}
-      <section id="metabolism-section">
-        <MetabolismCalculator locale={locale} />
-      </section>
+      {/* 5. Live Metabolism Calculator (Screen #13 — real Mifflin-St Jeor engine) */}
+      <MetabolismCalculator locale={locale} diaryHref={`/${locale}/diary`} />
 
       {/* 6. Clinical Knowledge & Video Library Showcase */}
       <section
@@ -299,7 +297,7 @@ export default async function HomePage({
             className="flex items-center gap-1 text-primary text-sm font-bold hover:underline"
           >
             <span>{t("knowledgeViewAll")}</span>
-            <ClinicalIcon name={forwardArrow} size={16} />
+            <ForwardArrow size={16} aria-hidden="true" />
           </Link>
         </div>
 
@@ -358,7 +356,7 @@ export default async function HomePage({
 
       {/* 7. Clinical Accreditation, Trust Metrics & Transparency */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 w-full">
-        <TrustMetrics />
+        <TrustMetrics locale={locale} />
       </section>
     </div>
   );

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { getContent } from "@/contexts/content/queries";
-import { ClinicalIcon } from "@/components/clinical/clinical-icon";
+import { formatJalaliDate } from "@/lib/format";
+import { BriefcaseMedical, Calendar, Clock, Download, Timer, UserCheck } from "lucide-react";
 
 export default async function ArticlePage({
   params,
@@ -12,25 +14,24 @@ export default async function ArticlePage({
   const content = await getContent(slug, locale);
   if (!content) notFound();
 
+  const t = await getTranslations("articles");
+  const dir = locale === "en" ? "ltr" : "rtl";
+
   const paragraphs = content.body.split("\n\n").filter(Boolean);
   const leadParagraph = paragraphs[0] ?? "";
   const remainingParagraphs = paragraphs.slice(1);
 
   const formattedDate = content.publishedAt
-    ? new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : locale, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }).format(new Date(content.publishedAt))
+    ? formatJalaliDate(content.publishedAt, locale)
     : "—";
 
   return (
-    <div dir="rtl" className="w-full bg-surface min-h-screen py-8 sm:py-12">
+    <div dir={dir} className="w-full bg-surface min-h-screen py-8 sm:py-12">
       <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb Navigation */}
-        <nav aria-label="مسیر راهنما" className="flex items-center gap-2 text-xs sm:text-sm text-on-surface-variant mb-6">
+        <nav aria-label={t("detail.navAria")} className="flex items-center gap-2 text-xs sm:text-sm text-on-surface-variant mb-6">
           <Link href={`/${locale}/articles`} className="hover:text-primary transition-colors">
-            مجله سلامت
+            {t("detail.breadcrumb")}
           </Link>
           <span className="opacity-40">/</span>
           <span className="text-on-surface font-medium line-clamp-1">{content.title}</span>
@@ -41,15 +42,31 @@ export default async function ArticlePage({
           {content.title}
         </h1>
 
-        {/* Published-date strip — shown only when stored */}
-        {content.publishedAt && (
-          <div className="flex flex-wrap items-center gap-3 p-4 sm:p-5 bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-xs mb-8">
+        {/* Published-date & Read Time Strip */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5 bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-xs mb-8">
+          <div className="flex items-center gap-3 flex-wrap">
+            {content.publishedAt && (
+              <span className="inline-flex items-center gap-1 bg-surface-container px-3 py-1 rounded-full text-xs sm:text-sm text-on-surface-variant">
+                <Clock size={16} className="text-primary" aria-hidden="true" />
+                <span>{formattedDate}</span>
+              </span>
+            )}
             <span className="inline-flex items-center gap-1 bg-surface-container px-3 py-1 rounded-full text-xs sm:text-sm text-on-surface-variant">
-              <ClinicalIcon name="schedule" size={16} className="text-primary" />
-              <span>{formattedDate}</span>
+              <Timer size={16} className="text-primary" aria-hidden="true" />
+              <span>{t("detail.readTime")}</span>
             </span>
           </div>
-        )}
+
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/${locale}/knowledge/pamphlet`}
+              className="inline-flex items-center gap-1 bg-primary/10 text-primary hover:bg-primary hover:text-on-primary px-3 py-1 rounded-full text-xs font-bold transition-colors"
+            >
+              <Download size={16} aria-hidden="true" />
+              <span>{t("detail.relatedPamphlet")}</span>
+            </Link>
+          </div>
+        </div>
 
         {/* Video player — rendered only for stored video content */}
         {content.kind === "video" && content.videoUrl && (
@@ -60,30 +77,52 @@ export default async function ArticlePage({
 
         {/* Main Content Grid with Asymmetric Sticky Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Sticky Sidebar (Screen #42) */}
+          {/* Sticky Sidebar */}
           <aside className="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24 order-2 lg:order-1">
+            {/* Clinical Author / Reviewer Card */}
+            <div className="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant/30 shadow-xs text-start flex flex-col gap-3">
+              <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full w-fit">
+                {t("detail.reviewerBadge")}
+              </span>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <UserCheck size={26} aria-hidden="true" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-on-surface">{t("detail.reviewerName")}</h3>
+                  <p className="text-xs text-primary font-medium">{t("detail.reviewerSpecialty")}</p>
+                  <p className="text-[10px] text-on-surface-variant font-mono mt-0.5">
+                    {t("detail.reviewerCouncil")}
+                  </p>
+                </div>
+              </div>
+              <p className="text-[11px] text-on-surface-variant leading-relaxed border-t border-outline-variant/15 pt-2">
+                {t("detail.reviewerNote")}
+              </p>
+            </div>
+
             {/* Clinical Services & Booking CTA */}
             <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs text-start flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <h2 className="text-sm font-bold text-on-surface">مشاوره و خدمات درمانی</h2>
+                <h2 className="text-sm font-bold text-on-surface">{t("detail.ctaTitle")}</h2>
                 <p className="text-xs text-on-surface-variant leading-relaxed">
-                  جهت بررسی شرایط بالینی یا انجام آزمایش‌های تشخیصی، نوبت خود را آنلاین رزرو کنید.
+                  {t("detail.ctaDesc")}
                 </p>
               </div>
               <div className="flex flex-col gap-2">
                 <Link
-                  href={`/${locale}/doctors`}
+                  href={`/${locale}/booking/doctors`}
                   className="w-full bg-primary hover:bg-primary-container text-on-primary py-2.5 px-4 rounded-xl text-center font-bold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2"
                 >
-                  <ClinicalIcon name="calendar_today" size={18} />
-                  <span>دریافت نوبت ویزیت با پزشک</span>
+                  <Calendar size={18} aria-hidden="true" />
+                  <span>{t("detail.bookDoctor")}</span>
                 </Link>
                 <Link
-                  href={`/${locale}/services`}
+                  href={`/${locale}/booking/diagnostic-services`}
                   className="w-full bg-surface-container hover:bg-surface-container-high text-on-surface py-2.5 px-4 rounded-xl text-center font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2"
                 >
-                  <ClinicalIcon name="medical_services" size={18} />
-                  <span>خدمات و آزمایش‌های تشخیصی</span>
+                  <BriefcaseMedical size={18} aria-hidden="true" />
+                  <span>{t("detail.diagnosticServices")}</span>
                 </Link>
               </div>
             </div>
