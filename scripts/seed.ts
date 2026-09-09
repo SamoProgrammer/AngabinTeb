@@ -11,6 +11,8 @@ import {
   services,
   diagnosticServices,
   availabilitySlots,
+  doctorSchedules,
+  scheduleExceptions,
 } from "../src/db/schema";
 
 const ADMIN_ID = "admin-seed";
@@ -206,6 +208,35 @@ async function main() {
   }).onConflictDoUpdate({ target: services.id, set: { name: "ویزیت فوق‌تخصصی گوارش و کبد" } });
   await upsertTranslation("service", SVC_GASTRO_CONSULT, "en", "name", "Gastroenterology Consultation");
   await upsertTranslation("service", SVC_GASTRO_CONSULT, "ar", "name", "استشارة الجهاز الهضمي والكبد");
+
+  // Per-doctor weekly templates (doctor-booking remake): 3 rows per seeded
+  // doctor — Sat/Sun/Tue 09:00–13:00, 30-min visits, capacity 1 — on the
+  // doctor's first service. Plus one whole-day closure ~7 days out ("مرخصی")
+  // so the exception path has data. All onConflictDoNothing (idempotent).
+  const WEEKDAYS = [6, 0, 2];
+  const firstServices: Array<[string, string, string]> = [
+    [PROVIDER_ID, SERVICE_ID, "base"],
+    [PROV_SADAT, SVC_ENDOCRINE, "sadat"],
+    [PROV_RADMANESH, SVC_NUTRITION, "radmanesh"],
+    [PROV_MAHDAVI, SVC_CARDIO_CONSULT, "mahdavi"],
+    [PROV_BAHRAMI, SVC_GASTRO_CONSULT, "bahrami"],
+  ];
+  for (const [providerId, serviceId, slug] of firstServices) {
+    for (const weekday of WEEKDAYS) {
+      await db.insert(doctorSchedules).values({
+        id: `sched-${slug}-${weekday}`, providerId, serviceId, weekday,
+        startTime: "09:00", endTime: "13:00", durationMinutes: 30, capacity: 1,
+      }).onConflictDoNothing();
+    }
+  }
+  const leaveDate = new Date(Date.now() + 7 * 86400_000);
+  const leaveYmd = `${leaveDate.getUTCFullYear()}-${String(leaveDate.getUTCMonth() + 1).padStart(2, "0")}-${String(leaveDate.getUTCDate()).padStart(2, "0")}`;
+  for (const [providerId, , slug] of firstServices) {
+    await db.insert(scheduleExceptions).values({
+      id: `exc-${slug}-leave`, providerId, serviceId: null,
+      exceptionDate: leaveYmd, isClosed: true, reason: "مرخصی",
+    }).onConflictDoNothing();
+  }
 
   // Availability Slots for tomorrow
   const tomorrow = new Date(Date.now() + 86400_000);
