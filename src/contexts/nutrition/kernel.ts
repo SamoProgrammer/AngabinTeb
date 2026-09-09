@@ -138,3 +138,12 @@ export function validatePeriodInput(input: { title: string; startsOn: string; en
   if (spanDays > 62) return { ok: false as const, error: "period too long" };
   return { ok: true as const, data: { title, startsOn: input.startsOn, endsOn: input.endsOn } };
 }
+
+export const SNAPSHOT_COLUMNS = [
+  "personInfo", "medicalHistory", "drugHistory", "addictionHistory",
+  "nutritionInfo", "cardiovascularQuestions", "anthropometric", "medicalDocuments",
+] as const;
+
+export function toSnapshotValues(registry: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(SNAPSHOT_COLUMNS.map((c) => [c, registry[c] ?? null]));
+}

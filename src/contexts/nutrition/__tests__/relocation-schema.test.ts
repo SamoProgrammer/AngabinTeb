@@ -1,5 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { dietClaims, registrySnapshots } from "@/db/schema/nutrition";
+import { toSnapshotValues } from "../kernel";
 
 // NOTE: brief's helper used Object.keys(getTableConfig(t).columns), but in
 // drizzle-orm 0.45 getTableConfig().columns is an Array (keys "0","1",...),
@@ -20,5 +21,13 @@ describe("relocation schema", () => {
         "anthropometric", "medicalDocuments",
       ]),
     );
+  });
+});
+
+test("toSnapshotValues picks exactly the 8 sections, nulling gaps", () => {
+  expect(toSnapshotValues({ personInfo: { a: 1 }, extra: true })).toEqual({
+    personInfo: { a: 1 }, medicalHistory: null, drugHistory: null,
+    addictionHistory: null, nutritionInfo: null, cardiovascularQuestions: null,
+    anthropometric: null, medicalDocuments: null,
   });
 });

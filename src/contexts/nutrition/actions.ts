@@ -4,10 +4,10 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, clinicalRegistries, nutrients, translations, intakePeriods } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, clinicalRegistries, registrySnapshots, nutrients, translations, intakePeriods } from "@/db/schema";
 import { requireAdmin, requireUser } from "@/contexts/identity/actions";
 import { buildDietPrompt, summarizeRegistry, generateDietPlan, DIET_DOC_FOOTER, DIET_PROMPT_VERSION } from "@/lib/ai-diet";
-import { servingToGrams, nutrientsForIntake, validatePeriodInput } from "./kernel";
+import { servingToGrams, nutrientsForIntake, validatePeriodInput, toSnapshotValues } from "./kernel";
 import { getPhysiology, getPeriod } from "./queries";
 
 function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
@@ -139,7 +139,29 @@ export async function markDietClaimPaid(claimId: string, opts?: { dbc?: typeof d
   if (!claim) return { ok: false as const, reason: "not_found" as const };
   if (claim.status !== "pending") return { ok: false as const, reason: "invalid_status" as const };
   await dbc.update(dietClaims).set({ status: "paid" }).where(eq(dietClaims.id, claimId));
+  await freezeRegistrySnapshotForUser(user.id, { dbc });
   return { ok: true as const };
+}
+
+export async function freezeRegistrySnapshotForUser(userId: string, opts?: { dbc?: typeof db }) {
+  const dbc = opts?.dbc ?? db;
+  const paidClaims = await dbc
+    .select({ id: dietClaims.id })
+    .from(dietClaims)
+    .where(and(eq(dietClaims.userId, userId), eq(dietClaims.status, "paid")));
+  const [registry] = await dbc.select().from(clinicalRegistries).where(eq(clinicalRegistries.userId, userId));
+  if (!registry || paidClaims.length === 0) return { ok: true as const, frozen: 0 };
+  let frozen = 0;
+  for (const claim of paidClaims) {
+    const values = { id: randomUUID(), claimId: claim.id, ...toSnapshotValues(registry) };
+    try {
+      await dbc.insert(registrySnapshots).values(values);
+      frozen += 1;
+    } catch {
+      // unique(claim_id) already frozen — idempotent, skip
+    }
+  }
+  return { ok: true as const, frozen };
 }
 
 // Long-form AI diet document (Task 5). Accepts own claims in `paid` (fresh)
