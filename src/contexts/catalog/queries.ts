@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { sql, eq, and, or } from "drizzle-orm";
 import { db } from "@/db";
-import { providers, practitioners, services, locations, serviceCategories, diagnosticServices, contents } from "@/db/schema";
+import { providers, practitioners, services, locations, serviceCategories, diagnosticServices, contents, doctorSchedules, scheduleExceptions } from "@/db/schema";
 import { localizedRows } from "@/lib/translate";
 import type { SearchResult, DoctorCard, ServiceCard } from "./model";
 export type { SearchResult, DoctorCard, ServiceCard };
@@ -258,4 +258,18 @@ export const getPrepInfo = cache(async (serviceId: string) => {
     .from(diagnosticServices)
     .where(eq(diagnosticServices.serviceId, serviceId));
   return row ?? null;
+});
+
+export const listSchedules = cache(async (providerId: string, serviceId?: string) => {
+  return db.select().from(doctorSchedules).where(and(
+    eq(doctorSchedules.providerId, providerId),
+    serviceId ? eq(doctorSchedules.serviceId, serviceId) : undefined,
+  )).orderBy(doctorSchedules.weekday, doctorSchedules.startTime);
+});
+
+export const listExceptions = cache(async (providerId: string, from: string, to: string) => {
+  return db.select().from(scheduleExceptions).where(and(
+    eq(scheduleExceptions.providerId, providerId),
+    sql`${scheduleExceptions.exceptionDate} >= ${from} AND ${scheduleExceptions.exceptionDate} <= ${to}`,
+  )).orderBy(scheduleExceptions.exceptionDate);
 });
