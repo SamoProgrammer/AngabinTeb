@@ -282,8 +282,16 @@ export async function availabilityForService(serviceId: string, date: string) {
   const start = new Date(`${date}T00:00:00Z`);
   const end = new Date(`${date}T23:59:59Z`);
   return db
-    .select()
+    .select({
+      id: availabilitySlots.id,
+      startsAt: availabilitySlots.startsAt,
+      capacity: availabilitySlots.capacity,
+      bookedCount: availabilitySlots.bookedCount,
+      providerId: availabilitySlots.providerId,
+      providerName: providers.name,
+    })
     .from(availabilitySlots)
+    .innerJoin(providers, eq(providers.id, availabilitySlots.providerId))
     .where(and(
       eq(availabilitySlots.serviceId, serviceId),
       eq(availabilitySlots.isActive, true),

@@ -12,6 +12,8 @@ export type SlotProps = {
   startsAt: string;
   capacity: number;
   bookedCount: number;
+  providerId?: string;
+  providerName?: string;
 };
 
 type Result = { ok: boolean; appointmentId?: string; reason?: string };
@@ -88,8 +90,28 @@ export function SlotPicker({
     }
   }
 
-  const morningSlots = slots.filter((s) => new Date(s.startsAt).getUTCHours() < 12);
-  const eveningSlots = slots.filter((s) => new Date(s.startsAt).getUTCHours() >= 12);
+  const morningSlots = (list: SlotProps[]) =>
+    list.filter((s) => new Date(s.startsAt).getUTCHours() < 12);
+  const eveningSlots = (list: SlotProps[]) =>
+    list.filter((s) => new Date(s.startsAt).getUTCHours() >= 12);
+
+  // Group by doctor, preserving first-seen order. Single unnamed group
+  // renders exactly like before (no header) so doctor pages are untouched.
+  const groups: { key: string; name?: string; slots: SlotProps[] }[] = [];
+  {
+    const byKey = new Map<string, (typeof groups)[number]>();
+    for (const s of slots) {
+      const key = s.providerId ?? "__single__";
+      let g = byKey.get(key);
+      if (!g) {
+        g = { key, name: s.providerName, slots: [] };
+        byKey.set(key, g);
+        groups.push(g);
+      }
+      g.slots.push(s);
+    }
+  }
+  const showHeaders = groups.length > 1 || Boolean(groups[0]?.name);
 
   const renderSlot = (s: SlotProps) => {
     const dateObj = new Date(s.startsAt);
@@ -161,29 +183,43 @@ export function SlotPicker({
           </span>
         </div>
 
-        {morningSlots.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-on-surface-variant flex items-center gap-1.5">
-              <Sunrise size={16} className="text-amber-600" aria-hidden="true" />
-              <span>{t("morningShift")}</span>
-            </span>
-            <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {morningSlots.map(renderSlot)}
-            </ul>
-          </div>
-        )}
+        {groups.map((g) => {
+          const morning = morningSlots(g.slots);
+          const evening = eveningSlots(g.slots);
+          return (
+            <div key={g.key} className="flex flex-col gap-2">
+              {showHeaders && g.name && (
+                <span className="text-sm font-bold text-on-surface flex items-center gap-1.5">
+                  <User size={16} className="text-primary" aria-hidden="true" />
+                  <span>{g.name}</span>
+                </span>
+              )}
+              {morning.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-semibold text-on-surface-variant flex items-center gap-1.5">
+                    <Sunrise size={16} className="text-amber-600" aria-hidden="true" />
+                    <span>{t("morningShift")}</span>
+                  </span>
+                  <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {morning.map(renderSlot)}
+                  </ul>
+                </div>
+              )}
 
-        {eveningSlots.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-on-surface-variant flex items-center gap-1.5">
-              <Moon size={16} className="text-primary" aria-hidden="true" />
-              <span>{t("eveningShift")}</span>
-            </span>
-            <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {eveningSlots.map(renderSlot)}
-            </ul>
-          </div>
-        )}
+              {evening.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-semibold text-on-surface-variant flex items-center gap-1.5">
+                    <Moon size={16} className="text-primary" aria-hidden="true" />
+                    <span>{t("eveningShift")}</span>
+                  </span>
+                  <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {evening.map(renderSlot)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Patient Information Form (Screen #8) */}

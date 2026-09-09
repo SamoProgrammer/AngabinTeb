@@ -47,6 +47,8 @@ export default async function BookPage({
     startsAt: Date;
     capacity: number;
     bookedCount: number;
+    providerId: string;
+    providerName: string;
   }> = [];
 
   try {
@@ -56,6 +58,8 @@ export default async function BookPage({
       startsAt: s.startsAt,
       capacity: s.capacity,
       bookedCount: s.bookedCount,
+      providerId: s.providerId,
+      providerName: s.providerName,
     }));
   } catch {
     slots = [];
@@ -156,6 +160,8 @@ export default async function BookPage({
             startsAt: s.startsAt.toISOString(),
             capacity: s.capacity,
             bookedCount: s.bookedCount,
+            providerId: s.providerId,
+            providerName: s.providerName,
           }))}
           serviceId={service.id}
           locale={locale}

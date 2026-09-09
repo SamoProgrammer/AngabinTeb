@@ -1,25 +1,42 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
-import { providers, practitioners, serviceCategories, translations } from "@/db/schema";
+import { providers, practitioners, serviceCategories, translations, availabilitySlots } from "@/db/schema";
 import { createProvider, updateProvider } from "@/contexts/catalog/actions";
+import { listSchedules, listExceptions, listProviderServices } from "@/contexts/catalog/queries";
+import { listBookingsForDoctor } from "@/contexts/booking/queries";
 import { ProviderForm } from "../provider-form";
+import { ScheduleTab } from "./schedule-tab";
+import { SlotsTab } from "./slots-tab";
+import { BookingsTab } from "./bookings-tab";
+
+const TABS = ["profile", "schedules", "slots", "bookings"] as const;
+type Tab = (typeof TABS)[number];
+
+function resolveTab(raw?: string): Tab {
+  return (TABS as readonly string[]).includes(raw ?? "") ? (raw as Tab) : "profile";
+}
 
 export default async function AdminProviderEditPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; locale?: string }>;
+  searchParams?: Promise<{ tab?: string; serviceId?: string; date?: string }>;
 }) {
   const { id, locale } = await params;
+  const query = searchParams ? await searchParams : {};
+  const activeLocale = locale ?? "fa";
   const tProviders = await getTranslations("admin.providers");
-
-  const specialties = await db
-    .select({ id: serviceCategories.id, name: serviceCategories.name })
-    .from(serviceCategories)
-    .orderBy(serviceCategories.name);
+  const tScheduling = await getTranslations("admin.scheduling");
 
   if (id === "new") {
+    const specialties = await db
+      .select({ id: serviceCategories.id, name: serviceCategories.name })
+      .from(serviceCategories)
+      .orderBy(serviceCategories.name);
     return (
       <div className="text-start">
         <h1 className="mb-6 text-2xl font-bold">{tProviders("newTitle")}</h1>
@@ -30,6 +47,111 @@ export default async function AdminProviderEditPage({
 
   const [provider] = await db.select().from(providers).where(eq(providers.id, id));
   if (!provider) notFound();
+
+  const tab = resolveTab(query.tab);
+  const base = `/${activeLocale}/admin/providers/${id}`;
+
+  const nav = (
+    <nav aria-label={provider.name} className="mb-6 flex flex-wrap gap-2">
+      {TABS.map((t) => (
+        <Link
+          key={t}
+          href={`${base}?tab=${t}`}
+          aria-current={tab === t ? "page" : undefined}
+          className={`rounded-xl px-4 py-3 text-sm font-bold transition-colors ${
+            tab === t
+              ? "bg-primary text-on-primary"
+              : "bg-surface-container-low text-on-surface hover:bg-surface-container"
+          }`}
+        >
+          {tScheduling(`tabs.${t}`)}
+        </Link>
+      ))}
+    </nav>
+  );
+
+  if (tab === "schedules") {
+    const [services, schedules] = await Promise.all([
+      listProviderServices(id, activeLocale),
+      listSchedules(id),
+    ]);
+    const today = new Date().toISOString().slice(0, 10);
+    const plus90 = new Date(Date.now() + 90 * 86400_000).toISOString().slice(0, 10);
+    const exceptions = await listExceptions(id, today, plus90);
+    return (
+      <div className="text-start">
+        <h1 className="mb-6 text-2xl font-bold">{provider.name}</h1>
+        {nav}
+        <ScheduleTab
+          providerId={id}
+          services={services}
+          initialServiceId={query.serviceId ?? services[0]?.id ?? ""}
+          schedules={schedules}
+          exceptions={exceptions}
+          locale={activeLocale}
+        />
+      </div>
+    );
+  }
+
+  if (tab === "slots") {
+    const services = await listProviderServices(id, activeLocale);
+    const serviceId = query.serviceId || undefined;
+    const date = query.date ?? new Date().toISOString().slice(0, 10);
+    const dayStart = new Date(`${date}T00:00:00Z`);
+    const dayEnd = new Date(`${date}T23:59:59Z`);
+    const slotRows = await db
+      .select()
+      .from(availabilitySlots)
+      .where(
+        and(
+          eq(availabilitySlots.providerId, id),
+          serviceId ? eq(availabilitySlots.serviceId, serviceId) : undefined,
+          sql`${availabilitySlots.startsAt} >= ${dayStart} AND ${availabilitySlots.startsAt} <= ${dayEnd}`,
+        ),
+      )
+      .orderBy(availabilitySlots.startsAt)
+      .limit(100);
+    return (
+      <div className="text-start">
+        <h1 className="mb-6 text-2xl font-bold">{provider.name}</h1>
+        {nav}
+        <SlotsTab
+          providerId={id}
+          services={services}
+          initialServiceId={serviceId ?? ""}
+          date={date}
+          slots={slotRows.map((s) => ({
+            id: s.id,
+            startsAt: s.startsAt.toISOString(),
+            capacity: s.capacity,
+            bookedCount: s.bookedCount,
+            isActive: s.isActive,
+          }))}
+          locale={activeLocale}
+        />
+      </div>
+    );
+  }
+
+  if (tab === "bookings") {
+    const bookings = await listBookingsForDoctor(id);
+    return (
+      <div className="text-start">
+        <h1 className="mb-6 text-2xl font-bold">{provider.name}</h1>
+        {nav}
+        <BookingsTab
+          bookings={bookings.map((b) => ({ ...b, startsAt: b.startsAt?.toISOString() ?? null }))}
+          locale={activeLocale}
+        />
+      </div>
+    );
+  }
+
+  const specialties = await db
+    .select({ id: serviceCategories.id, name: serviceCategories.name })
+    .from(serviceCategories)
+    .orderBy(serviceCategories.name);
   const [practitioner] = await db.select().from(practitioners).where(eq(practitioners.providerId, id));
   const overrides = await db
     .select()
@@ -51,6 +173,7 @@ export default async function AdminProviderEditPage({
   return (
     <div className="text-start">
       <h1 className="mb-6 text-2xl font-bold">{tProviders("editTitle")}</h1>
+      {nav}
       <ProviderForm
         action={updateProvider.bind(null, id)}
         initial={initial}

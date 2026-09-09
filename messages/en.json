@@ -1202,11 +1202,12 @@
       "cityId": "City"
     },
     "scheduling": {
-      "title": "Scheduling",
-      "subtitle": "Expand a weekly pattern into concrete availability slots.",
-      "generateSlots": "Generate slots",
+      "title": "Scheduling & Slots",
+      "subtitle": "Weekly pattern per doctor + days off, slot generation and bookings from the doctor page.",
+      "generateSlots": "Generate slots from pattern",
       "overlapMessage": "Overlap: new slots collide with existing slots; nothing was created.",
       "createdCount": "Created {count} slots successfully.",
+      "overlapCount": "{count} duplicate slots skipped.",
       "weekdays": {
         "0": "Sunday",
         "1": "Monday",
@@ -1215,7 +1216,25 @@
         "4": "Thursday",
         "5": "Friday",
         "6": "Saturday"
-      }
+      },
+      "tabs": { "profile": "Profile", "schedules": "Weekly schedule", "slots": "Slots", "bookings": "Bookings" },
+      "saveSchedules": "Save weekly schedule",
+      "exceptionsTitle": "Days off / exceptions",
+      "blockSlot": "Block",
+      "unblockSlot": "Unblock",
+      "deleteSlot": "Delete"
+    },
+    "bookings": {
+      "title": "Bookings",
+      "patient": "Patient",
+      "phone": "Phone",
+      "when": "Time",
+      "service": "Service",
+      "status": "Status",
+      "cancel": "Cancel",
+      "complete": "Complete",
+      "noShow": "No-show",
+      "empty": "No bookings for this doctor yet."
     },
     "foods": {
       "title": "Foods",
