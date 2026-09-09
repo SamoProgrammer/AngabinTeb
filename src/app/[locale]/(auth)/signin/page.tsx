@@ -4,6 +4,7 @@ import { useState, useTransition, use, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import {
   ArrowLeft,
@@ -67,6 +68,7 @@ function SignInForm({ locale }: { locale: string }) {
 
         if (error) {
           setErrorMessage(error.message || t("authError"));
+          toast.error(error.message || t("authError"), { duration: 4000 });
           return;
         }
 
@@ -74,6 +76,7 @@ function SignInForm({ locale }: { locale: string }) {
         setStep("otp");
       } catch (err) {
         setErrorMessage(err instanceof Error ? err.message : t("authError"));
+        toast.error(err instanceof Error ? err.message : t("authError"), { duration: 4000 });
       }
     });
   }
@@ -98,6 +101,7 @@ function SignInForm({ locale }: { locale: string }) {
 
         if (error) {
           setErrorMessage(error.message || t("authError"));
+          toast.error(error.message || t("authError"), { duration: 4000 });
           return;
         }
 
@@ -105,6 +109,7 @@ function SignInForm({ locale }: { locale: string }) {
         window.location.href = returnUrl;
       } catch (err) {
         setErrorMessage(err instanceof Error ? err.message : t("authError"));
+        toast.error(err instanceof Error ? err.message : t("authError"), { duration: 4000 });
       }
     });
   }
@@ -125,6 +130,7 @@ function SignInForm({ locale }: { locale: string }) {
       window.location.href = requestedRole === "admin" ? `/${locale}/admin` : returnUrl;
     } catch {
       setErrorMessage(t("demoError"));
+      toast.error(t("demoError"), { duration: 4000 });
       setIsDemoPending(false);
     }
   }

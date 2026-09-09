@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { CircleCheckBig, Save, User } from "lucide-react";
 import { updateProfile } from "@/contexts/identity/actions";
 
@@ -33,9 +34,11 @@ export default function PersonalInfoForm({
     setBusy(false);
     if (!res.ok) {
       setError("error" in res ? res.error : t("successMsg"));
+      if ("error" in res) toast.error(res.error, { duration: 4000 });
       return;
     }
     setSavedSuccess(true);
+    toast.success(t("successMsg"), { duration: 2500 });
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 

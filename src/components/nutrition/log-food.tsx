@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { logIntake } from "@/contexts/nutrition/actions";
+import { useActionFeedback } from "@/components/clinical/use-action-feedback";
 import { JalaliDatePicker } from "@/components/clinical/jalali-date-picker";
 import { tehranTodayIso } from "@/lib/jalali";
 import { useTranslations } from "next-intl";
@@ -47,9 +48,8 @@ export function LogFood({
   const [mealSlot, setMealSlot] = useState<MealSlot>(() => defaultMealSlot());
   const [logDate, setLogDate] = useState(() => tehranTodayIso());
   const [logTime, setLogTime] = useState(() => defaultTime());
-  const [error, setError] = useState<string | null>(null);
+  const { pending, error, run, setError } = useActionFeedback();
   const [success, setSuccess] = useState(false);
-  const [pending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname() || "";
   const currentLocale = locale || (pathname.split("/")[1] || "fa");
@@ -113,24 +113,26 @@ export function LogFood({
           e.preventDefault();
           setError(null);
           setSuccess(false);
-          startTransition(async () => {
-            const loggedAtMs = Date.parse(`${logDate}T${logTime}`);
-            const res = await logIntake({
-              foodId: food?.id ?? foodId,
-              servingUnitId,
-              quantity: Number(quantity),
-              mealSlot,
-              ...(periodId ? { periodId } : {}),
-              ...(Number.isNaN(loggedAtMs) ? {} : { loggedAt: new Date(loggedAtMs).toISOString() }),
-            });
-            if (res.ok) {
-              setSuccess(true);
-              router.refresh();
-              setTimeout(() => setSuccess(false), 5000);
-            } else {
-              setError(t.errorMsg);
-            }
-          });
+          const loggedAtMs = Date.parse(`${logDate}T${logTime}`);
+          run(
+            () =>
+              logIntake({
+                foodId: food?.id ?? foodId,
+                servingUnitId,
+                quantity: Number(quantity),
+                mealSlot,
+                ...(periodId ? { periodId } : {}),
+                ...(Number.isNaN(loggedAtMs) ? {} : { loggedAt: new Date(loggedAtMs).toISOString() }),
+              }),
+            {
+              successKey: "successLogged",
+              onOk: () => {
+                setSuccess(true);
+                router.refresh();
+                setTimeout(() => setSuccess(false), 5000);
+              },
+            },
+          );
         }}
       >
         {/* Quick Search Filter (Only rendered when there are multiple foods to browse) */}
