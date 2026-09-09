@@ -7,6 +7,7 @@ import { vazirmatn, plusJakartaSans } from "@/app/fonts";
 import { ClinicalHeader } from "@/components/layout/clinical-header";
 import { ClinicalFooter } from "@/components/layout/clinical-footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { Toaster } from "sonner";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -42,6 +43,16 @@ export default async function LocaleLayout({
           <main className="flex-1 w-full">{children}</main>
           <ClinicalFooter locale={locale} />
           <MobileNav locale={locale} />
+          <Toaster
+            dir={locale === "en" ? "ltr" : "rtl"}
+            position="bottom-center"
+            richColors
+            closeButton
+            visibleToasts={3}
+            toastOptions={{
+              classNames: { toast: "text-start" },
+            }}
+          />
         </NextIntlClientProvider>
       </body>
     </html>
