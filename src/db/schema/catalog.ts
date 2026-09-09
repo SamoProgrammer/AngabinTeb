@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, boolean, numeric, jsonb, type AnyPgColumn } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, boolean, numeric, jsonb, index, uniqueIndex, date, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 export const providers = pgTable("provider", {
   id: text("id").primaryKey(),
@@ -87,3 +87,33 @@ export const availabilitySlots = pgTable("availability_slot", {
   heldUntil: timestamp("held_until", { withTimezone: true }),
   heldBy: text("held_by"),
 });
+
+export const doctorSchedules = pgTable("doctor_schedule", {
+  id: text("id").primaryKey(),
+  providerId: text("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  serviceId: text("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
+  weekday: integer("weekday").notNull(), // 0=Sun … 6=Sat, matches expandPattern
+  startTime: text("start_time").notNull(), // "HH:MM"
+  endTime: text("end_time").notNull(),
+  durationMinutes: integer("duration_minutes").notNull(),
+  capacity: integer("capacity").notNull().default(1),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("doctor_schedule_provider_idx").on(t.providerId),
+  index("doctor_schedule_service_idx").on(t.serviceId),
+  uniqueIndex("doctor_schedule_unique").on(t.providerId, t.serviceId, t.weekday, t.startTime),
+]);
+
+export const scheduleExceptions = pgTable("schedule_exception", {
+  id: text("id").primaryKey(),
+  providerId: text("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  serviceId: text("service_id").references(() => services.id, { onDelete: "cascade" }),
+  exceptionDate: date("exception_date").notNull(), // YYYY-MM-DD
+  isClosed: boolean("is_closed").notNull().default(true),
+  reason: text("reason"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("schedule_exception_provider_idx").on(t.providerId, t.exceptionDate),
+  index("schedule_exception_service_idx").on(t.serviceId),
+]);
