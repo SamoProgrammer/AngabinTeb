@@ -55,6 +55,52 @@ describe("generateDietPlan key guard (mocked generator)", () => {
   });
 });
 
+describe("generateProgramDocument idempotent retry (no DB, mocked dbc)", () => {
+  it("returns ready without calling the model when a document already exists", async () => {
+    const claimId = randomUUID();
+    const updates: Array<{ table: unknown; set: unknown }> = [];
+    let transactionCalled = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fakeDbc: any = {
+      select: () => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        from: (t: any) => ({
+          where: async () => {
+            if (t === schema.dietClaims) {
+              return [{ id: claimId, programId: "p1", status: "generating" }];
+            }
+            if (t === schema.dietDocuments) {
+              return [{ id: "doc-1" }];
+            }
+            return [];
+          },
+        }),
+      }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      update: (t: any) => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        set: (v: any) => ({
+          where: async () => {
+            updates.push({ table: t, set: v });
+            return [];
+          },
+        }),
+      }),
+      transaction: async () => {
+        transactionCalled = true;
+        throw new Error("should not reach transaction on early return");
+      },
+    };
+    mockedRequireUser.mockResolvedValue({ id: "user-1" } as never);
+    mockedGenerateText.mockClear();
+    const res = await generateProgramDocument(claimId, { dbc: fakeDbc });
+    expect(res.ok).toBe(true);
+    expect(mockedGenerateText).not.toHaveBeenCalled();
+    expect(transactionCalled).toBe(false);
+    expect(updates.some((u) => u.table === schema.dietClaims)).toBe(true);
+  });
+});
+
 const SKIP = "SKIP: disposable test database unreachable — set DATABASE_URL to run this DB-backed test";
 const runId = randomUUID().slice(0, 8);
 const dbName = `angabin_dietdoc_${runId}`.replace(/-/g, "_");

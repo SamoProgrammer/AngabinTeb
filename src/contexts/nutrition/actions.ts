@@ -156,6 +156,16 @@ export async function generateProgramDocument(claimId: string, opts?: { dbc?: ty
     .from(dietClaims)
     .where(and(eq(dietClaims.id, claimId), eq(dietClaims.userId, user.id)));
   if (!claim) return { ok: false as const, reason: "not_found" as const };
+  const [existingDoc] = await dbc
+    .select({ id: dietDocuments.id })
+    .from(dietDocuments)
+    .where(eq(dietDocuments.claimId, claimId));
+  if (existingDoc) {
+    if (claim.status !== "ready") {
+      await dbc.update(dietClaims).set({ status: "ready" }).where(eq(dietClaims.id, claimId));
+    }
+    return { ok: true as const };
+  }
   if (claim.status !== "paid" && claim.status !== "generating") {
     return { ok: false as const, reason: "invalid_status" as const };
   }
@@ -180,14 +190,16 @@ export async function generateProgramDocument(claimId: string, opts?: { dbc?: ty
         periods.length > 0 ? `تعداد دوره‌ها: ${periods.length}؛ آخرین دوره: ${periods[0]?.title ?? ""}` : "",
     });
     const text = await generateDietPlan(prompt);
-    await dbc.insert(dietDocuments).values({
-      id: randomUUID(),
-      claimId,
-      model: process.env.AI_MODEL ?? "openai/gpt-5.4",
-      promptVersion: DIET_PROMPT_VERSION,
-      bodyMarkdown: `${text}\n\n---\n${DIET_DOC_FOOTER}`,
+    await dbc.transaction(async (tx) => {
+      await tx.insert(dietDocuments).values({
+        id: randomUUID(),
+        claimId,
+        model: process.env.AI_MODEL ?? "openai/gpt-5.4",
+        promptVersion: DIET_PROMPT_VERSION,
+        bodyMarkdown: `${text}\n\n---\n${DIET_DOC_FOOTER}`,
+      });
+      await tx.update(dietClaims).set({ status: "ready" }).where(eq(dietClaims.id, claimId));
     });
-    await dbc.update(dietClaims).set({ status: "ready" }).where(eq(dietClaims.id, claimId));
     return { ok: true as const };
   } catch {
     return { ok: false as const, reason: "generation_failed" as const };
