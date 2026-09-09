@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { bookAppointment } from "@/contexts/booking/actions";
 import { useTranslations } from "next-intl";
-import { toPersianDigits, formatPrice } from "@/components/catalog/doctor-card";
+import { toPersianDigits, formatPrice } from "@/lib/format";
 import { ArrowLeft, ArrowRight, CalendarX, Clock, Moon, Sunrise, User } from "lucide-react";
 
 export type SlotProps = {

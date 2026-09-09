@@ -3,9 +3,13 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { availabilitySlots } from "@/db/schema";
 // ponytail: test-only route, delete when e2e is stable
+// Same opt-in gate as login: on in dev, in prod only with DEMO_LOGIN_ENABLED.
+function isDemoLoginEnabled() {
+  return process.env.DEMO_LOGIN_ENABLED === "true" || process.env.NODE_ENV !== "production";
+}
 
 export async function POST() {
-  if (process.env.NODE_ENV === "production") {
+  if (!isDemoLoginEnabled()) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   await db.execute(sql`DELETE FROM appointment WHERE patient_id = 'test-patient'`);

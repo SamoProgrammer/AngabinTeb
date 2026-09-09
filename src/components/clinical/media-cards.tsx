@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, ArrowRight, BookOpen, CirclePlay, Play, Timer, User, Video } from "lucide-react";
-import { toPersianDigits } from "@/components/catalog/doctor-card";
+import { toPersianDigits } from "@/lib/format";
 
 export interface ArticleData {
   id: string;

@@ -11,14 +11,8 @@ export type ContentCard = {
   publishedAt: Date | null;
 };
 
-export type ContentDetail = {
-  id: string;
+export type ContentDetail = ContentCard & {
   kind: ContentKind;
-  slug: string;
-  title: string;
-  body: string;
-  videoUrl: string | null;
-  publishedAt: Date | null;
 };
 
 export type TopicCard = {

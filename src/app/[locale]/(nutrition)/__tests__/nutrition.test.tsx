@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { ReactElement } from "react";
 import { renderToReadableStream } from "react-dom/server";
-import { formatPersianNumber } from "@/lib/metabolism";
+import { formatPersianNumber } from "@/lib/format";
 import CalorieListPage from "../calorie/page";
 import CalorieDetailPage from "../calorie/[id]/page";
 
@@ -198,41 +198,40 @@ function proxyReq(path: string) {
   return new NextRequest(new URL(`http://localhost${path}`));
 }
 
-describe("proxy nutrition redirects + calorie rewrite", () => {
-  it("307s /fa/nutrition/diary to /fa/nutrition/calorie, preserving search", () => {
-    const res = proxy(proxyReq("/fa/nutrition/diary?x=1"));
-    expect(res.status).toBe(307);
-    expect(res.headers.get("location")).toBe(
-      "http://localhost/fa/nutrition/calorie?x=1",
-    );
-  });
-
-  it("307s /fa/nutrition/nutrition to /fa/nutrition/calorie", () => {
-    const res = proxy(proxyReq("/fa/nutrition/nutrition"));
-    expect(res.status).toBe(307);
-    expect(res.headers.get("location")).toContain("/fa/nutrition/calorie");
-  });
-
-  it("307s /fa/food-analysis/* to /fa/nutrition/calorie", () => {
-    const res = proxy(proxyReq("/fa/food-analysis/personal"));
-    expect(res.status).toBe(307);
-    expect(res.headers.get("location")).toContain("/fa/nutrition/calorie");
-  });
-
-  it("307s /fa/booking/offline-diet to /fa/nutrition/diet", () => {
-    const res = proxy(proxyReq("/fa/booking/offline-diet/types"));
-    expect(res.status).toBe(307);
-    expect(res.headers.get("location")).toContain("/fa/nutrition/diet");
-  });
-
-  it("307s /fa/foods/meal-type/* to /fa/foods", () => {
-    const res = proxy(proxyReq("/fa/foods/meal-type/breakfast"));
-    expect(res.status).toBe(307);
-    expect(res.headers.get("location")).toContain("/fa/foods");
-  });
-
-  it("rewrites /fa/nutrition/calorie/* to the real segment", () => {
+describe("proxy nutrition URLs pass through (legacy shim removed)", () => {
+  it("passes /fa/nutrition/calorie through with no redirect or rewrite", () => {
     const res = proxy(proxyReq("/fa/nutrition/calorie/p1"));
-    expect(res.headers.get("x-middleware-rewrite")).toContain("/fa/calorie/p1");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  it("passes nuked /fa/nutrition/diary through (route 404s, no legacy 307)", () => {
+    const res = proxy(proxyReq("/fa/nutrition/diary?x=1"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("passes /fa/booking/offline-diet through (no legacy 307)", () => {
+    const res = proxy(proxyReq("/fa/booking/offline-diet/types"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("passes /fa/foods/meal-type/* through (no legacy 307)", () => {
+    const res = proxy(proxyReq("/fa/foods/meal-type/breakfast"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("passes /fa/nutrition/nutrition through (no legacy 307)", () => {
+    const res = proxy(proxyReq("/fa/nutrition/nutrition"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("passes /fa/food-analysis/* through (no legacy 307)", () => {
+    const res = proxy(proxyReq("/fa/food-analysis/personal"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
   });
 });

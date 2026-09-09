@@ -4,7 +4,7 @@ import { requireUser } from "@/contexts/identity/actions";
 import { listPrograms, myClaims, getProgramContent } from "@/contexts/nutrition/queries";
 import { claimDietProgram } from "@/contexts/nutrition/actions";
 import { isPricedProgram } from "@/contexts/nutrition/kernel";
-import { formatPersianNumber, toPersianDigits } from "@/lib/metabolism";
+import { formatPersianNumber, toPersianDigits } from "@/lib/format";
 import {
   BadgeCheck,
   Building2,

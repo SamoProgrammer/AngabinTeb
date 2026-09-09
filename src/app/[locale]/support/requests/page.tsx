@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
-import { myRequests } from "@/contexts/support/queries";
+import { listRequests } from "@/contexts/support/queries";
 import { Badge } from "@/components/ui/badge";
 import { formatJalaliDateTime } from "@/lib/format";
 import { ArrowLeft, ArrowRight, Clock, Inbox, Plus, Tag } from "lucide-react";
@@ -23,7 +23,7 @@ export default async function MyRequestsPage({
 }) {
   const { locale } = await params;
   const user = await requireUser();
-  const rows = await myRequests(user.id);
+  const rows = await listRequests({ userId: user.id });
   const t = await getTranslations("support.requests");
   const isRtl = locale !== "en";
   const ArrowIcon = isRtl ? ArrowRight : ArrowLeft;

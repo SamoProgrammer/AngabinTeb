@@ -10,7 +10,7 @@ import {
 import { createPeriod } from "@/contexts/nutrition/actions";
 import { JalaliDatePicker } from "@/components/clinical/jalali-date-picker";
 import { formatJalaliDate } from "@/lib/format";
-import { toPersianDigits } from "@/lib/metabolism";
+import { toPersianDigits } from "@/lib/format";
 import {
   ArrowLeft,
   ArrowRight,

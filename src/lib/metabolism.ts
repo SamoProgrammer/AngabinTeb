@@ -1,7 +1,5 @@
 import { bmr, tdeeForFactor, bmi, macroSplit } from "@/contexts/nutrition/kernel";
 
-const PERSIAN_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
-
 export interface BmrParams {
   gender: "male" | "female";
   weightKg: number;
@@ -87,38 +85,4 @@ export function calculateMacros(tdee: number): MacroSplit {
     carbGrams: Math.round(raw.carbGrams),
     fatGrams: Math.round(raw.fatGrams),
   };
-}
-
-/**
- * Converts Western digits in a string or number to Persian digits.
- */
-export function toPersianDigits(input: number | string | null | undefined): string {
-  if (input === null || input === undefined) return "";
-  return String(input).replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)] ?? digit);
-}
-
-/**
- * Formats a number with Persian thousands separators (٬) and optional decimal places (٫).
- */
-export function formatPersianNumber(
-  num: number,
-  options?: { decimals?: number; useComma?: boolean }
-): string {
-  const decimals = options?.decimals ?? 0;
-  const useComma = options?.useComma ?? true;
-
-  const formattedEn = num.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-
-  let formatted = formattedEn;
-  if (useComma) {
-    formatted = formatted.replace(/,/g, "٬");
-  }
-  if (decimals > 0) {
-    formatted = formatted.replace(/\./g, "٫");
-  }
-
-  return toPersianDigits(formatted);
 }

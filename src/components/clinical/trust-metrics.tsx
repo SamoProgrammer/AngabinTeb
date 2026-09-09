@@ -20,20 +20,13 @@ export interface TrustPillar {
 export interface TrustMetricsProps {
   locale?: string;
   className?: string;
-  metrics?: MetricItem[];
-  pillars?: TrustPillar[];
 }
 
-export function TrustMetrics({
-  locale = "fa",
-  className = "",
-  metrics,
-  pillars,
-}: TrustMetricsProps) {
+export function TrustMetrics({ locale = "fa", className = "" }: TrustMetricsProps) {
   const t = useTranslations("trust");
   const isEn = locale === "en";
 
-  const defaultMetrics: MetricItem[] = [
+  const metrics: MetricItem[] = [
     {
       value: t("metric1Value"),
       label: t("metric1Label"),
@@ -54,7 +47,7 @@ export function TrustMetrics({
     },
   ];
 
-  const defaultPillars: TrustPillar[] = [
+  const pillars: TrustPillar[] = [
     {
       icon: Shield,
       title: t("pillar1Title"),
@@ -75,8 +68,6 @@ export function TrustMetrics({
     },
   ];
 
-  const activeMetrics = metrics ?? defaultMetrics;
-  const activePillars = pillars ?? defaultPillars;
   const ariaLabel = t("aria");
 
   return (
@@ -88,7 +79,7 @@ export function TrustMetrics({
       <div className="bg-surface-container-low rounded-3xl p-6 sm:p-8 md:p-10 border border-outline-variant/30">
         {/* Clinical Counter Badges */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center mb-8">
-          {activeMetrics.map((item, idx) => (
+          {metrics.map((item, idx) => (
             <div
               key={idx}
               className="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl shadow-tier-1 border border-outline-variant/20 hover:shadow-tier-2 transition-all flex flex-col items-center justify-center"
@@ -112,7 +103,7 @@ export function TrustMetrics({
 
         {/* 3 Trust Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-start">
-          {activePillars.map((pillar, idx) => (
+          {pillars.map((pillar, idx) => (
             <div
               key={idx}
               className="flex items-start gap-4 bg-surface-container-lowest p-5 rounded-2xl shadow-tier-1 border border-outline-variant/20 hover:shadow-tier-2 transition-all"

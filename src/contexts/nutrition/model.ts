@@ -22,16 +22,7 @@ export type ProgramCard = {
   practitionerName: string | null;
   practitionerPhone: string | null;
 };
-export type ProgramContent = {
-  id: string;
-  name: string;
-  description: string | null;
-  organizationContext: string;
-  planType: string;
-  durationDays: number;
-  price: string;
-  practitionerName: string | null;
-  practitionerPhone: string | null;
+export type ProgramContent = ProgramCard & {
   hasClaim: boolean;
   // Priced program with no claim row: content page shows the denial, not the file.
   accessDenied: boolean;

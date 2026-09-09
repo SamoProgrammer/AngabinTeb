@@ -4,9 +4,8 @@ import {
   calculateTdee,
   calculateBmi,
   calculateMacros,
-  toPersianDigits,
-  formatPersianNumber,
 } from "@/lib/metabolism";
+import { toPersianDigits, formatPersianNumber } from "@/lib/format";
 import { bmr, tdee } from "@/contexts/nutrition/kernel";
 import {
   metabolismVector as v,

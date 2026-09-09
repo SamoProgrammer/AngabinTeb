@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { getFoodDetail } from "@/contexts/nutrition/queries";
 import { LogFood } from "@/components/nutrition/log-food";
-import { toPersianDigits } from "@/lib/metabolism";
+import { toPersianDigits } from "@/lib/format";
 import { Stethoscope, UtensilsCrossed } from "lucide-react";
 
 export default async function FoodDetailPage({

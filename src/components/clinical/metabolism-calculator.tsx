@@ -4,12 +4,8 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Calculator, Mars, Utensils, Venus } from "lucide-react";
-import {
-  calculateBmr,
-  calculateTdee,
-  calculateBmi,
-  formatPersianNumber,
-} from "@/lib/metabolism";
+import { calculateBmr, calculateTdee, calculateBmi } from "@/lib/metabolism";
+import { formatPersianNumber } from "@/lib/format";
 
 export interface ActivityOption {
   value: number;

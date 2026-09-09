@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { generateSlots } from "@/contexts/catalog/actions";
 import { JalaliDatePicker } from "@/components/clinical/jalali-date-picker";
-import { toPersianDigits } from "@/components/catalog/doctor-card";
+import { toPersianDigits } from "@/lib/format";
 
 type State = { ok?: boolean; reason?: string; count?: number; message?: string };
 

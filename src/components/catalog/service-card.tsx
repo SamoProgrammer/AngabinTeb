@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { CalendarDays, CircleCheckBig, Clock, Timer } from "lucide-react";
 import { resolveIcon } from "@/components/clinical/icons";
-import { toPersianDigits, formatPrice } from "@/components/catalog/doctor-card";
+import { toPersianDigits, formatPrice } from "@/lib/format";
 
 export interface ServiceData {
   id: string;

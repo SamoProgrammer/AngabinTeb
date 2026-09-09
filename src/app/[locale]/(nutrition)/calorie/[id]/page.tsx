@@ -11,7 +11,7 @@ import {
 import { deleteIntake } from "@/contexts/nutrition/actions";
 import { LogFood } from "@/components/nutrition/log-food";
 import { formatJalaliDate, formatJalaliDateTime } from "@/lib/format";
-import { formatPersianNumber, toPersianDigits } from "@/lib/metabolism";
+import { formatPersianNumber, toPersianDigits } from "@/lib/format";
 import {
   ArrowLeft,
   ArrowRight,

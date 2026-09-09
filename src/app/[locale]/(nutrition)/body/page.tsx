@@ -3,11 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
 import { getPhysiology } from "@/contexts/nutrition/queries";
 import { savePhysiology } from "@/contexts/nutrition/actions";
-import {
-  formatPersianNumber,
-  toPersianDigits,
-  calculateBmi,
-} from "@/lib/metabolism";
+import { formatPersianNumber, toPersianDigits } from "@/lib/format";
+import { calculateBmi } from "@/lib/metabolism";
 import { JalaliDatePicker } from "@/components/clinical/jalali-date-picker";
 import {
   Accessibility,

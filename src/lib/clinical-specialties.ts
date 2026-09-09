@@ -8,7 +8,6 @@ export interface MedicalSpecialty {
   descFa: string;
   descEn: string;
   descAr: string;
-  doctorCount: number;
 }
 
 export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
@@ -22,7 +21,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "جراحی استخوان، مفاصل، ستون فقرات و آسیب‌های ورزشی",
     descEn: "Bone, joint, spine surgery and sports injuries",
     descAr: "جراحة العظام والمفاصل والعمود الفقري والإصابات الرياضية",
-    doctorCount: 8,
   },
   {
     id: "urology",
@@ -34,7 +32,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "کلیه، مجاری ادراری، پروستات و ناباروری مردان",
     descEn: "Kidney, urinary tract, prostate, and male fertility",
     descAr: "الكلى والمسالك البولية والبروستاتا وعقم الرجال",
-    doctorCount: 6,
   },
   {
     id: "pediatrics",
@@ -46,7 +43,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "رشد، واکسیناسیون، تغذیه کودک و بیماری‌های نوزادان",
     descEn: "Growth, immunization, child nutrition, and neonatal care",
     descAr: "النمو والتطعيم وتغذية الأطفال ورعاية حديثي الولادة",
-    doctorCount: 11,
   },
   {
     id: "oncology",
@@ -58,7 +54,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "تشخیص، شیمی‌درمانی، پرتودرمانی و پایش سرطان",
     descEn: "Diagnosis, chemotherapy, radiotherapy, and cancer monitoring",
     descAr: "تشخيص السرطان والعلاج الكيميائي والإشعاعي",
-    doctorCount: 5,
   },
   {
     id: "dermatology",
@@ -70,7 +65,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "درمان بیماری‌های پوست، مو، ناخن و لیزر درمانی",
     descEn: "Skin, hair, nail disorders and laser treatments",
     descAr: "علاج أمراض الجلد والشعر والأظافر والعلاج بالليزر",
-    doctorCount: 14,
   },
   {
     id: "ophthalmology",
@@ -82,7 +76,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "جراحی چشم، عیوب انکساری، آب مروارید و لیزیک",
     descEn: "Eye surgery, refractive errors, cataracts, and LASIK",
     descAr: "جراحة العيون وعيوب الانكسار وإعتام عدسة العين والليزك",
-    doctorCount: 9,
   },
   {
     id: "internal",
@@ -94,7 +87,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "گوارش، ریه، کبد، روماتولوژی و دیابت",
     descEn: "Gastroenterology, pulmonology, liver, rheumatology, and diabetes",
     descAr: "أمراض الجهاز الهضمي والرئتين والكبد والروماتيزم والسكري",
-    doctorCount: 16,
   },
   {
     id: "dentistry",
@@ -106,7 +98,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "ایمپلنت، عصب‌کشی، ارتودنسی و ترمیم زیبایی",
     descEn: "Implants, root canal, orthodontics, and cosmetic restoration",
     descAr: "زراعة الأسنان وعلاج الجذور والتقويم والترميم التجميلي",
-    doctorCount: 12,
   },
   {
     id: "psychiatry",
@@ -118,7 +109,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "درمان اضطراب، افسردگی، وسواس و روان‌درمانی",
     descEn: "Anxiety, depression, OCD treatment and psychotherapy",
     descAr: "علاج القلق والاكتئاب والوسواس القهري والعلاج النفسي",
-    doctorCount: 7,
   },
   {
     id: "gynecology",
@@ -130,7 +120,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "مراقبت‌های بارداری، زایمان، نازایی و جراحی‌های زنان",
     descEn: "Prenatal care, childbirth, infertility, and gynecological surgery",
     descAr: "رعاية الحمل والولادة والعقم والجراحة النسائية",
-    doctorCount: 15,
   },
   {
     id: "traditional",
@@ -142,7 +131,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "اصلاح مزاج، تدابیر تغذیه‌ای، گیاه‌درمانی و حجامت طبی",
     descEn: "Temperament balance, dietary regimens, phytotherapy, and cupping",
     descAr: "تعديل المزاج والنظام الغذائي والعلاج بالأعشاب والحجامة الطبية",
-    doctorCount: 8,
   },
   {
     id: "cardiology",
@@ -154,7 +142,6 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "اکوکاردیوگرافی، نوار قلب، فشار خون و آنژیوگرافی",
     descEn: "Echocardiography, ECG, hypertension, and angiography",
     descAr: "تخطيط صدى القلب وتخطيط القلب الكهربائي وضغط الدم",
-    doctorCount: 10,
   },
   {
     id: "neurology",
@@ -166,6 +153,5 @@ export const CLINICAL_SPECIALTIES: MedicalSpecialty[] = [
     descFa: "میگرن، صرع، ام‌اس، سکته مغزی و دیسک کمر",
     descEn: "Migraine, epilepsy, MS, stroke, and disc herniation",
     descAr: "الصداع النصفي والصرع والتصلب المتعدد والسكتة الدماغية",
-    doctorCount: 9,
   },
 ];

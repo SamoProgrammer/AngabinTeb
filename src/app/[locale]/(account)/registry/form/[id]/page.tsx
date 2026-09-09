@@ -12,7 +12,7 @@ import {
   Info,
   Printer,
 } from "lucide-react";
-import { toPersianDigits } from "@/components/catalog/doctor-card";
+import { toPersianDigits } from "@/lib/format";
 import { formatJalaliDate } from "@/lib/format";
 import { submitRegistry } from "@/contexts/identity/actions";
 

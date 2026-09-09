@@ -134,6 +134,13 @@
       "when": 1788889566070,
       "tag": "0018_glorious_warbound",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1788946822975,
+      "tag": "0019_great_shinko_yamashiro",
+      "breakpoints": true
     }
   ]
 }

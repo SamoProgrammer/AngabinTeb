@@ -7,6 +7,22 @@ import { localizedRows } from "@/lib/translate";
 import type { SearchResult, DoctorCard, ServiceCard } from "./model";
 export type { SearchResult, DoctorCard, ServiceCard };
 
+// Pages pass either a category id or a slug (?specialty=cardiology).
+// Resolve slugs to ids so the filter matches seeded rows instead of
+// silently returning zero results.
+async function resolveCategoryId(idOrSlug: string): Promise<string | null> {
+  const [cat] = await db
+    .select({ id: serviceCategories.id })
+    .from(serviceCategories)
+    .where(
+      or(
+        eq(serviceCategories.id, idOrSlug),
+        eq(serviceCategories.slug, idOrSlug),
+      ),
+    );
+  return cat?.id ?? null;
+}
+
 export const searchAll = cache(async (term: string, locale: string): Promise<SearchResult[]> => {
   if (!term.trim()) return [];
   const q = sql`plainto_tsquery('simple', ${term.trim()})`;
@@ -89,22 +105,8 @@ export const listDoctors = cache(async (
   pageSize = 12,
 ): Promise<{ rows: DoctorCard[]; total: number }> => {
   // Pages pass either a category id or a slug (?specialty=cardiology).
-  // Resolve slugs to ids so the filter matches seeded rows instead of
-  // silently returning zero results.
-  let specialtyDbId: string | undefined;
-  if (specialtyId) {
-    const [cat] = await db
-      .select({ id: serviceCategories.id })
-      .from(serviceCategories)
-      .where(
-        or(
-          eq(serviceCategories.id, specialtyId),
-          eq(serviceCategories.slug, specialtyId),
-        ),
-      );
-    if (!cat) return { rows: [], total: 0 };
-    specialtyDbId = cat.id;
-  }
+  const specialtyDbId = specialtyId ? await resolveCategoryId(specialtyId) : undefined;
+  if (specialtyId && !specialtyDbId) return { rows: [], total: 0 };
   const where = and(
     eq(providers.kind, "person"),
     eq(providers.isActive, true),
@@ -149,22 +151,8 @@ export const listServices = cache(async (
   pageSize = 12,
 ): Promise<{ rows: ServiceCard[]; total: number }> => {
   // Pages pass either a category id or a slug (?category=laboratory).
-  // Resolve slugs to ids so the filter matches seeded rows instead of
-  // silently returning zero results.
-  let categoryDbId: string | undefined;
-  if (categoryId) {
-    const [cat] = await db
-      .select({ id: serviceCategories.id })
-      .from(serviceCategories)
-      .where(
-        or(
-          eq(serviceCategories.id, categoryId),
-          eq(serviceCategories.slug, categoryId),
-        ),
-      );
-    if (!cat) return { rows: [], total: 0 };
-    categoryDbId = cat.id;
-  }
+  const categoryDbId = categoryId ? await resolveCategoryId(categoryId) : undefined;
+  if (categoryId && !categoryDbId) return { rows: [], total: 0 };
   const where = and(
     eq(services.isActive, true),
     categoryDbId ? eq(services.categoryId, categoryDbId) : undefined,

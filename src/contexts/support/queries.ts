@@ -4,18 +4,13 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { supportRequests, notifications } from "@/db/schema";
 
-export const myRequests = cache(async (userId: string) => {
-  return db
-    .select()
-    .from(supportRequests)
-    .where(eq(supportRequests.userId, userId))
-    .orderBy(desc(supportRequests.createdAt))
-    .limit(100);
-});
-
-export const listRequests = cache(async (status?: string) => {
+export const listRequests = cache(async (filter?: { userId?: string; status?: string }) => {
   const q = db.select().from(supportRequests);
-  if (status) q.where(eq(supportRequests.status, status));
+  const where = and(
+    filter?.userId ? eq(supportRequests.userId, filter.userId) : undefined,
+    filter?.status ? eq(supportRequests.status, filter.status) : undefined,
+  );
+  if (where) q.where(where);
   return q.orderBy(desc(supportRequests.createdAt)).limit(100);
 });
 

@@ -15,17 +15,18 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Stack
 
-Next 16.3.3 App Router (Turbopack) · React 19 · TS 7.0.2 (oxlint only, NO typescript-eslint) · Tailwind v4 · Drizzle 0.45 + postgres.js 3.4 · better-auth 1.7.2 · next-intl 4 · Node 26.7 · Postgres 17 (docker compose) · **bun** (never pnpm/npm/yarn) · Vazirmatn + Plus Jakarta Sans · lucide-react icons (no icon font).
+Next 16.3.3 App Router (Turbopack) · React 19 · TS 7.0.2 (oxlint only, NO typescript-eslint) · Tailwind v4 · Drizzle 0.45 + postgres.js 3.4 · better-auth 1.7.2 · next-intl 4 · Node 26.7 · Postgres 17 (docker compose) · **bun** (never pnpm/npm/yarn) · Vazirmatn + Plus Jakarta Sans · lucide-react icons (no icon font) · Vercel AI SDK v7 (`ai` + `@ai-sdk/openai`, Gateway default; env `AI_API_KEY`/`AI_MODEL`/`AI_BASE_URL`).
 
 ## Where things live
 
 ```
 src/app/[locale]/          # App Router: (discovery), (booking), (account), (auth), (nutrition), (content), (marketing), admin/
+  # Nutrition IA (4 routes only): (nutrition)/calorie (+[id] دوره periods), (nutrition)/diet (+[id] claim-gated AI programs), (nutrition)/body (BMI + profile), (discovery)/foods (+[id] public DB). Deleted: diary, food-analysis/*, booking/offline-diet, nutrition/nutrition, foods/meal-type (proxy.ts 307s cover old URLs).
 src/components/clinical/   # Domain assemblies: DoctorCard, ServiceCard, UniversalSearchBar, TrustMetrics, MetabolismCalculator, icons.ts (Material→Lucide map + resolveIcon)
 src/components/layout/     # Global chrome: ClinicalHeader (mega-dropdowns, auth menu), ClinicalFooter, MobileNav, AdminShell
 src/components/ui/         # shadcn (base-ui variant) vendored
 src/contexts/{identity,catalog,booking,nutrition,content,support}/  # kernel.ts queries.ts actions.ts model.ts
-src/lib/                   # metabolism.ts (Mifflin-St Jeor math engine), auth.ts, auth-client.ts, sms.ts, translate.ts, db.ts
+src/lib/                   # metabolism.ts (Mifflin-St Jeor math engine), auth.ts, auth-client.ts, sms.ts, translate.ts, db.ts, ai-diet.ts (diet prompt + generateDietPlan via AI SDK), jalali.ts + format.ts (Jalali dates — ONLY date path, never native date/datetime-local inputs)
 src/db/schema/             # one file per context + index.ts barrel
 messages/{fa,en,ar}.json   # next-intl catalogs (fa source of truth, en/ar overrides)
 scripts/seed*.ts           # seed + seed-nutrition + seed-content + seed-rehab
@@ -53,6 +54,11 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
 - **Iconography (lucide-react):** Direct imports only — `import { Stethoscope } from "lucide-react"`, render `<Stethoscope size={...} aria-hidden="true" />` preserving size/className. `fill={true}` becomes `fill="currentColor"`. Dynamic names use `resolveIcon(name)` from `@/components/clinical/icons` (falls back to `CircleHelp`, never text). Canonical Material→Lucide picks live in `icons.ts` — reuse, don't invent. `ClinicalIcon` and the Material Symbols webfont are deleted; no `fonts.googleapis` icon links.
 - **Global Chrome & Layout Structure:** 3-tier chrome: sticky `ClinicalHeader` (4 mega-dropdown clinical hubs, locale switcher, reactive auth button/menu), bottom `MobileNav` for phones (`md:hidden`), and `ClinicalFooter` with 115 emergency banner, zero-fee guarantee, and `pb-16 md:pb-0` mobile dock clearance.
 - **Nutrition Engine & Persian Measures:** Metabolic math uses Mifflin-St Jeor equation in `src/lib/metabolism.ts` (calculates BMR, TDEE, macronutrient distribution). Daily food diary integrates traditional Iranian portion units (`کف دست`, `لیوان`, `قاشق`, `بشقاب`).
+- **Jalali dates only:** all date/datetime UI goes through `JalaliDatePicker` (`@/components/clinical/jalali-date-picker`, emits hidden Gregorian input) + `formatJalali*` — native `type="date"`/`datetime-local` is forbidden (use picker + `type="time"` for times).
+- **Server Actions export async only:** Turbopack build fails on sync exports from `"use server"` modules — pure helpers live in `kernel.ts` (see `validatePeriodInput` precedent), actions stay async.
+- **DAL reads are `cache()`d:** every `contexts/*/queries.ts` export is wrapped in React `cache()` with `server-only` line 1 — keep the pattern on new queries.
+- **Diet claims:** statuses `pending → paid → generating → ready` (`diet_claim`, partial unique index `status != 'completed'` untouched); AI output stored as long-form markdown in `diet_document` (claim FK unique), never structured JSON.
+- **Periods:** `intake_period` carries a physiology snapshot (history never rewrites); `food_intake.meal_slot` ∈ breakfast/lunch/dinner/snack + nullable `period_id`.
 - `proxy.ts` not `middleware.ts` — locale negotiation + optimistic redirects only; every page/action re-verifies session server-side (CVE-2025-29927). Bare links (`/services/...`, `/nutrition/...`) are redirected via `proxy.ts` to `/${locale}/...` preserving searchParams.
 - `LocaleSwitcher` replaces path prefix (`segments[0] = nextLocale`) and calls `window.location.assign` for clean RTL/LTR layout and font reloading. Never append locale to path (`/en/ar` is prevented).
 - `cookies()`/`headers()`/`params`/`searchParams` are async only (Next 16).
@@ -68,7 +74,11 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
 
 ## Current state
 
-- **HEAD:** `0ee010f` (Stitch UI/UX overhaul complete, reactive auth header, clean i18n routing)
+- **HEAD:** `d3669a2` (nutrition simplification + Jalali dates shipped; DB index fix applied to prod)
+- **Shipped Nutrition Simplification (2026-09-08/09, spec `docs/superpowers/specs/2026-09-08-nutrition-simplification-design.md`):**
+  - **4-route IA:** `calorie` (دوره periods: profile snapshot → entries + محاسبه), `diet` (org → type → payment → registry → AI برنامه as plain text), `body` (BMI + profile + registry entry), public `foods` DB. Dashboard, guest funnel, offline-diet stubs, meal-type nuked (~2k lines + 87 locale keys).
+  - **AI diet generation:** `ai@7` `generateText` (high maxTokens, Persian long-form), `AI_BASE_URL` switches to OpenAI-compatible provider; no key → clear throw, claim stays `generating` with retry; footer carries specialist-review line.
+  - **UX law:** one primary CTA per screen, plain Persian, cards-not-tables, `py-3` targets; layout banner/heroes/duplicate filters deleted.
 - **Shipped UI/UX Modernization (Google Stitch 50-Screen System):**
   - **Design System & Tokens:** Tailwind v4 Persian Clinical Wellness palette, Vazirmatn Persian typography, Lucide iconography (migrated from Material Symbols; see Iconography), elevation shadows tier 1–3.
   - **Global Chrome:** `ClinicalHeader` (4 clinical mega-dropdown hubs, locale switcher, session-aware account menu), `ClinicalFooter` (emergency 115 banner, zero-commission guarantee, accreditation seals), `MobileNav` (5-tab mobile dock with route indicators).
@@ -79,7 +89,7 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
   - **Admin Console & Account (Screens 12, 14, 15):** Unified `AdminShell` layout with sidebar navigation, tables and forms for Doctors, Services, Nutrition, Foods, Content, Support tickets, and Audit logs; Patient Account (`/appointments`, `/notifications`).
   - **Authentication & Multi-language:** Phone-OTP auth, HMAC SHA-256 session token cookies, demo login, 3 full locales (`fa`, `en`, `ar`), clean routing.
   - **Purge Completed:** 5 legacy subsystems purged in migrations 0010-0012 (appointment payments, home-care serviceability, ambulance dispatch, provider portal, support assignment). Booking kernel, nutrition, content, i18n, admin intact.
-- **Verification status:** 108 routes built successfully (`next build`), 91 unit tests passing (`vitest`), oxlint 0 errors, tsc 0 errors.
+- **Verification status:** 144 pages built successfully (`next build`), 86 unit tests passing + 16 skipped (`vitest`), oxlint 0 errors, tsc 0 errors.
 - **Next:** Human deferred verification (R10) — `docker compose up -d` → `db:migrate` → all `db:seed*` → `tsc` → `lint` → `test` → `build` → `playwright test`.
 - **Manager vision (simplified):** booking for doctors/clinics/services (by specialty/type), rehab/home-care/ambulance as plain `service_type` rows, nutrition body→calorie/nutrient + diet, food/educational blog (article/video/pamphlet/FAQ), 3 locales, accounts/appointments. Paid = downloadable content, not appointment charge.
 - **R10 status:** implementation complete; human owns verification. Never commit `.superpowers/`.
@@ -91,10 +101,12 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
   - Architecture: `docs/superpowers/specs/2026-08-31-angabin-teb-design.md`
   - Purge delta: `docs/superpowers/specs/2026-09-02-angabin-teb-purge-design.md`
   - UI/UX & Stitch: `docs/superpowers/specs/2026-09-04-stitch-ui-ux-design.md` (50 screens)
+  - Nutrition simplification: `docs/superpowers/specs/2026-09-08-nutrition-simplification-design.md` (4-route IA + AI برنامه)
 - Plans:
   - Architecture Phases 0–4: `docs/superpowers/plans/2026-08-31-angabin-teb-phase-{0..4}-*.md` (shipped)
   - Purge plan: `docs/superpowers/plans/2026-09-02-angabin-teb-purge.md` (shipped)
   - Stitch UI/UX plan: `docs/superpowers/plans/2026-09-04-stitch-ui-ux.md` (shipped)
+  - Nutrition simplification plan: `docs/superpowers/plans/2026-09-08-nutrition-simplification.md` (shipped, 7 tasks)
 - Ledgers (truth for code state): `.superpowers/sdd/2026-08-31-angabin-teb-phase-{0..4}-*/progress.md`
 - Deferred decisions: `OPEN_QUESTIONS.md`
 
@@ -112,3 +124,5 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
 - `scripts/` is outside `oxlint src` scope.
 - `.env.example` is swallowed by `.gitignore` `.env*` — add `!.env.example` when touching gitignore.
 - Bare links (`/services/...`, `/nutrition/...`) rely on `proxy.ts` 307 with searchParams preserved.
+- **PG namespace collision:** index names share the schema namespace with tables — `index("intake_period")` on `food_intake` killed migration 0017 (`relation already exists`, whole file rolled back). Name indexes `table_column_idx`.
+- **Silent migrate death:** `drizzle-kit migrate` exits 1 printing NOTHING on statement failure — always re-run with output to a file and read the failing statement; or replicate via `drizzle-orm/.../migrator` in a script for visible errors.

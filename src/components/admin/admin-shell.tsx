@@ -28,21 +28,6 @@ export const ADMIN_NAV_ITEMS = [
   { href: "/admin/settings", key: "settings", label: "تنظیمات سامانه", icon: "settings" },
 ] as const;
 
-export const ADMIN_NAV_LABELS: Record<string, { fa: string; en: string; ar: string }> = {
-  "/admin": { fa: "داشبورد عملیات", en: "Operations Dashboard", ar: "لوحة التحكم والعمليات" },
-  "/admin/providers": { fa: "پزشکان و ارائه‌دهندگان", en: "Doctors & Providers", ar: "الأطباء ومقدمو الرعاية" },
-  "/admin/services": { fa: "خدمات و آزمایش‌ها", en: "Services & Diagnostics", ar: "الخدمات والتحاليل" },
-  "/admin/categories": { fa: "دسته‌بندی خدمات", en: "Service Categories", ar: "تصنيفات الخدمات" },
-  "/admin/locations": { fa: "مراکز و کلینیک‌ها", en: "Clinics & Locations", ar: "المراكز والعيادات" },
-  "/admin/scheduling": { fa: "زمان‌بندی و اسلات‌ها", en: "Scheduling & Slots", ar: "المواعيد والأوقات" },
-  "/admin/foods": { fa: "بانک خوراک‌های ایرانی", en: "Iranian Food Database", ar: "قاعدة بيانات الأغذية الإيرانية" },
-  "/admin/diet-programs": { fa: "برنامه‌های تغذیه", en: "Diet Programs", ar: "برامج التغذية" },
-  "/admin/content": { fa: "مدیریت مقالات و مدیا", en: "Articles & Media", ar: "إدارة المقالات والوسائط" },
-  "/admin/topics": { fa: "مراکز سلامت ۳۶۰°", en: "360° Health Topics", ar: "محاور الصحة ۳۶۰°" },
-  "/admin/support": { fa: "پشتیبانی و تیکت‌ها", en: "Support & Tickets", ar: "الدعم والتذاكر" },
-  "/admin/settings": { fa: "تنظیمات سامانه", en: "System Settings", ar: "إعدادات النظام" },
-};
-
 const SHELL_LABELS = {
   consoleTitle: { fa: "کنسول مدیریت بالینی", en: "Clinical Admin Console", ar: "وحدة الإدارة السريرية" },
   brand: { fa: "انگبین طب", en: "Angabin Teb", ar: "أنغبين طب" },
@@ -86,12 +71,12 @@ export function AdminShell({ children, activePath, locale }: AdminShellProps) {
     return SHELL_LABELS[k][currentLocale];
   };
 
-  const getNavText = (href: string, key: string, defaultLabel: string) => {
+  const getNavText = (key: string, defaultLabel: string) => {
     if (tNav) {
       const trans = tNav(key);
       if (trans && trans !== key) return trans;
     }
-    return ADMIN_NAV_LABELS[href]?.[currentLocale] ?? defaultLabel;
+    return defaultLabel;
   };
 
   const BrandIcon = resolveIcon("spa");
@@ -130,7 +115,7 @@ export function AdminShell({ children, activePath, locale }: AdminShellProps) {
                 (item.href !== "/admin" &&
                   (currentPath.startsWith(item.href) || currentPath.startsWith(itemHref)));
 
-              const localizedLabel = getNavText(item.href, item.key, item.label);
+              const localizedLabel = getNavText(item.key, item.label);
               const ItemIcon = resolveIcon(item.icon);
 
               return (

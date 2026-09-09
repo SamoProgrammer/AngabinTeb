@@ -15,7 +15,7 @@ export default async function AdminSupportPage({
   const locale = resolved.locale === "en" || resolved.locale === "ar" ? resolved.locale : "fa";
 
   const tSupport = await getTranslations("admin.support");
-  const rows = await listRequests("open");
+  const rows = await listRequests({ status: "open" });
 
   return (
     <div className="text-start">

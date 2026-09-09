@@ -7,10 +7,9 @@ import { Accessibility, BookOpen, Flame, NotebookPen, type LucideIcon } from "lu
 
 export interface NutritionNavProps {
   locale?: string;
-  className?: string;
 }
 
-export function NutritionNav({ locale = "fa", className = "" }: NutritionNavProps) {
+export function NutritionNav({ locale = "fa" }: NutritionNavProps) {
   const pathname = usePathname() || "";
   const t = useTranslations("nutrition");
 
@@ -47,7 +46,7 @@ export function NutritionNav({ locale = "fa", className = "" }: NutritionNavProp
   ];
 
   return (
-    <div className={`flex flex-col gap-2 mb-6 sm:mb-8 ${className}`}>
+    <div className="flex flex-col gap-2 mb-6 sm:mb-8">
       <nav
         aria-label={t("navAria")}
         className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 sm:pb-3 no-scrollbar border-b border-outline-variant/30"

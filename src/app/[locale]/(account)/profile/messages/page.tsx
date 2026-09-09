@@ -5,7 +5,7 @@ import { Send } from "lucide-react";
 import { db } from "@/db";
 import { clinicalMessages } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
-import { myRequests } from "@/contexts/support/queries";
+import { listRequests } from "@/contexts/support/queries";
 import { createSupportRequest, markMessagesRead } from "@/contexts/support/actions";
 import { resolveIcon } from "@/components/clinical/icons";
 import { formatJalaliDateTime, toPersianDigits } from "@/lib/format";
@@ -32,7 +32,7 @@ export default async function ProfileMessagesPage({
       .where(eq(clinicalMessages.recipientUserId, user.id))
       .orderBy(desc(clinicalMessages.sentAt))
       .limit(50),
-    myRequests(user.id),
+    listRequests({ userId: user.id }),
   ]);
   const unread = messages.filter((m) => !m.isRead);
 

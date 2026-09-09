@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { foods } from "@/db/schema";
 import { searchFoods } from "@/contexts/nutrition/queries";
-import { toPersianDigits } from "@/lib/metabolism";
+import { toPersianDigits } from "@/lib/format";
 import {
   ChevronLeft,
   ChevronRight,

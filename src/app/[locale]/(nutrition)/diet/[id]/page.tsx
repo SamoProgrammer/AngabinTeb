@@ -10,7 +10,7 @@ import { getProgramContent } from "@/contexts/nutrition/queries";
 import { generateProgramDocument, markDietClaimPaid } from "@/contexts/nutrition/actions";
 import PrintButton from "./print-button";
 import { isPricedProgram } from "@/contexts/nutrition/kernel";
-import { formatPersianNumber, toPersianDigits } from "@/lib/metabolism";
+import { formatPersianNumber, toPersianDigits } from "@/lib/format";
 import {
   ArrowLeft,
   ArrowRight,

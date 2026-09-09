@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { BadgeCheck, CalendarDays, MapPin, Clock, Star, Stethoscope } from "lucide-react";
 
 import { toPersianDigits, formatPrice } from "@/lib/format";
-export { toPersianDigits, formatPrice };
 
 export interface DoctorData {
   id: string;

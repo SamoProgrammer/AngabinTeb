@@ -5,6 +5,32 @@ export function toPersianDigits(input: number | string | null | undefined): stri
   return String(input).replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)] ?? digit);
 }
 
+/**
+ * Formats a number with Persian thousands separators (٬) and optional decimal places (٫).
+ */
+export function formatPersianNumber(
+  num: number,
+  options?: { decimals?: number; useComma?: boolean }
+): string {
+  const decimals = options?.decimals ?? 0;
+  const useComma = options?.useComma ?? true;
+
+  const formattedEn = num.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+
+  let formatted = formattedEn;
+  if (useComma) {
+    formatted = formatted.replace(/,/g, "٬");
+  }
+  if (decimals > 0) {
+    formatted = formatted.replace(/\./g, "٫");
+  }
+
+  return toPersianDigits(formatted);
+}
+
 export function formatPrice(
   price: number | string | null | undefined,
   locale: string = "fa",
