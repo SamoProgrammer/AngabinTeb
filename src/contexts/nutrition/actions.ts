@@ -59,7 +59,7 @@ export async function logIntake(input: z.infer<typeof intakeSchema>) {
 
   if (data.periodId) {
     const period = await getPeriod(user.id, data.periodId);
-    if (!period) throw new Error("invalid period");
+    if (!period) return { ok: false as const, error: "invalid period" };
   }
 
   await db.transaction(async (tx) => {

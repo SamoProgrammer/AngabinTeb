@@ -130,6 +130,9 @@ export function validatePeriodInput(input: { title: string; startsOn: string; en
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
     return { ok: false as const, error: "invalid dates" };
   }
+  if (start.toISOString().slice(0, 10) !== input.startsOn || end.toISOString().slice(0, 10) !== input.endsOn) {
+    return { ok: false as const, error: "invalid dates" };
+  }
   if (end < start) return { ok: false as const, error: "end before start" };
   const spanDays = Math.round((end.getTime() - start.getTime()) / (24 * 3600 * 1000)) + 1;
   if (spanDays > 62) return { ok: false as const, error: "period too long" };

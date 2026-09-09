@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { dietClaims, dietDocuments } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
@@ -44,7 +44,8 @@ export default async function DietDetailPage({
   const [claim] = await db
     .select({ id: dietClaims.id, status: dietClaims.status })
     .from(dietClaims)
-    .where(and(eq(dietClaims.userId, user.id), eq(dietClaims.programId, id)));
+    .where(and(eq(dietClaims.userId, user.id), eq(dietClaims.programId, id)))
+    .orderBy(sql`case when ${dietClaims.status} = 'completed' then 1 else 0 end`, desc(dietClaims.createdAt));
   const [document] = claim
     ? await db.select().from(dietDocuments).where(eq(dietDocuments.claimId, claim.id))
     : [];

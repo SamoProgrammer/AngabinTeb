@@ -126,7 +126,7 @@ export const dietClaims = pgTable("diet_claim", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   programId: text("program_id").notNull().references(() => dietPrograms.id),
-  status: text("status").notNull().default("pending"), // pending | active | completed
+  status: text("status").notNull().default("pending"), // pending | paid | generating | ready (+ legacy active | completed)
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   uniqueIndex("one_claim_per_program").on(t.userId, t.programId).where(sql`status != 'completed'`),
