@@ -4,6 +4,8 @@ import { useState, useTransition, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { logIntake } from "@/contexts/nutrition/actions";
+import { JalaliDatePicker } from "@/components/clinical/jalali-date-picker";
+import { tehranTodayIso } from "@/lib/jalali";
 import { useTranslations } from "next-intl";
 import { CircleCheckBig, CirclePlus, RefreshCw, Search } from "lucide-react";
 
@@ -22,9 +24,9 @@ function defaultMealSlot(hour = new Date().getHours()): MealSlot {
   return "dinner";
 }
 
-function toLocalInputValue(d = new Date()) {
+function defaultTime(d = new Date()) {
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export function LogFood({
@@ -43,7 +45,8 @@ export function LogFood({
   );
   const [quantity, setQuantity] = useState("1");
   const [mealSlot, setMealSlot] = useState<MealSlot>(() => defaultMealSlot());
-  const [loggedAt, setLoggedAt] = useState(() => toLocalInputValue());
+  const [logDate, setLogDate] = useState(() => tehranTodayIso());
+  const [logTime, setLogTime] = useState(() => defaultTime());
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -111,7 +114,7 @@ export function LogFood({
           setError(null);
           setSuccess(false);
           startTransition(async () => {
-            const loggedAtMs = Date.parse(loggedAt);
+            const loggedAtMs = Date.parse(`${logDate}T${logTime}`);
             const res = await logIntake({
               foodId: food?.id ?? foodId,
               servingUnitId,
@@ -259,22 +262,34 @@ export function LogFood({
           </select>
         </div>
 
-        {/* Logged-at Datetime Input */}
+        {/* Logged-at Jalali date + time */}
         <div>
-          <label
-            htmlFor="logged-at-input"
+          <span
+            id="logged-at-label"
             className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
           >
             زمان ثبت
-          </label>
-          <input
-            id="logged-at-input"
-            aria-label="Logged at"
-            type="datetime-local"
-            value={loggedAt}
-            onChange={(e) => setLoggedAt(e.target.value)}
-            className="w-full bg-surface-container-low rounded-xl px-3.5 py-2.5 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-outline-variant/30 text-start"
-          />
+          </span>
+          <div
+            role="group"
+            aria-labelledby="logged-at-label"
+            className="grid grid-cols-2 gap-2"
+          >
+            <JalaliDatePicker
+              locale={currentLocale}
+              value={logDate}
+              onChange={setLogDate}
+              id="logged-at-date"
+            />
+            <input
+              id="logged-at-time"
+              aria-label="Logged at"
+              type="time"
+              value={logTime}
+              onChange={(e) => setLogTime(e.target.value)}
+              className="w-full bg-surface-container-low rounded-xl px-3.5 py-2.5 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all border border-outline-variant/30 text-start"
+            />
+          </div>
         </div>
 
         {error && (

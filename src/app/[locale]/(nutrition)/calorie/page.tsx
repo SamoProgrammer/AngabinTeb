@@ -8,6 +8,7 @@ import {
   periodEntries,
 } from "@/contexts/nutrition/queries";
 import { createPeriod } from "@/contexts/nutrition/actions";
+import { JalaliDatePicker } from "@/components/clinical/jalali-date-picker";
 import { formatJalaliDate } from "@/lib/format";
 import { toPersianDigits } from "@/lib/metabolism";
 import {
@@ -202,32 +203,30 @@ export default async function CalorieListPage({
           </div>
           <div>
             <label
-              htmlFor="period-start"
+              htmlFor="period-start-picker"
               className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
             >
               {t("calorieFieldStart")}
             </label>
-            <input
-              id="period-start"
+            <JalaliDatePicker
+              locale={locale}
               name="startsOn"
-              type="date"
               required
-              className={inputClass}
+              id="period-start-picker"
             />
           </div>
           <div>
             <label
-              htmlFor="period-end"
+              htmlFor="period-end-picker"
               className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
             >
               {t("calorieFieldEnd")}
             </label>
-            <input
-              id="period-end"
+            <JalaliDatePicker
+              locale={locale}
               name="endsOn"
-              type="date"
               required
-              className={inputClass}
+              id="period-end-picker"
             />
           </div>
           <div className="sm:col-span-2">
