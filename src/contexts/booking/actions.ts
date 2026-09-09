@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, services, notifications } from "@/db/schema";
-import { requireUser } from "@/contexts/identity/actions";
+import { requireUser, requireAdmin } from "@/contexts/identity/actions";
 import { checkRateLimit, BOOKING_RULE } from "@/lib/rate-limit";
 import { canCancel, validatePartySize, type BookingStatus } from "./kernel";
 
@@ -195,4 +195,34 @@ export async function rescheduleAppointmentWithUser(
     if (e instanceof RescheduleCapacityError) return { ok: false as const, reason: "capacity_exceeded" };
     throw e;
   }
+}
+
+export async function cancelAppointmentAsAdmin(id: string) {
+  await requireAdmin();
+  const [row] = await db.select().from(appointments).where(eq(appointments.id, id));
+  if (!row) return { ok: false as const, reason: "not_found" };
+  if (!canCancel(row.status as BookingStatus)) return { ok: false as const, reason: "not_cancellable" };
+  return db.transaction(async (tx) => {
+    const upd = await tx.update(appointments).set({ status: "cancelled" })
+      .where(and(eq(appointments.id, id), eq(appointments.status, "confirmed")));
+    if (upd.count === 0) return { ok: false as const, reason: "not_cancellable" };
+    await tx.execute(sql`UPDATE availability_slot SET booked_count = GREATEST(booked_count - ${row.partySize}, 0) WHERE id = ${row.slotId}`);
+    return { ok: true as const };
+  });
+}
+
+export async function completeAppointmentAsAdmin(id: string) {
+  await requireAdmin();
+  const upd = await db.update(appointments).set({ status: "completed" })
+    .where(and(eq(appointments.id, id), eq(appointments.status, "confirmed")));
+  if (upd.count === 0) return { ok: false as const, reason: "not_cancellable" };
+  return { ok: true as const };
+}
+
+export async function markNoShowAsAdmin(id: string) {
+  await requireAdmin();
+  const upd = await db.update(appointments).set({ status: "no_show" })
+    .where(and(eq(appointments.id, id), eq(appointments.status, "confirmed")));
+  if (upd.count === 0) return { ok: false as const, reason: "not_cancellable" };
+  return { ok: true as const };
 }

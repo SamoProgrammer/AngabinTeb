@@ -84,3 +84,27 @@ export const getAppointment = cache(async (id: string) => {
     .where(eq(appointments.id, id));
   return row ?? null;
 });
+
+export const listBookingsForDoctor = cache(async (providerId: string, status?: string, page = 1, pageSize = 50) => {
+  return db
+    .select({
+      id: appointments.id,
+      status: appointments.status,
+      partySize: appointments.partySize,
+      price: appointments.price,
+      patientName: appointments.patientName,
+      patientPhone: appointments.patientPhone,
+      serviceName: services.name,
+      startsAt: availabilitySlots.startsAt,
+    })
+    .from(appointments)
+    .innerJoin(services, eq(appointments.serviceId, services.id))
+    .innerJoin(availabilitySlots, eq(appointments.slotId, availabilitySlots.id))
+    .where(and(
+      eq(appointments.providerId, providerId),
+      status ? eq(appointments.status, status) : undefined,
+    ))
+    .orderBy(desc(availabilitySlots.startsAt))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
+});
