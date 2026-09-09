@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { formatJalaliDate, formatJalaliTime, formatJalaliWeekday, toPersianDigits } from "@/lib/format";
 import { bookAppointment } from "@/contexts/booking/actions";
+import { useActionFeedback } from "@/components/clinical/use-action-feedback";
 
 interface SlotData {
   id: string;
@@ -34,8 +35,6 @@ interface DoctorReservationFormProps {
   slots: SlotData[];
   locale?: string;
 }
-
-type BookResult = { ok: boolean; appointmentId?: string; reason?: string };
 
 export function DoctorReservationForm({
   doctorId: _doctorId,
@@ -81,8 +80,7 @@ export function DoctorReservationForm({
   const [notes, setNotes] = useState("");
 
   // Status
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { pending: busy, error, run, setError } = useActionFeedback();
 
   const morningSlots = slots.filter((s) => {
     const h = new Date(s.startsAt).getUTCHours();
@@ -136,37 +134,28 @@ export function DoctorReservationForm({
       return;
     }
 
-    setBusy(true);
-    setError(null);
-
-    try {
-      const res = (await bookAppointment({
-        serviceId,
-        slotId: selectedSlotId,
-        partySize: 1,
-        patientName: patientName.trim(),
-        patientPhone: phoneNumber.trim(),
-        notes:
-          [notes.trim(), nationalId.trim() ? `nationalId: ${nationalId.trim()}` : ""]
-            .filter(Boolean)
-            .join(" | ") || undefined,
-        idempotencyKey: crypto.randomUUID(),
-      })) as BookResult;
-
-      if (res.ok && res.appointmentId) {
-        router.push(`/${locale}/confirm?id=${res.appointmentId}`);
-        return;
-      }
-      setError(
-        res.reason === "capacity_exceeded"
-          ? labels.capacityError
-          : labels.genericError,
-      );
-      setBusy(false);
-    } catch {
-      setError(labels.serverError);
-      setBusy(false);
-    }
+    run(
+      () =>
+        bookAppointment({
+          serviceId,
+          slotId: selectedSlotId,
+          partySize: 1,
+          patientName: patientName.trim(),
+          patientPhone: phoneNumber.trim(),
+          notes:
+            [notes.trim(), nationalId.trim() ? `nationalId: ${nationalId.trim()}` : ""]
+              .filter(Boolean)
+              .join(" | ") || undefined,
+          idempotencyKey: crypto.randomUUID(),
+        }) as Promise<{ ok: boolean; appointmentId?: string; reason?: string }>,
+      {
+        successKey: "successBooked",
+        onOk: (res) => {
+          if ("appointmentId" in res && res.appointmentId)
+            router.push(`/${locale}/confirm?id=${res.appointmentId}`);
+        },
+      },
+    );
   }
 
   return (

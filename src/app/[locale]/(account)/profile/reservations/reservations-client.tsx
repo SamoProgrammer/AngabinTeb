@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { formatJalaliDateTime, formatPrice, toPersianDigits } from "@/lib/format";
 import { cancelAppointment } from "@/contexts/booking/actions";
+import { useActionFeedback } from "@/components/clinical/use-action-feedback";
 
 // Plain-JSON projection of myAppointments() rows (server serializes
 // startsAt to ISO in page.tsx so the leaf stays serializable).
@@ -39,9 +40,7 @@ export default function ReservationsClient({
   const [items, setItems] = useState<ReservationRow[]>(rows);
   const [activeTab, setActiveTab] = useState<"upcoming" | "history">("upcoming");
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const { pending, error: actionError, run, setError } = useActionFeedback();
 
   const localizeDigits = (n: number | string) =>
     locale === "en" ? String(n) : toPersianDigits(n);
@@ -63,34 +62,22 @@ export default function ReservationsClient({
     return t("completedStatus");
   };
 
-  const handleConfirmCancel = async () => {
+  const handleConfirmCancel = () => {
     if (!cancellingId || pending) return;
-    setPending(true);
-    setError(null);
-    const res = await cancelAppointment(cancellingId);
-    setPending(false);
-    if (!res.ok) {
-      setError(res.reason);
-      return;
-    }
-    setItems((prev) =>
-      prev.map((r) => (r.id === cancellingId ? { ...r, status: "cancelled" } : r)),
-    );
-    setCancellingId(null);
-    setNotice(t("cancelSuccess"));
+    const id = cancellingId;
+    run(() => cancelAppointment(id), {
+      successKey: "successCancelled",
+      onOk: () => {
+        setItems((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, status: "cancelled" } : r)),
+        );
+        setCancellingId(null);
+      },
+    });
   };
 
   return (
     <div className="flex flex-col gap-6">
-      {notice && (
-        <div
-          role="status"
-          className="p-3 bg-primary/10 border border-primary/20 text-primary rounded-xl text-xs font-bold"
-        >
-          {notice}
-        </div>
-      )}
-
       {/* Tab Switcher */}
       <div className="flex items-center gap-2 p-1.5 bg-surface-container-low rounded-2xl border border-outline-variant/30 w-fit">
         <button
@@ -273,9 +260,9 @@ export default function ReservationsClient({
             <p className="text-xs text-on-surface-variant leading-relaxed">
               {t("modalDesc")}
             </p>
-            {error && (
+            {actionError && (
               <p role="alert" className="text-xs font-bold text-error">
-                {error}
+                {actionError}
               </p>
             )}
             <div className="flex items-center justify-end gap-2 pt-2">
