@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { validatePeriodInput } from "../actions";
+import { validatePeriodInput } from "../kernel";
 
 describe("period validation", () => {
   it("rejects end before start", () => {

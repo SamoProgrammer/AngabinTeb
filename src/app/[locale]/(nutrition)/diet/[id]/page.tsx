@@ -264,7 +264,7 @@ export default async function DietDetailPage({
           </div>
         </div>
         <Link
-          href={`/${locale}/nutrition/diary`}
+          href={`/${locale}/nutrition/calorie`}
           className="bg-primary hover:bg-primary/90 text-on-primary text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-2xs flex items-center gap-1.5 shrink-0"
         >
           <FilePenLine size={16} aria-hidden="true" />

@@ -38,8 +38,8 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
     col2Links: [
       link("col2Link1", "/nutrition/diet"),
       link("col2Link2", "/foods"),
-      link("col2Link3", "/nutrition/diary"),
-      link("col2Link4", "/food-analysis/personal"),
+      link("col2Link3", "/nutrition/calorie"),
+      link("col2Link4", "/nutrition/body"),
     ],
     col3Title: t("col3Title"),
     col3Links: [

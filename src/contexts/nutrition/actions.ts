@@ -7,7 +7,7 @@ import { db } from "@/db";
 import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, clinicalRegistries, nutrients, translations, intakePeriods } from "@/db/schema";
 import { requireAdmin, requireUser } from "@/contexts/identity/actions";
 import { buildDietPrompt, summarizeRegistry, generateDietPlan, DIET_DOC_FOOTER, DIET_PROMPT_VERSION } from "@/lib/ai-diet";
-import { servingToGrams, nutrientsForIntake } from "./kernel";
+import { servingToGrams, nutrientsForIntake, validatePeriodInput } from "./kernel";
 import { getPhysiology, getPeriod } from "./queries";
 
 function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
@@ -326,23 +326,6 @@ export async function createDietProgram(input: z.infer<typeof dietProgramSchema>
     }
   });
   return { ok: true as const, id };
-}
-
-export function validatePeriodInput(input: { title: string; startsOn: string; endsOn: string }) {
-  const title = input.title?.trim() ?? "";
-  if (title.length < 1 || title.length > 80) return { ok: false as const, error: "invalid title" };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.startsOn) || !/^\d{4}-\d{2}-\d{2}$/.test(input.endsOn)) {
-    return { ok: false as const, error: "invalid dates" };
-  }
-  const start = new Date(`${input.startsOn}T00:00:00Z`);
-  const end = new Date(`${input.endsOn}T00:00:00Z`);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-    return { ok: false as const, error: "invalid dates" };
-  }
-  if (end < start) return { ok: false as const, error: "end before start" };
-  const spanDays = Math.round((end.getTime() - start.getTime()) / (24 * 3600 * 1000)) + 1;
-  if (spanDays > 62) return { ok: false as const, error: "period too long" };
-  return { ok: true as const, data: { title, startsOn: input.startsOn, endsOn: input.endsOn } };
 }
 
 const periodPhysiologySchema = z.object({

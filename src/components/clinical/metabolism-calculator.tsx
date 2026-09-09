@@ -107,7 +107,7 @@ export function MetabolismCalculator({
     return strings.bmiCategories.obese;
   }, [bmiResult.bmi, strings]);
 
-  const targetDiaryHref = diaryHref ?? `/${locale}/nutrition/diary`;
+  const targetDiaryHref = diaryHref ?? `/${locale}/nutrition/calorie`;
 
   const formatNumber = (num: number, decimals = 0) => {
     if (locale === "fa") {

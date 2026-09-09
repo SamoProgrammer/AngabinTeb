@@ -3,31 +3,24 @@ import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
 import { getPhysiology } from "@/contexts/nutrition/queries";
 import { savePhysiology } from "@/contexts/nutrition/actions";
-import { activityFactors } from "@/contexts/nutrition/kernel";
 import {
   formatPersianNumber,
   toPersianDigits,
   calculateBmi,
-  calculateBmr,
-  calculateTdee,
 } from "@/lib/metabolism";
 import { JalaliDatePicker } from "@/components/clinical/jalali-date-picker";
 import {
   Accessibility,
+  Armchair,
+  ClipboardList,
   Dumbbell,
-  Flame,
   Footprints,
-  LayoutDashboard,
   Mars,
-  NotebookPen,
   Rocket,
   Save,
   Trophy,
-  Utensils,
   Venus,
   Weight,
-  Zap,
-  Armchair,
   type LucideIcon,
 } from "lucide-react";
 
@@ -57,25 +50,8 @@ export default async function BodyPage({
   const defaultActivity = profile?.activityLevel ?? "moderate";
 
   const ageYears = profile?.age ?? 32;
-  const bmrValue =
-    profile?.bmr ??
-    calculateBmr({
-      gender: defaultSex,
-      weightKg: defaultWeight,
-      heightCm: defaultHeight,
-      ageYears,
-    });
-
-  const tdeeValue =
-    profile?.tdee ??
-    calculateTdee(bmrValue, activityFactors[defaultActivity as keyof typeof activityFactors] ?? 1.55);
-
+  const hasProfile = Boolean(profile?.weightKg);
   const bmiResult = calculateBmi(defaultWeight, defaultHeight);
-
-  // Goal targets
-  const deficitCal = Math.max(1200, tdeeValue - 400);
-  const maintainCal = tdeeValue;
-  const surplusCal = tdeeValue + 300;
 
   const formatNum = (n: number, decimals = 0) => {
     if (locale === "en") return n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
@@ -93,6 +69,10 @@ export default async function BodyPage({
 
   const bmiRanges = [t("bodyBmiRange1"), t("bodyBmiRange2"), t("bodyBmiRange3"), t("bodyBmiRange4")];
   const ageLabel = locale === "en" ? String(ageYears) : toPersianDigits(ageYears);
+  const activityLabel =
+    ACTIVITIES.find((a) => a.level === defaultActivity)?.labelKey != null
+      ? t(ACTIVITIES.find((a) => a.level === defaultActivity)!.labelKey)
+      : defaultActivity;
 
   return (
     <div className="flex flex-col gap-8 text-start" dir={locale === "en" ? "ltr" : "rtl"}>
@@ -104,9 +84,20 @@ export default async function BodyPage({
         <p className="text-sm sm:text-base text-on-surface-variant mt-1">
           {t("bodySubtitle")}
         </p>
+        {hasProfile && (
+          <p className="text-xs sm:text-sm text-on-surface-variant mt-2">
+            {t("bodyProfileSummary", {
+              sex: t(defaultSex === "male" ? "male" : "female"),
+              age: ageLabel,
+              height: formatNum(defaultHeight),
+              weight: formatNum(defaultWeight),
+              activity: activityLabel,
+            })}
+          </p>
+        )}
       </div>
 
-      {/* Main Grid: Input Form (5 cols) & Results (7 cols) (Screen #41) */}
+      {/* Main Grid: Input Form (5 cols) & Results (7 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Form Container (5 cols) */}
         <div className="lg:col-span-5 bg-surface-container-lowest rounded-3xl p-6 sm:p-8 shadow-xs border border-outline-variant/30">
@@ -268,57 +259,8 @@ export default async function BodyPage({
           </form>
         </div>
 
-        {/* Results & Metabolic Insights (7 cols) (Screen #41) */}
+        {/* Results (7 cols) */}
         <div className="lg:col-span-7 flex flex-col gap-6">
-          {/* Dual Cards: BMR & TDEE */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* BMR Card */}
-            <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-xs border border-outline-variant/30 flex flex-col justify-between">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex flex-col">
-                  <span className="text-xs sm:text-sm font-semibold text-on-surface">
-                    {t("bodyBmrTitle")}
-                  </span>
-                  <div className="flex items-baseline gap-1 mt-2">
-                    <span className="text-3xl sm:text-4xl font-extrabold text-primary font-data-metric">
-                      {formatNum(bmrValue)}
-                    </span>
-                    <span className="text-xs text-on-surface-variant">{t("bodyKcalPerDay")}</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                  <Zap size={26} aria-hidden="true" />
-                </div>
-              </div>
-              <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                {t("bodyBmrDesc")}
-              </p>
-            </div>
-
-            {/* TDEE Card */}
-            <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-xs border border-outline-variant/30 flex flex-col justify-between">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex flex-col">
-                  <span className="text-xs sm:text-sm font-semibold text-secondary">
-                    {t("bodyTdeeTitle")}
-                  </span>
-                  <div className="flex items-baseline gap-1 mt-2">
-                    <span className="text-3xl sm:text-4xl font-extrabold text-secondary font-data-metric">
-                      {formatNum(tdeeValue)}
-                    </span>
-                    <span className="text-xs text-on-surface-variant">{t("bodyKcalPerDay")}</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
-                  <Flame size={26} aria-hidden="true" />
-                </div>
-              </div>
-              <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                {t("bodyTdeeDesc")}
-              </p>
-            </div>
-          </div>
-
           {/* BMI Card with Visual Bar */}
           <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-xs border border-outline-variant/30 flex flex-col gap-4">
             <div className="flex items-center justify-between">
@@ -357,89 +299,40 @@ export default async function BodyPage({
                 <div>{bmiRanges[3]}</div>
               </div>
             </div>
+
+            <div className="pt-4 border-t border-outline-variant/20">
+              <Link
+                href={`/${locale}/nutrition/calorie`}
+                className="w-full bg-primary hover:bg-primary/90 text-on-primary text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5"
+              >
+                <span>{t("bodyBmiCta")}</span>
+              </Link>
+            </div>
           </div>
 
-          {/* Daily Calorie Targets by Goal */}
+          {/* Health Registry Entry Card */}
           <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-xs border border-outline-variant/30 flex flex-col gap-4">
-            <h2 className="font-bold text-base sm:text-lg text-on-surface">
-              {t("bodyGoalsTitle")}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Deficit */}
-              <div className="bg-surface-container-low p-4 rounded-2xl flex flex-col justify-between border border-outline-variant/20">
-                <span className="font-bold text-xs sm:text-sm text-on-surface">
-                  {t("bodyDeficitTitle")}
-                </span>
-                <span className="text-[11px] text-on-surface-variant mt-0.5">
-                  {t("bodyDeficitDesc")}
-                </span>
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="font-extrabold text-xl text-on-surface font-data-metric">
-                    {formatNum(deficitCal)}
-                  </span>
-                  <span className="text-[11px] text-on-surface-variant">{t("bodyCalUnit")}</span>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
+                <ClipboardList size={22} aria-hidden="true" />
               </div>
-
-              {/* Maintenance */}
-              <div className="bg-primary/10 p-4 rounded-2xl flex flex-col justify-between border border-primary/20">
-                <span className="font-bold text-xs sm:text-sm text-primary">{t("bodyMaintainTitle")}</span>
-                <span className="text-[11px] text-on-surface-variant mt-0.5">
-                  {t("bodyMaintainDesc")}
-                </span>
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="font-extrabold text-xl text-primary font-data-metric">
-                    {formatNum(maintainCal)}
-                  </span>
-                  <span className="text-[11px] text-on-surface-variant">{t("bodyCalUnit")}</span>
-                </div>
-              </div>
-
-              {/* Surplus */}
-              <div className="bg-surface-container-low p-4 rounded-2xl flex flex-col justify-between border border-outline-variant/20">
-                <span className="font-bold text-xs sm:text-sm text-on-surface">
-                  {t("bodySurplusTitle")}
-                </span>
-                <span className="text-[11px] text-on-surface-variant mt-0.5">
-                  {t("bodySurplusDesc")}
-                </span>
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="font-extrabold text-xl text-on-surface font-data-metric">
-                    {formatNum(surplusCal)}
-                  </span>
-                  <span className="text-[11px] text-on-surface-variant">{t("bodyCalUnit")}</span>
-                </div>
+              <div>
+                <h2 className="font-bold text-base sm:text-lg text-on-surface">
+                  {t("bodyRegistryTitle")}
+                </h2>
+                <p className="text-xs text-on-surface-variant">
+                  {t("bodyRegistryDesc")}
+                </p>
               </div>
             </div>
 
-            {/* Smooth Next Steps Connections */}
-            <div className="mt-6 pt-4 border-t border-outline-variant/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <span className="text-xs text-on-surface-variant font-medium">
-                {t("bodyNextSteps")}
-              </span>
-              <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  href={`/${locale}/nutrition/diary`}
-                  className="bg-primary hover:bg-primary/90 text-on-primary text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-2xs flex items-center gap-1.5"
-                >
-                  <Utensils size={16} aria-hidden="true" />
-                  <span>{t("bodyStep1")}</span>
-                </Link>
-                <Link
-                  href={`/${locale}/nutrition/diet`}
-                  className="bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-bold px-3.5 py-2 rounded-xl transition-all border border-outline-variant/30 flex items-center gap-1.5"
-                >
-                  <NotebookPen size={16} aria-hidden="true" />
-                  <span>{t("bodyStep2")}</span>
-                </Link>
-                <Link
-                  href={`/${locale}/nutrition`}
-                  className="bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-bold px-3.5 py-2 rounded-xl transition-all border border-outline-variant/30 flex items-center gap-1.5"
-                >
-                  <LayoutDashboard size={16} aria-hidden="true" />
-                  <span>{t("bodyStep3")}</span>
-                </Link>
-              </div>
+            <div className="pt-4 border-t border-outline-variant/20">
+              <Link
+                href={`/${locale}/registry`}
+                className="w-full bg-secondary hover:bg-secondary/90 text-on-secondary text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5"
+              >
+                <span>{t("bodyRegistryCta")}</span>
+              </Link>
             </div>
           </div>
         </div>

@@ -116,3 +116,22 @@ export function canAccessProgramContent(price: string | number, hasClaim: boolea
   if (!isPricedProgram(price)) return true;
   return hasClaim;
 }
+
+// Calorie-period input guard. Pure (lives here, not in actions.ts, so the
+// "use server" module only exports async actions) and unit-tested directly.
+export function validatePeriodInput(input: { title: string; startsOn: string; endsOn: string }) {
+  const title = input.title?.trim() ?? "";
+  if (title.length < 1 || title.length > 80) return { ok: false as const, error: "invalid title" };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.startsOn) || !/^\d{4}-\d{2}-\d{2}$/.test(input.endsOn)) {
+    return { ok: false as const, error: "invalid dates" };
+  }
+  const start = new Date(`${input.startsOn}T00:00:00Z`);
+  const end = new Date(`${input.endsOn}T00:00:00Z`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return { ok: false as const, error: "invalid dates" };
+  }
+  if (end < start) return { ok: false as const, error: "end before start" };
+  const spanDays = Math.round((end.getTime() - start.getTime()) / (24 * 3600 * 1000)) + 1;
+  if (spanDays > 62) return { ok: false as const, error: "period too long" };
+  return { ok: true as const, data: { title, startsOn: input.startsOn, endsOn: input.endsOn } };
+}

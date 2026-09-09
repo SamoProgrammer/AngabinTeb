@@ -279,7 +279,7 @@ export default async function HomePage({
       </section>
 
       {/* 5. Live Metabolism Calculator (Screen #13 — real Mifflin-St Jeor engine) */}
-      <MetabolismCalculator locale={locale} diaryHref={`/${locale}/diary`} />
+      <MetabolismCalculator locale={locale} diaryHref={`/${locale}/nutrition/calorie`} />
 
       {/* 6. Clinical Knowledge & Video Library Showcase */}
       <section
