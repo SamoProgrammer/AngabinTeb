@@ -17,4 +17,4 @@ ALTER TABLE "food_intake" ADD COLUMN "period_id" text;--> statement-breakpoint
 ALTER TABLE "intake_period" ADD CONSTRAINT "intake_period_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "period_user" ON "intake_period" USING btree ("user_id");--> statement-breakpoint
 ALTER TABLE "food_intake" ADD CONSTRAINT "food_intake_period_id_intake_period_id_fk" FOREIGN KEY ("period_id") REFERENCES "public"."intake_period"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "intake_period" ON "food_intake" USING btree ("period_id");
+CREATE INDEX "food_intake_period_id_idx" ON "food_intake" USING btree ("period_id");

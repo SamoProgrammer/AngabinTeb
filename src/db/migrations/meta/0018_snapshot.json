@@ -1755,8 +1755,8 @@
           "method": "btree",
           "with": {}
         },
-        "intake_period": {
-          "name": "intake_period",
+        "food_intake_period_id_idx": {
+          "name": "food_intake_period_id_idx",
           "columns": [
             {
               "expression": "period_id",

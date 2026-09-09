@@ -76,7 +76,7 @@ export const foodIntakes = pgTable(
     mealSlot: text("meal_slot"), // صبحانه | ناهار | شام | میان‌وعده
     periodId: text("period_id").references(() => intakePeriods.id, { onDelete: "set null" }),
   },
-  (t) => [index("intake_user_day").on(t.userId, t.loggedAt), index("intake_period").on(t.periodId)],
+  (t) => [index("intake_user_day").on(t.userId, t.loggedAt), index("food_intake_period_id_idx").on(t.periodId)],
 );
 
 export const dailyNutrition = pgTable(
