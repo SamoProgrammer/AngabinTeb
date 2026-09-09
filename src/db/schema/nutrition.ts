@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, numeric, date, index, primaryKey, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, numeric, date, index, primaryKey, uniqueIndex, jsonb } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { users } from "./identity";
 import { providers } from "./catalog";
@@ -127,6 +127,9 @@ export const dietClaims = pgTable("diet_claim", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   programId: text("program_id").notNull().references(() => dietPrograms.id),
   status: text("status").notNull().default("pending"), // pending | paid | generating | ready (+ legacy active | completed)
+  organizationContext: text("organization_context"), // banks|universities|health_centers|clinics|other
+  pricePaid: numeric("price_paid", { precision: 12, scale: 0 }),
+  retryCount: integer("retry_count").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   uniqueIndex("one_claim_per_program").on(t.userId, t.programId).where(sql`status != 'completed'`),
@@ -139,4 +142,18 @@ export const dietDocuments = pgTable("diet_document", {
   promptVersion: text("prompt_version").notNull().default("v1"),
   bodyMarkdown: text("body_markdown").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const registrySnapshots = pgTable("registry_snapshot", {
+  id: text("id").primaryKey(),
+  claimId: text("claim_id").notNull().references(() => dietClaims.id, { onDelete: "cascade" }).unique(),
+  personInfo: jsonb("person_info"),
+  medicalHistory: jsonb("medical_history"),
+  drugHistory: jsonb("drug_history"),
+  addictionHistory: jsonb("addiction_history"),
+  nutritionInfo: jsonb("nutrition_info"),
+  cardiovascularQuestions: jsonb("cardiovascular_questions"),
+  anthropometric: jsonb("anthropometric"),
+  medicalDocuments: jsonb("medical_documents"),
+  snapshotAt: timestamp("snapshot_at", { withTimezone: true }).notNull().defaultNow(),
 });

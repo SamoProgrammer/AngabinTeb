@@ -148,6 +148,13 @@
       "when": 1788972761122,
       "tag": "0020_complex_komodo",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1788978461072,
+      "tag": "0021_strong_scrambler",
+      "breakpoints": true
     }
   ]
 }
