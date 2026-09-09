@@ -76,9 +76,21 @@ export function summarizeRegistry(row: RegistryRow | null | undefined): string {
 }
 
 async function resolveModel(id: string): Promise<LanguageModel> {
+  const apiKey = process.env.AI_API_KEY ?? "";
+  const baseURL = process.env.AI_BASE_URL?.trim();
+  if (baseURL) {
+    // Custom OpenAI-compatible endpoint (proxy, local model, …): the
+    // provider prefix (if any) is not part of the model name there.
+    const { createOpenAI } = await import("@ai-sdk/openai");
+    const name = id.includes("/") ? id.slice(id.indexOf("/") + 1) : id;
+    return createOpenAI({ baseURL, apiKey })(name);
+  }
+  // AI Gateway reads AI_GATEWAY_API_KEY; accept AI_API_KEY as its alias so
+  // one key var covers both paths (never overrides an explicit gateway key).
   // Dynamic import on purpose: tests mock only `generateText` from "ai",
   // so a static `gateway` import would break them. Production resolves the
   // AI Gateway model; without it the id is passed through (mocked in tests).
+  process.env.AI_GATEWAY_API_KEY ??= apiKey;
   const mod = (await import("ai")) as { gateway?: (modelId: string) => LanguageModel };
   if (typeof mod.gateway === "function") return mod.gateway(id);
   return id as unknown as LanguageModel;

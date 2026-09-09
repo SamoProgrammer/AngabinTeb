@@ -55,6 +55,32 @@ describe("generateDietPlan key guard (mocked generator)", () => {
   });
 });
 
+describe("generateDietPlan provider paths (mocked generator)", () => {
+  it("uses the OpenAI-compatible provider (object model) when AI_BASE_URL is set", async () => {
+    const { generateDietPlan } = await import("@/lib/ai-diet");
+    const savedKey = process.env.AI_API_KEY;
+    const savedBase = process.env.AI_BASE_URL;
+    const savedGateway = process.env.AI_GATEWAY_API_KEY;
+    process.env.AI_API_KEY = "test-key";
+    process.env.AI_BASE_URL = "http://127.0.0.1:1/v1";
+    delete process.env.AI_GATEWAY_API_KEY;
+    mockedGenerateText.mockReset();
+    mockedGenerateText.mockResolvedValue({ text: "ok" } as never);
+    try {
+      await expect(generateDietPlan("prompt")).resolves.toBe("ok");
+      expect(mockedGenerateText).toHaveBeenCalledTimes(1);
+      const model = mockedGenerateText.mock.calls[0][0].model;
+      expect(typeof model).toBe("object");
+    } finally {
+      if (savedKey !== undefined) process.env.AI_API_KEY = savedKey;
+      else delete process.env.AI_API_KEY;
+      if (savedBase !== undefined) process.env.AI_BASE_URL = savedBase;
+      else delete process.env.AI_BASE_URL;
+      if (savedGateway !== undefined) process.env.AI_GATEWAY_API_KEY = savedGateway;
+      else delete process.env.AI_GATEWAY_API_KEY;
+    }
+  });
+});
 describe("generateProgramDocument idempotent retry (no DB, mocked dbc)", () => {
   it("returns ready without calling the model when a document already exists", async () => {
     const claimId = randomUUID();
