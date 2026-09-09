@@ -11,6 +11,13 @@ function isDemoLoginEnabled() {
   return process.env.DEMO_LOGIN_ENABLED === "true" || process.env.NODE_ENV !== "production";
 }
 
+// Mirrors better-auth's cookie naming (dist/cookies/index.mjs): __Secure-
+// prefix + Secure flag whenever the base URL is https.
+function getSessionCookie() {
+  const secure = (process.env.BETTER_AUTH_URL || "http://localhost:3000").startsWith("https://");
+  return { name: `${secure ? "__Secure-" : ""}better-auth.session_token`, secure };
+}
+
 export async function POST(req: Request) {
   if (!isDemoLoginEnabled()) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -51,12 +58,14 @@ export async function POST(req: Request) {
 
   const secret = process.env.BETTER_AUTH_SECRET || "angabin-teb-dev-secret-key-32chars-min!!";
   const signedCookie = `${token}.${await makeSignature(token, secret)}`;
+  const sessionCookie = getSessionCookie();
 
-  const res = NextResponse.json({ token, signedCookie, role, userId });
-  res.cookies.set("better-auth.session_token", signedCookie, {
+  const res = NextResponse.json({ token, signedCookie, cookieName: sessionCookie.name, role, userId });
+  res.cookies.set(sessionCookie.name, signedCookie, {
     path: "/",
     httpOnly: true,
     sameSite: "lax",
+    secure: sessionCookie.secure,
     maxAge: 86400,
   });
   return res;
@@ -92,13 +101,15 @@ export async function GET(req: Request) {
 
   const secret = process.env.BETTER_AUTH_SECRET || "angabin-teb-dev-secret-key-32chars-min!!";
   const signedCookie = `${token}.${await makeSignature(token, secret)}`;
+  const sessionCookie = getSessionCookie();
 
   const target = isAdmin ? "/fa/admin" : "/fa/profile/reservations";
   const res = NextResponse.redirect(new URL(target, req.url));
-  res.cookies.set("better-auth.session_token", signedCookie, {
+  res.cookies.set(sessionCookie.name, signedCookie, {
     path: "/",
     httpOnly: true,
     sameSite: "lax",
+    secure: sessionCookie.secure,
     maxAge: 86400,
   });
   return res;

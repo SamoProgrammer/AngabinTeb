@@ -116,9 +116,11 @@ function SignInForm({ locale }: { locale: string }) {
     try {
       const res = await fetch(`/api-test/login?role=${requestedRole}`, { method: "POST" });
       if (!res.ok) throw new Error("Demo login endpoint unavailable");
-      const { signedCookie } = await res.json();
+      const { signedCookie, cookieName } = await res.json();
       if (signedCookie) {
-        document.cookie = `better-auth.session_token=${signedCookie}; path=/; max-age=86400; SameSite=Lax`;
+        const name = cookieName || "better-auth.session_token";
+        const secure = window.location.protocol === "https:" ? "; Secure" : "";
+        document.cookie = `${name}=${signedCookie}; path=/; max-age=86400; SameSite=Lax${secure}`;
       }
       window.location.href = requestedRole === "admin" ? `/${locale}/admin` : returnUrl;
     } catch {
