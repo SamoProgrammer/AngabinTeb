@@ -41,4 +41,18 @@ describe("feedbackFor", () => {
   it("falls back to genericError for empty string", () => {
     expect(feedbackFor("").tone).toBe("error");
   });
+  it("maps booking validation reasons to errors", () => {
+    expect(feedbackFor("invalid_party")).toEqual({ key: "invalidParty", tone: "error" });
+    expect(feedbackFor("same_slot")).toEqual({ key: "sameSlot", tone: "error" });
+    expect(feedbackFor("invalid_status")).toEqual({ key: "invalidStatus", tone: "error" });
+    expect(feedbackFor("bad_status")).toEqual({ key: "invalidStatus", tone: "error" });
+  });
+  it("maps provider/overlap reasons to genericError", () => {
+    expect(feedbackFor("provider_mismatch")).toEqual({ key: "genericError", tone: "error" });
+    expect(feedbackFor("overlap")).toEqual({ key: "genericError", tone: "error" });
+    expect(feedbackFor("forbidden")).toEqual({ key: "genericError", tone: "error" });
+  });
+  it("maps not_cancellable to the notCancellable key", () => {
+    expect(feedbackFor("not_cancellable")).toEqual({ key: "notCancellable", tone: "error" });
+  });
 });

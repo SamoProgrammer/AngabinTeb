@@ -25,7 +25,7 @@ export function useActionFeedback() {
       try {
         const res = await fn();
         if (res.ok) {
-          toast.success(t(opts.successKey));
+          toast.success(t(opts.successKey), { duration: 2500 });
           opts.onOk?.(res);
           return;
         }

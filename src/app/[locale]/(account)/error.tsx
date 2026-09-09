@@ -2,6 +2,12 @@
 
 import { RouteError } from "@/components/clinical/route-error";
 
-export default function AccountError({ reset }: { reset: () => void }) {
-  return <RouteError reset={reset} />;
+export default function AccountError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return <RouteError error={error} reset={reset} />;
 }

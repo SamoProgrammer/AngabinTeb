@@ -1,10 +1,20 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { ErrorState } from "@/components/clinical/empty-state";
 
-export function RouteError({ reset }: { reset: () => void }) {
+export function RouteError({
+  error,
+  reset,
+}: {
+  error?: Error & { digest?: string };
+  reset: () => void;
+}) {
   const t = useTranslations("states");
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
   return (
     <div className="w-full bg-surface">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-4">
