@@ -6,7 +6,6 @@ import { randomUUID } from "crypto";
 import { db } from "@/db";
 import { providers, practitioners, diagnosticServices, services, availabilitySlots, serviceCategories, locations, translations, doctorSchedules, scheduleExceptions } from "@/db/schema";
 import { requireAdmin } from "@/contexts/identity/actions";
-import { expandPattern } from "./scheduling";
 import { validateScheduleInput, expandSchedules } from "./schedule-kernel";
 
 function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
@@ -225,57 +224,6 @@ export async function updateLocation(id: string, input: z.infer<typeof locationS
     }
   });
   return { ok: true as const, id };
-}
-
-const generateSlotsSchema = z.object({
-  serviceId: z.string().min(1),
-  providerId: z.string().min(1),
-  weekday: z.number().int().min(0).max(6),
-  startsAt: z.string().regex(/^\d{2}:\d{2}$/),
-  endsAt: z.string().regex(/^\d{2}:\d{2}$/),
-  durationMinutes: z.number().int().positive(),
-  capacity: z.number().int().min(1),
-  fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  toDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-});
-
-export async function generateSlots(input: z.infer<typeof generateSlotsSchema>) {
-  await requireAdmin();
-  const parsed = parseOrError(generateSlotsSchema, input);
-  if (!parsed.ok) return parsed;
-  const data = parsed.data;
-  const starts = expandPattern({
-    weekday: data.weekday, startsAt: data.startsAt, endsAt: data.endsAt,
-    durationMinutes: data.durationMinutes,
-    from: new Date(`${data.fromDate}T00:00:00Z`), to: new Date(`${data.toDate}T23:59:59Z`),
-  });
-  return db.transaction(async (tx) => {
-    const [svc] = await tx.select().from(services).where(eq(services.id, data.serviceId)).for("update");
-    if (!svc || svc.providerId !== data.providerId) {
-      return { ok: false as const, reason: "provider_mismatch" };
-    }
-    const existing = await tx.select().from(availabilitySlots)
-      .where(eq(availabilitySlots.serviceId, data.serviceId));
-    const overlap = starts.filter((s) =>
-      existing.some((e) =>
-        s < e.endsAt && new Date(s.getTime() + data.durationMinutes * 60_000) > e.startsAt,
-      ),
-    );
-    if (overlap.length > 0) {
-      return { ok: false as const, reason: "overlap", count: overlap.length };
-    }
-    await tx.insert(availabilitySlots).values(
-      starts.map((s) => ({
-        id: randomUUID(),
-        providerId: data.providerId,
-        serviceId: data.serviceId,
-        startsAt: s,
-        endsAt: new Date(s.getTime() + data.durationMinutes * 60_000),
-        capacity: data.capacity,
-      })),
-    );
-    return { ok: true as const, count: starts.length };
-  });
 }
 
 export async function availabilityForService(serviceId: string, date: string) {
