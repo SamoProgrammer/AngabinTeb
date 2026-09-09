@@ -38,11 +38,11 @@ export default async function FoodDetailPage({
     <div className="flex flex-col gap-8 text-start" dir={locale === "en" ? "ltr" : "rtl"}>
       {/* 1. Breadcrumb (Screen #17) */}
       <nav aria-label={t("foodDetailBreadcrumbFoods")} className="flex items-center gap-2 text-xs text-on-surface-variant">
-        <Link href={`/${locale}/nutrition`} className="hover:text-primary transition-colors">
+        <Link href={`/${locale}`} className="hover:text-primary transition-colors">
           {t("foodDetailBreadcrumbHome")}
         </Link>
         <span>/</span>
-        <Link href={`/${locale}/nutrition/foods`} className="hover:text-primary transition-colors">
+        <Link href={`/${locale}/foods`} className="hover:text-primary transition-colors">
           {t("foodDetailBreadcrumbFoods")}
         </Link>
         <span>/</span>
