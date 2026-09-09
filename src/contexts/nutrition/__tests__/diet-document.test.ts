@@ -82,7 +82,7 @@ describe("generateDietPlan provider paths (mocked generator)", () => {
   });
 });
 describe("generateProgramDocument idempotent retry (no DB, mocked dbc)", () => {
-  it("returns ready without calling the model when a document already exists", async () => {
+  it("returns ok without touching the claim when a document already exists", async () => {
     const claimId = randomUUID();
     const updates: Array<{ table: unknown; set: unknown }> = [];
     let transactionCalled = false;
@@ -123,7 +123,109 @@ describe("generateProgramDocument idempotent retry (no DB, mocked dbc)", () => {
     expect(res.ok).toBe(true);
     expect(mockedGenerateText).not.toHaveBeenCalled();
     expect(transactionCalled).toBe(false);
-    expect(updates.some((u) => u.table === schema.dietClaims)).toBe(true);
+    expect(updates.some((u) => u.table === schema.dietClaims)).toBe(false);
+  });
+
+  it("counts a failed attempt: retry 0 → generating, retryCount 1", async () => {
+    const claimId = randomUUID();
+    const updates: Array<{ table: unknown; set: unknown }> = [];
+    let transactionCalled = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fakeDbc: any = {
+      select: () => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        from: (t: any) => ({
+          where: async () => {
+            if (t === schema.dietClaims) {
+              return [{ id: claimId, programId: "p1", status: "paid", retryCount: 0 }];
+            }
+            return [];
+          },
+        }),
+      }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      update: (t: any) => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        set: (v: any) => ({
+          where: async () => {
+            updates.push({ table: t, set: v });
+            return [];
+          },
+        }),
+      }),
+      transaction: async () => {
+        transactionCalled = true;
+        throw new Error("should not reach transaction on generation failure");
+      },
+    };
+    const savedKey = process.env.AI_API_KEY;
+    process.env.AI_API_KEY = savedKey ?? "test-key";
+    mockedRequireUser.mockResolvedValue({ id: "user-1" } as never);
+    mockedGenerateText.mockReset();
+    mockedGenerateText.mockRejectedValue(new Error("model down"));
+    try {
+      const res = await generateProgramDocument(claimId, { dbc: fakeDbc });
+      expect(res.ok).toBe(false);
+      expect(transactionCalled).toBe(false);
+      const claimUpdates = updates.filter((u) => u.table === schema.dietClaims);
+      const last = claimUpdates[claimUpdates.length - 1].set as { status: string; retryCount: number };
+      expect(last.status).toBe("generating");
+      expect(last.retryCount).toBe(1);
+    } finally {
+      if (savedKey !== undefined) process.env.AI_API_KEY = savedKey;
+      else delete process.env.AI_API_KEY;
+    }
+  });
+
+  it("fails the claim on the 3rd strike: retry 2 → failed, retryCount 3", async () => {
+    const claimId = randomUUID();
+    const updates: Array<{ table: unknown; set: unknown }> = [];
+    let transactionCalled = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fakeDbc: any = {
+      select: () => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        from: (t: any) => ({
+          where: async () => {
+            if (t === schema.dietClaims) {
+              return [{ id: claimId, programId: "p1", status: "generating", retryCount: 2 }];
+            }
+            return [];
+          },
+        }),
+      }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      update: (t: any) => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        set: (v: any) => ({
+          where: async () => {
+            updates.push({ table: t, set: v });
+            return [];
+          },
+        }),
+      }),
+      transaction: async () => {
+        transactionCalled = true;
+        throw new Error("should not reach transaction on generation failure");
+      },
+    };
+    const savedKey = process.env.AI_API_KEY;
+    process.env.AI_API_KEY = savedKey ?? "test-key";
+    mockedRequireUser.mockResolvedValue({ id: "user-1" } as never);
+    mockedGenerateText.mockReset();
+    mockedGenerateText.mockRejectedValue(new Error("model down"));
+    try {
+      const res = await generateProgramDocument(claimId, { dbc: fakeDbc });
+      expect(res.ok).toBe(false);
+      expect(transactionCalled).toBe(false);
+      const claimUpdates = updates.filter((u) => u.table === schema.dietClaims);
+      const last = claimUpdates[claimUpdates.length - 1].set as { status: string; retryCount: number };
+      expect(last.status).toBe("failed");
+      expect(last.retryCount).toBe(3);
+    } finally {
+      if (savedKey !== undefined) process.env.AI_API_KEY = savedKey;
+      else delete process.env.AI_API_KEY;
+    }
   });
 });
 
@@ -208,7 +310,7 @@ afterAll(async () => {
 });
 
 describe("generateProgramDocument transitions (disposable database, mocked generator)", () => {
-  it("paid → generating → ready with stored document + footer", async (ctx) => {
+  it("paid → generating → needs_review with stored document + footer", async (ctx) => {
     if (!ready) {
       ctx.skip();
       return;
@@ -219,7 +321,7 @@ describe("generateProgramDocument transitions (disposable database, mocked gener
     const res = await generateProgramDocument(paidClaimId, { dbc: testDb });
     expect(res.ok).toBe(true);
     const [claim] = await testDb.select().from(schema.dietClaims).where(eq(schema.dietClaims.id, paidClaimId));
-    expect(claim.status).toBe("ready");
+    expect(claim.status).toBe("needs_review");
     const rows = await testDb.select().from(schema.dietDocuments);
     expect(rows.length).toBe(1);
     expect(rows[0].claimId).toBe(paidClaimId);
@@ -239,6 +341,7 @@ describe("generateProgramDocument transitions (disposable database, mocked gener
     expect(res.ok).toBe(false);
     const [claim] = await testDb.select().from(schema.dietClaims).where(eq(schema.dietClaims.id, failingClaimId));
     expect(claim.status).toBe("generating");
+    expect(claim.retryCount).toBe(1);
     const docs = await testDb.select().from(schema.dietDocuments);
     expect(docs.every((d: { claimId: string }) => d.claimId !== failingClaimId)).toBe(true);
   });

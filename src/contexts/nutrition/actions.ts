@@ -7,7 +7,7 @@ import { db } from "@/db";
 import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, clinicalRegistries, registrySnapshots, nutrients, translations, intakePeriods } from "@/db/schema";
 import { requireAdmin, requireUser } from "@/contexts/identity/actions";
 import { buildDietPrompt, summarizeRegistry, generateDietPlan, DIET_DOC_FOOTER, DIET_PROMPT_VERSION } from "@/lib/ai-diet";
-import { servingToGrams, nutrientsForIntake, validatePeriodInput, toSnapshotValues } from "./kernel";
+import { servingToGrams, nutrientsForIntake, validatePeriodInput, toSnapshotValues, nextGenerationStatus } from "./kernel";
 import { getPhysiology, getPeriod } from "./queries";
 
 function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
@@ -174,7 +174,7 @@ export async function generateProgramDocument(claimId: string, opts?: { dbc?: ty
   const dbc = opts?.dbc ?? db;
   const user = await requireUser();
   const [claim] = await dbc
-    .select({ id: dietClaims.id, programId: dietClaims.programId, status: dietClaims.status })
+    .select({ id: dietClaims.id, programId: dietClaims.programId, status: dietClaims.status, retryCount: dietClaims.retryCount })
     .from(dietClaims)
     .where(and(eq(dietClaims.id, claimId), eq(dietClaims.userId, user.id)));
   if (!claim) return { ok: false as const, reason: "not_found" as const };
@@ -183,9 +183,6 @@ export async function generateProgramDocument(claimId: string, opts?: { dbc?: ty
     .from(dietDocuments)
     .where(eq(dietDocuments.claimId, claimId));
   if (existingDoc) {
-    if (claim.status !== "ready") {
-      await dbc.update(dietClaims).set({ status: "ready" }).where(eq(dietClaims.id, claimId));
-    }
     return { ok: true as const };
   }
   if (claim.status !== "paid" && claim.status !== "generating") {
@@ -220,10 +217,11 @@ export async function generateProgramDocument(claimId: string, opts?: { dbc?: ty
         promptVersion: DIET_PROMPT_VERSION,
         bodyMarkdown: `${text}\n\n---\n${DIET_DOC_FOOTER}`,
       });
-      await tx.update(dietClaims).set({ status: "ready" }).where(eq(dietClaims.id, claimId));
+      await tx.update(dietClaims).set({ status: "needs_review" }).where(eq(dietClaims.id, claimId));
     });
     return { ok: true as const };
   } catch {
+    await dbc.update(dietClaims).set({ status: nextGenerationStatus({ ok: false, retryCount: claim.retryCount ?? 0 }), retryCount: (claim.retryCount ?? 0) + 1 }).where(eq(dietClaims.id, claimId));
     return { ok: false as const, reason: "generation_failed" as const };
   }
 }

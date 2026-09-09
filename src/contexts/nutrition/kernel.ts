@@ -147,3 +147,10 @@ export const SNAPSHOT_COLUMNS = [
 export function toSnapshotValues(registry: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(SNAPSHOT_COLUMNS.map((c) => [c, registry[c] ?? null]));
 }
+
+export const CLAIM_STATUSES = ["pending", "paid", "generating", "needs_review", "ready", "failed"] as const;
+
+export function nextGenerationStatus(opts: { ok: boolean; retryCount: number }): "needs_review" | "generating" | "failed" {
+  if (opts.ok) return "needs_review";
+  return opts.retryCount + 1 >= 3 ? "failed" : "generating";
+}
