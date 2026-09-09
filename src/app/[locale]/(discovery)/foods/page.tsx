@@ -7,14 +7,9 @@ import { toPersianDigits } from "@/lib/metabolism";
 import {
   ChevronLeft,
   ChevronRight,
-  Hand,
   Info,
-  Salad,
   Search,
   SearchX,
-  Soup,
-  Sparkles,
-  Utensils,
   UtensilsCrossed,
 } from "lucide-react";
 
@@ -120,113 +115,8 @@ export default async function FoodsPage({
         </form>
       </section>
 
-      {/* 2. Main Content Layout (Screen #36) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Right Sidebar: Household Serving Sizes Guide (4 cols) */}
-        <aside className="lg:col-span-4 flex flex-col gap-5 sticky top-24">
-          <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-xs border border-outline-variant/30 flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Salad size={24} className="text-secondary" aria-hidden="true" />
-                <h2 className="text-base sm:text-lg font-bold text-on-surface">
-                  {t("foodsScaleGuideTitle")}
-                </h2>
-              </div>
-              <span className="bg-secondary/10 text-secondary text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                {t("foodsClinicalStandard")}
-              </span>
-            </div>
-
-            <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-              {t("foodsGuideIntro")}
-            </p>
-
-            <div className="flex flex-col gap-3">
-              {/* Metric 1: Kafgir */}
-              <div className="flex items-start gap-3 p-3 bg-surface-container-low rounded-2xl border border-outline-variant/20">
-                <div className="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0">
-                  <UtensilsCrossed size={20} aria-hidden="true" />
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs sm:text-sm text-on-surface">
-                      {t("foodsM1Label")}
-                    </span>
-                    <span className="text-xs font-bold text-primary">{t("foodsM1Weight")}</span>
-                  </div>
-                  <span className="text-[11px] text-on-surface-variant mt-0.5">
-                    {t("foodsM1Desc")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Metric 2: Kaf-e Dast */}
-              <div className="flex items-start gap-3 p-3 bg-surface-container-low rounded-2xl border border-outline-variant/20">
-                <div className="w-10 h-10 rounded-xl bg-secondary text-on-secondary flex items-center justify-center shrink-0">
-                  <Hand size={20} aria-hidden="true" />
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs sm:text-sm text-on-surface">
-                      {t("foodsM2Label")}
-                    </span>
-                    <span className="text-xs font-bold text-secondary">{t("foodsM2Weight")}</span>
-                  </div>
-                  <span className="text-[11px] text-on-surface-variant mt-0.5">
-                    {t("foodsM2Desc")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Metric 3: Piyaleh */}
-              <div className="flex items-start gap-3 p-3 bg-surface-container-low rounded-2xl border border-outline-variant/20">
-                <div className="w-10 h-10 rounded-xl bg-tertiary text-on-tertiary flex items-center justify-center shrink-0">
-                  <Soup size={20} aria-hidden="true" />
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs sm:text-sm text-on-surface">
-                      {t("foodsM3Label")}
-                    </span>
-                    <span className="text-xs font-bold text-tertiary">{t("foodsM3Weight")}</span>
-                  </div>
-                  <span className="text-[11px] text-on-surface-variant mt-0.5">
-                    {t("foodsM3Desc")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Metric 4: Ghashogh */}
-              <div className="flex items-start gap-3 p-3 bg-surface-container-low rounded-2xl border border-outline-variant/20">
-                <div className="w-10 h-10 rounded-xl bg-surface-container-high text-on-surface flex items-center justify-center shrink-0">
-                  <Utensils size={20} aria-hidden="true" />
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs sm:text-sm text-on-surface">
-                      {t("foodsM4Label")}
-                    </span>
-                    <span className="text-xs font-bold text-on-surface-variant">{t("foodsM4Weight")}</span>
-                  </div>
-                  <span className="text-[11px] text-on-surface-variant mt-0.5">
-                    {t("foodsM4Desc")}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Clinical Tip Box */}
-            <div className="p-3.5 bg-primary/5 rounded-2xl flex items-start gap-2.5 border border-primary/20">
-              <Sparkles size={20} className="text-primary shrink-0" aria-hidden="true" />
-              <p className="text-xs text-primary leading-relaxed">
-                {t("foodsClinicalTip")}
-              </p>
-            </div>
-          </div>
-        </aside>
-
-        {/* Center / Left: Food Directory Grid (8 cols) */}
-        <main className="lg:col-span-8 flex flex-col gap-5">
+      {/* 2. Results (Screen #36) */}
+      <main className="flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-on-surface">
               {t("foodsResultsTitle")}
@@ -316,7 +206,6 @@ export default async function FoodsPage({
             </nav>
           )}
         </main>
-      </div>
     </div>
   );
 }

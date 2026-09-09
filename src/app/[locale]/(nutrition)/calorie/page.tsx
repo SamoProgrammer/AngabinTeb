@@ -61,34 +61,13 @@ export default async function CalorieListPage({
 
   async function createPeriodAction(formData: FormData) {
     "use server";
-    const num = (v: FormDataEntryValue | null) => {
-      if (v === null || String(v).trim() === "") return undefined;
-      const n = Number(v);
-      return Number.isNaN(n) ? undefined : n;
-    };
-    const str = (v: FormDataEntryValue | null) => {
-      const s = String(v ?? "").trim();
-      return s === "" ? undefined : (s as "male" | "female");
-    };
-    const activityRaw = String(formData.get("activityLevel") ?? "").trim();
+    const weightRaw = String(formData.get("weightKg") ?? "").trim();
+    const weightNum = weightRaw === "" ? NaN : Number(weightRaw);
     const res = await createPeriod({
       title: String(formData.get("title") ?? ""),
       startsOn: String(formData.get("startsOn") ?? ""),
       endsOn: String(formData.get("endsOn") ?? ""),
-      sex: str(formData.get("sex")),
-      age: num(formData.get("age")),
-      weightKg: num(formData.get("weightKg")),
-      heightCm: num(formData.get("heightCm")),
-      activityLevel: (
-        ["sedentary", "light", "moderate", "active", "very_active"] as const
-      ).includes(activityRaw as "moderate")
-        ? (activityRaw as
-            | "sedentary"
-            | "light"
-            | "moderate"
-            | "active"
-            | "very_active")
-        : undefined,
+      weightKg: Number.isNaN(weightNum) ? undefined : weightNum,
     });
     if (!res.ok) {
       redirect(
@@ -196,6 +175,14 @@ export default async function CalorieListPage({
           </p>
         )}
 
+        {!profile ? (
+          <Link
+            href={`/${locale}/nutrition/body`}
+            className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary py-3 px-8 rounded-xl font-bold text-sm sm:text-base shadow-sm transition-all"
+          >
+            <span>{t("caloriePhysioEdit")}</span>
+          </Link>
+        ) : (
         <form action={createPeriodAction} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
             <label
@@ -243,41 +230,7 @@ export default async function CalorieListPage({
               className={inputClass}
             />
           </div>
-          <div>
-            <label
-              htmlFor="period-sex"
-              className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
-            >
-              {tm("bodySexLabel")}
-            </label>
-            <select
-              id="period-sex"
-              name="sex"
-              defaultValue={(profile?.sex as string) ?? ""}
-              className={inputClass}
-            >
-              <option value="male">{tm("male")}</option>
-              <option value="female">{tm("female")}</option>
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="period-age"
-              className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
-            >
-              {t("calorieFieldAge")}
-            </label>
-            <input
-              id="period-age"
-              name="age"
-              type="number"
-              min={0}
-              max={120}
-              defaultValue={profile?.age ?? ""}
-              className={inputClass}
-            />
-          </div>
-          <div>
+          <div className="sm:col-span-2">
             <label
               htmlFor="period-weight"
               className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
@@ -297,46 +250,6 @@ export default async function CalorieListPage({
               className={inputClass}
             />
           </div>
-          <div>
-            <label
-              htmlFor="period-height"
-              className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
-            >
-              {tm("bodyHeightLabel")}
-            </label>
-            <input
-              id="period-height"
-              name="heightCm"
-              type="number"
-              step="0.5"
-              min={80}
-              max={250}
-              defaultValue={
-                profile?.heightCm ? Number(profile.heightCm) : ""
-              }
-              className={inputClass}
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label
-              htmlFor="period-activity"
-              className="block text-xs sm:text-sm font-bold text-on-surface mb-1.5"
-            >
-              {tm("bodyActivityLabel")}
-            </label>
-            <select
-              id="period-activity"
-              name="activityLevel"
-              defaultValue={profile?.activityLevel ?? "moderate"}
-              className={inputClass}
-            >
-              <option value="sedentary">{tm("bodyActSedentaryLabel")}</option>
-              <option value="light">{tm("bodyActLightLabel")}</option>
-              <option value="moderate">{tm("bodyActModerateLabel")}</option>
-              <option value="active">{tm("bodyActActiveLabel")}</option>
-              <option value="very_active">{tm("bodyActVeryActiveLabel")}</option>
-            </select>
-          </div>
           <div className="sm:col-span-2">
             <button
               type="submit"
@@ -346,6 +259,7 @@ export default async function CalorieListPage({
             </button>
           </div>
         </form>
+        )}
       </section>
     </div>
   );

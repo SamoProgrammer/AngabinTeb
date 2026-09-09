@@ -88,22 +88,6 @@ export default async function DietPage({
 
   return (
     <div className="flex flex-col gap-8 text-start" dir={locale === "en" ? "ltr" : "rtl"}>
-      {/* Top Ambient Banner: Clinical Philosophy (Screens #16, #24, #26) */}
-      <section
-        aria-label={t("dietHeroAria")}
-        className="relative overflow-hidden bg-surface-container-low rounded-3xl p-6 sm:p-8 md:p-10 border border-outline-variant/30"
-      >
-        <div className="flex flex-col gap-3 max-w-3xl">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight leading-snug">
-            {t("dietHeroTitle")}
-          </h1>
-
-          <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed">
-            {t("dietHeroDesc")}
-          </p>
-        </div>
-      </section>
-
       {/* Organization/Clinic Context Selector (Screens #16, #24, #26) */}
       <section aria-label={t("dietFilterAria")} className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -154,30 +138,6 @@ export default async function DietPage({
             );
           })}
         </div>
-
-        {/* Traditional Form Selector Fallback / Explicit Context Select */}
-        <form method="GET" className="flex items-center gap-2 max-w-md mt-1">
-          <label className="flex flex-1 items-center gap-2 text-xs font-semibold text-on-surface-variant">
-            <span>{t("dietPartnerOrg")}</span>
-            <select
-              name="context"
-              defaultValue={selectedContext}
-              className="flex-1 bg-surface-container-low text-on-surface rounded-xl px-3 py-2 text-xs font-bold border border-outline-variant/30 focus:outline-none"
-            >
-              {CONTEXT_IDS.map((cid) => (
-                <option key={cid} value={cid}>
-                  {t(CONTEXT_DEFS[cid].labelKey)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="submit"
-            className="bg-primary hover:bg-primary-container text-on-primary text-xs font-bold px-4 py-2 rounded-xl transition-colors"
-          >
-            {t("dietApply")}
-          </button>
-        </form>
       </section>
 
       {/* Claim review + confirm (ticket 13): reachable from every program card */}
@@ -310,26 +270,6 @@ export default async function DietPage({
                     <span className="text-xs font-bold text-primary bg-surface-container-lowest px-2.5 py-1 rounded-lg">
                       {t("dietOnlineBadge")}
                     </span>
-                  </div>
-
-                  {/* Feature Checklist */}
-                  <div className="grid grid-cols-2 gap-2 text-xs text-on-surface-variant pt-1">
-                    <div className="flex items-center gap-1.5">
-                      <CircleCheckBig size={16} className="text-primary shrink-0" aria-hidden="true" />
-                      <span>{t("dietCheckTable")}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <CircleCheckBig size={16} className="text-primary shrink-0" aria-hidden="true" />
-                      <span>{t("dietCheckGlucose")}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <CircleCheckBig size={16} className="text-primary shrink-0" aria-hidden="true" />
-                      <span>{t("dietCheckLab")}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <CircleCheckBig size={16} className="text-primary shrink-0" aria-hidden="true" />
-                      <span>{t("dietCheckPdf")}</span>
-                    </div>
                   </div>
                 </div>
 

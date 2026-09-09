@@ -99,6 +99,14 @@ export default async function DietDetailPage({
             {content.description}
           </p>
         )}
+        <ul className="grid grid-cols-2 gap-2 text-xs text-on-surface-variant">
+          {[t("dietCheckTable"), t("dietCheckGlucose"), t("dietCheckLab"), t("dietCheckPdf")].map((s) => (
+            <li key={s} className="flex items-center gap-1.5">
+              <CircleCheckBig size={16} className="text-primary shrink-0" aria-hidden="true" />
+              <span>{s}</span>
+            </li>
+          ))}
+        </ul>
         {content.practitionerName && (
           <p className="text-xs text-on-surface-variant flex items-center gap-1.5">
             <Stethoscope size={16} className="text-primary" aria-hidden="true" />
