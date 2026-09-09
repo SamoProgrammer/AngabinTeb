@@ -32,6 +32,22 @@
     "errorHint": "Check your connection and try again.",
     "retry": "Try again"
   },
+  "feedback": {
+    "capacityExceeded": "This slot just filled; please pick another time.",
+    "rateLimited": "Too many requests; try again in a moment.",
+    "alreadyClaimed": "This program is already registered for you.",
+    "invalidParty": "Invalid party size.",
+    "notCancellable": "This appointment cannot be cancelled.",
+    "sameSlot": "The new slot is the same as the current one.",
+    "notFound": "Requested item not found.",
+    "generationFailed": "Plan generation failed; try again.",
+    "invalidStatus": "This action is not allowed in the current state.",
+    "genericError": "Something went wrong; try again.",
+    "successBooked": "Appointment booked successfully.",
+    "successCancelled": "Appointment cancelled.",
+    "successLogged": "Food entry logged.",
+    "successSaved": "Saved successfully."
+  },
   "auth": {
     "signin": "Patient Sign In",
     "subtitle": "Enter your mobile phone number to receive a secure one-time verification code.",
