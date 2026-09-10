@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { useTranslations } from "next-intl";
 import { CalendarDays, CircleCheckBig, Clock, Timer } from "lucide-react";
 import { resolveIcon } from "@/components/clinical/icons";
@@ -50,6 +51,7 @@ export function ServiceCard({
 
   const isEn = locale === "en";
   const t = useTranslations("services");
+  const ts = useTranslations("states");
   const dir = isEn ? "ltr" : "rtl";
   const ServiceIcon = resolveIcon(iconName);
 
@@ -170,13 +172,14 @@ export function ServiceCard({
           </div>
         )}
 
-        <Link
+        <PendingLink
           href={targetHref}
+          busyLabel={ts("loading")}
           className="w-full bg-surface-container hover:bg-surface-container-high text-on-surface hover:text-primary font-medium text-xs sm:text-sm py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2"
         >
           <CalendarDays size={16} className="shrink-0" aria-hidden="true" />
           <span>{ctaLabel}</span>
-        </Link>
+        </PendingLink>
       </div>
     </div>
   );

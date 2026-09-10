@@ -191,8 +191,14 @@ export function ScheduleTab({
         <button
           type="submit"
           disabled={savePending || !serviceId}
-          className="mt-4 w-full rounded-xl bg-primary py-3 text-sm font-bold text-on-primary transition-all hover:bg-primary-container disabled:opacity-50 sm:w-auto sm:px-8"
+          className="mt-4 w-full rounded-xl bg-primary py-3 text-sm font-bold text-on-primary transition-all hover:bg-primary-container disabled:opacity-50 sm:w-auto sm:px-8 inline-flex items-center justify-center gap-2"
         >
+          {savePending && (
+            <span
+              className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"
+              aria-hidden="true"
+            />
+          )}
           {t("saveSchedules")}
         </button>
         {saveState && !saveState.ok && (
@@ -223,8 +229,14 @@ export function ScheduleTab({
           <button
             type="submit"
             disabled={excPending}
-            className="rounded-xl bg-surface-container px-4 py-3 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-50"
+            className="rounded-xl bg-surface-container px-4 py-3 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-50 inline-flex items-center justify-center gap-2"
           >
+            {excPending && (
+              <span
+                className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"
+                aria-hidden="true"
+              />
+            )}
             {tc("save")}
           </button>
         </div>

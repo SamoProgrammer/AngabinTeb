@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { listContent, listTopics } from "@/contexts/content/queries";
 import { VideoCard } from "@/components/clinical/media-cards";
 import { VideoOff } from "lucide-react";
@@ -16,6 +16,7 @@ export default async function VideosPage({
   const topicSlug = search.topic;
 
   const t = await getTranslations("videos");
+  const ts = await getTranslations("states");
   const dir = locale === "en" ? "ltr" : "rtl";
 
   const topics = await listTopics(locale);
@@ -39,8 +40,9 @@ export default async function VideosPage({
         {/* Categories Bar */}
         <div className="bg-surface-container-low/70 border border-outline-variant/30 rounded-2xl p-2 sm:p-3 shadow-xs">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <Link
+            <PendingLink
               href={`/${locale}/knowledge/videos`}
+              busyLabel={ts("loading")}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 ${
                 !topicSlug
                   ? "bg-primary text-on-primary shadow-xs"
@@ -48,13 +50,14 @@ export default async function VideosPage({
               }`}
             >
               {t("allVideos")}
-            </Link>
+            </PendingLink>
             {topics.map((topic) => {
               const isActive = topic.slug === topicSlug;
               return (
-                <Link
+                <PendingLink
                   key={topic.id}
                   href={`/${locale}/knowledge/videos?topic=${topic.slug}`}
+                  busyLabel={ts("loading")}
                   className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${
                     isActive
                       ? "bg-primary text-on-primary shadow-xs"
@@ -62,7 +65,7 @@ export default async function VideosPage({
                   }`}
                 >
                   {topic.name}
-                </Link>
+                </PendingLink>
               );
             })}
           </div>
@@ -93,12 +96,13 @@ export default async function VideosPage({
               <VideoOff size={48} className="text-outline" aria-hidden="true" />
               <p className="text-base font-bold text-on-surface">{t("emptyTitle")}</p>
               <p className="text-xs text-on-surface-variant">{t("emptyDesc")}</p>
-              <Link
+              <PendingLink
                 href={`/${locale}/knowledge/videos`}
+                busyLabel={ts("loading")}
                 className="mt-2 inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-xl text-xs font-semibold"
               >
                 {t("backBtn")}
-              </Link>
+              </PendingLink>
             </div>
           )}
         </section>

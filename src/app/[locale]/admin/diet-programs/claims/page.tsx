@@ -9,6 +9,7 @@ import {
   saveDocumentBody,
 } from "@/contexts/nutrition/actions";
 import { allClaims } from "@/contexts/nutrition/queries";
+import { PendingButton } from "@/components/clinical/pending-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toPersianDigits } from "@/lib/format";
 
@@ -139,13 +140,12 @@ export default async function AdminDietClaimsPage({
                           placeholder={t("notePlaceholder")}
                           className="rounded-xl border border-outline-variant/30 bg-surface-container-low p-2.5 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
                         />
-                        <button
-                          type="submit"
+                        <PendingButton
                           className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-secondary/15 px-3 py-2 text-xs font-bold text-secondary transition-colors hover:bg-secondary/25"
                         >
                           <Pencil size={14} aria-hidden="true" />
                           <span>{t("requestChanges")}</span>
-                        </button>
+                        </PendingButton>
                       </form>
                       <form
                         action={async (fd: FormData) => {
@@ -165,13 +165,12 @@ export default async function AdminDietClaimsPage({
                           placeholder={t("bodyPlaceholder")}
                           className="rounded-xl border border-outline-variant/30 bg-surface-container-low p-2.5 text-start text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
                         />
-                        <button
-                          type="submit"
+                        <PendingButton
                           className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-surface-container px-3 py-2 text-xs font-bold text-on-surface transition-colors hover:bg-surface-container-high"
                         >
                           <Save size={14} aria-hidden="true" />
                           <span>{t("saveBody")}</span>
-                        </button>
+                        </PendingButton>
                       </form>
                     </details>
                   </TableCell>
@@ -184,13 +183,12 @@ export default async function AdminDietClaimsPage({
                         }}
                       >
                         <input type="hidden" name="claimId" value={r.claimId} />
-                        <button
-                          type="submit"
+                        <PendingButton
                           className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-on-primary transition-colors hover:bg-primary-container"
                         >
                           <Check size={14} aria-hidden="true" />
                           <span>{t("approve")}</span>
-                        </button>
+                        </PendingButton>
                       </form>
                       <form
                         action={async (fd: FormData) => {
@@ -199,13 +197,12 @@ export default async function AdminDietClaimsPage({
                         }}
                       >
                         <input type="hidden" name="claimId" value={r.claimId} />
-                        <button
-                          type="submit"
+                        <PendingButton
                           className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-surface-container px-3 py-2 text-xs font-bold text-on-surface transition-colors hover:bg-surface-container-high"
                         >
                           <RotateCcw size={14} aria-hidden="true" />
                           <span>{t("retry")}</span>
-                        </button>
+                        </PendingButton>
                       </form>
                       <form
                         action={async (fd: FormData) => {
@@ -214,13 +211,12 @@ export default async function AdminDietClaimsPage({
                         }}
                       >
                         <input type="hidden" name="claimId" value={r.claimId} />
-                        <button
-                          type="submit"
+                        <PendingButton
                           className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive transition-colors hover:bg-destructive/20"
                         >
                           <X size={14} aria-hidden="true" />
                           <span>{t("cancel")}</span>
-                        </button>
+                        </PendingButton>
                       </form>
                     </div>
                   </TableCell>

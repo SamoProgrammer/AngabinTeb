@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { redirect } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
+import { PendingAdminButton } from "@/components/clinical/pending-admin-button";
 import { Input } from "@/components/ui/input";
 
 type ActionResult = { ok?: boolean; id?: string; error?: string };
@@ -100,7 +100,7 @@ export function ContentForm({
           ))}
         </div>
       </fieldset>
-      <Button type="submit">{tCommon("save")}</Button>
+      <PendingAdminButton>{tCommon("save")}</PendingAdminButton>
     </form>
   );
 }

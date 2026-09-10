@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toPersianDigits, formatPrice, formatJalaliDate } from "@/lib/format";
 import { JalaliDatePicker } from "@/components/clinical/jalali-date-picker";
+import { PendingSubmit } from "@/components/clinical/pending-submit";
 
 export default async function BookPage({
   params,
@@ -144,12 +145,11 @@ export default async function BookPage({
               defaultValue={day}
               min={new Date().toISOString().slice(0, 10)}
             />
-            <button
-              type="submit"
+            <PendingSubmit
               className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-medium rounded-xl transition-colors"
             >
               {t("showSlots")}
-            </button>
+            </PendingSubmit>
           </form>
         </div>
 

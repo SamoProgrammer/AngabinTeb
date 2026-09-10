@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { getTranslations } from "next-intl/server";
 import { CalendarClock, Plus } from "lucide-react";
 import { requireUser } from "@/contexts/identity/actions";
@@ -28,6 +29,7 @@ export default async function ProfileReservationsPage({
 } = {}) {
   const locale = await resolveLocale(params);
   const t = await getTranslations("account.reservations");
+  const ts = await getTranslations("states");
   const dir = locale === "en" ? "ltr" : "rtl";
 
   const user = await requireUser();
@@ -66,13 +68,14 @@ export default async function ProfileReservationsPage({
             <CalendarClock size={26} className="text-primary" aria-hidden="true" />
             <span>{t("headerTitle")}</span>
           </h1>
-          <Link
+          <PendingLink
             href={`/${locale}/booking/doctors`}
+            busyLabel={ts("loading")}
             className="bg-primary hover:bg-primary-container text-on-primary text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-1.5 shadow-xs"
           >
             <Plus size={16} aria-hidden="true" />
             <span>{t("newBooking")}</span>
-          </Link>
+          </PendingLink>
         </div>
 
         <Suspense

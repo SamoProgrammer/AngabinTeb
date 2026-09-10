@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { PendingButton } from "@/components/clinical/pending-button";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
@@ -20,6 +21,7 @@ export default async function NewSupportRequestPage({
   const { kind, error } = await searchParams;
   const user = await requireUser();
   const t = await getTranslations("support.new");
+  const ts = await getTranslations("states");
   const isRtl = locale !== "en";
   const ArrowIcon = isRtl ? ArrowRight : ArrowLeft;
 
@@ -47,13 +49,14 @@ export default async function NewSupportRequestPage({
     <div dir={isRtl ? "rtl" : "ltr"} className="w-full bg-surface min-h-screen py-8 sm:py-12">
       <main className="mx-auto max-w-2xl px-4 sm:px-6">
         {/* Back Link */}
-        <Link
+        <PendingLink
           href={`/${locale}/support`}
+          busyLabel={ts("loading")}
           className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-primary hover:underline mb-6 text-start"
         >
           <ArrowIcon size={16} aria-hidden="true" />
           <span>{t("backLink")}</span>
-        </Link>
+        </PendingLink>
 
         {/* Card Container */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-6 sm:p-8 shadow-xs text-start">
@@ -129,13 +132,12 @@ export default async function NewSupportRequestPage({
               </div>
             )}
 
-            <button
-              type="submit"
+            <PendingButton
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-on-primary shadow-xs hover:bg-primary-container transition-all cursor-pointer"
             >
               <Send size={18} aria-hidden="true" />
               <span>{t("labels.submit")}</span>
-            </button>
+            </PendingButton>
           </form>
         </div>
       </main>

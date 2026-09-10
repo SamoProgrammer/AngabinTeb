@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { listRequests } from "@/contexts/support/queries";
 import { updateRequestStatus } from "@/contexts/support/actions";
+import { PendingButton } from "@/components/clinical/pending-button";
 import { Badge } from "@/components/ui/badge";
 import { formatJalaliDateTime } from "@/lib/format";
 
@@ -57,12 +58,11 @@ export default async function AdminSupportPage({
                       </option>
                     ))}
                   </select>
-                  <button
-                    type="submit"
+                  <PendingButton
                     className="rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-on-primary hover:bg-primary-container cursor-pointer"
                   >
                     {tSupport("updateBtn")}
-                  </button>
+                  </PendingButton>
                 </form>
               </div>
             </li>

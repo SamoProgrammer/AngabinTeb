@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { redirect } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
+import { PendingAdminButton } from "@/components/clinical/pending-admin-button";
 import { Input } from "@/components/ui/input";
 
 type ActionResult = { ok?: boolean; id?: string; error?: string };
@@ -71,7 +71,7 @@ export function LocationForm({
       <label className="block space-y-1 text-sm">
         {tCommon("phone")} <Input name="phone" defaultValue={initial.phone ?? ""} />
       </label>
-      <Button type="submit">{tCommon("save")}</Button>
+      <PendingAdminButton>{tCommon("save")}</PendingAdminButton>
     </form>
   );
 }

@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { services, providers } from "@/db/schema";
 import { Button } from "@/components/ui/button";
+import { PendingSubmit } from "@/components/clinical/pending-submit";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toPersianDigits } from "@/lib/format";
 
@@ -58,7 +59,7 @@ export default async function AdminServicesPage({
             </option>
           ))}
         </select>
-        <Button type="submit">{tCommon("filter")}</Button>
+        <PendingSubmit className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary/90">{tCommon("filter")}</PendingSubmit>
       </form>
       <Table>
         <TableHeader>

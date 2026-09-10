@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { PendingLink } from "@/components/clinical/pending-link";
+import { PendingButton } from "@/components/clinical/pending-button";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
@@ -40,6 +41,7 @@ export default async function CalorieDetailPage({
   const { calc } = await searchParams;
   const t = await getTranslations("nutrition");
   const tm = await getTranslations("metabolism");
+  const ts = await getTranslations("states");
   const isRtl = locale !== "en";
   const BackIcon = locale === "en" ? ArrowLeft : ArrowRight;
 
@@ -91,13 +93,14 @@ export default async function CalorieDetailPage({
 
   return (
     <div className="flex flex-col gap-6 text-start" dir={isRtl ? "rtl" : "ltr"}>
-      <Link
+      <PendingLink
         href={`/${locale}/profile/calorie`}
+        busyLabel={ts("loading")}
         className="inline-flex items-center gap-1.5 self-start text-xs font-bold text-on-surface-variant hover:text-primary transition-colors"
       >
         <BackIcon size={16} aria-hidden="true" />
         <span>{t("calorieBack")}</span>
-      </Link>
+      </PendingLink>
 
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">
@@ -165,14 +168,13 @@ export default async function CalorieDetailPage({
                   );
                 }}
               >
-                <button
-                  type="submit"
+                <PendingButton
                   aria-label={t("calorieDelete")}
                   className="inline-flex items-center gap-1.5 text-error text-xs font-bold px-3 py-3 rounded-xl hover:bg-error/10 transition-colors"
                 >
                   <Trash2 size={18} aria-hidden="true" />
                   <span className="hidden sm:inline">{t("calorieDelete")}</span>
-                </button>
+                </PendingButton>
               </form>
             </div>
           ))
@@ -244,13 +246,14 @@ export default async function CalorieDetailPage({
           <p className="text-sm text-on-surface-variant">
             {t("calorieCalcHint")}
           </p>
-          <Link
+          <PendingLink
             href={`/${locale}/profile/calorie/${id}?calc=1`}
+            busyLabel={ts("loading")}
             className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary py-3 px-8 rounded-xl font-bold text-sm sm:text-base shadow-sm hover:shadow-md transition-all"
           >
             <Calculator size={20} aria-hidden="true" />
             <span>{t("calorieCalcCta")}</span>
-          </Link>
+          </PendingLink>
         </div>
       )}
     </div>

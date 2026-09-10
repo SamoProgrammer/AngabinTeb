@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { useTranslations } from "next-intl";
 import { BadgeCheck, CalendarDays, MapPin, Clock, Star, Stethoscope } from "lucide-react";
 
@@ -54,6 +55,7 @@ export function DoctorCard({
   } = doctor;
 
   const t = useTranslations("doctors");
+  const ts = useTranslations("states");
   const isEn = locale === "en";
   const dir = isEn ? "ltr" : "rtl";
 
@@ -201,14 +203,15 @@ export function DoctorCard({
       </div>
 
       {/* Booking CTA Button */}
-      <Link
+      <PendingLink
         href={targetHref}
         aria-label={ctaAria}
+        busyLabel={ts("loading")}
         className="w-full bg-primary hover:bg-primary-container text-on-primary text-sm font-medium py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm"
       >
         <CalendarDays size={18} className="shrink-0" aria-hidden="true" />
         <span>{ctaLabel}</span>
-      </Link>
+      </PendingLink>
     </div>
   );
 }

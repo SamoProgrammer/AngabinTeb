@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { PendingButton } from "@/components/clinical/pending-button";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
@@ -41,6 +43,7 @@ export default async function CalorieListPage({
   const { error } = await searchParams;
   const t = await getTranslations("nutrition");
   const tm = await getTranslations("metabolism");
+  const ts = await getTranslations("states");
   const isRtl = locale !== "en";
   const ArrowIcon = locale === "en" ? ArrowRight : ArrowLeft;
 
@@ -114,9 +117,10 @@ export default async function CalorieListPage({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {periods.map((p, i) => (
-            <Link
+            <PendingLink
               key={p.id}
               href={`/${locale}/profile/calorie/${p.id}`}
+              busyLabel={ts("loading")}
               className="bg-surface-container-lowest rounded-3xl p-5 sm:p-6 shadow-xs border border-outline-variant/30 hover:border-primary/40 hover:shadow-md transition-all flex items-center justify-between gap-3"
             >
               <div className="flex items-start gap-3">
@@ -144,7 +148,7 @@ export default async function CalorieListPage({
                 className="text-on-surface-variant shrink-0"
                 aria-hidden="true"
               />
-            </Link>
+            </PendingLink>
           ))}
         </div>
       )}
@@ -176,14 +180,15 @@ export default async function CalorieListPage({
           </p>
         )}
 
-        {!profile ? (
-          <Link
-            href={`/${locale}/profile/body`}
-            className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary py-3 px-8 rounded-xl font-bold text-sm sm:text-base shadow-sm transition-all"
-          >
-            <span>{t("caloriePhysioEdit")}</span>
-          </Link>
-        ) : (
+          {!profile ? (
+            <PendingLink
+              href={`/${locale}/profile/body`}
+              busyLabel={ts("loading")}
+              className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary py-3 px-8 rounded-xl font-bold text-sm sm:text-base shadow-sm transition-all"
+            >
+              <span>{t("caloriePhysioEdit")}</span>
+            </PendingLink>
+          ) : (
         <form action={createPeriodAction} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
             <label
@@ -250,12 +255,11 @@ export default async function CalorieListPage({
             />
           </div>
           <div className="sm:col-span-2">
-            <button
-              type="submit"
+            <PendingButton
               className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary py-3 px-8 rounded-xl font-bold text-sm sm:text-base shadow-sm hover:shadow-md transition-all"
             >
               {t("calorieCreate")}
-            </button>
+            </PendingButton>
           </div>
         </form>
         )}

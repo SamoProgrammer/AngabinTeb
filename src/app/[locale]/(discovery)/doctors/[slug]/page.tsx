@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getDoctor, listProviderServices } from "@/contexts/catalog/queries";
@@ -32,6 +33,7 @@ export default async function DoctorPage({
   if (!dbDoctor) notFound();
 
   const t = await getTranslations("doctors");
+  const ts = await getTranslations("states");
   const dir = locale === "en" ? "ltr" : "rtl";
   const DirectionArrow = locale === "en" ? ArrowRight : ArrowLeft;
   const fmt = (n: string | number) =>
@@ -130,13 +132,14 @@ export default async function DoctorPage({
           </div>
 
           <div className="flex flex-col sm:flex-row md:flex-col items-center gap-2 w-full sm:w-auto">
-            <Link
+            <PendingLink
               href={bookHref}
+              busyLabel={ts("loading")}
               className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary px-8 py-3 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md transition-colors"
             >
               <CalendarDays size={20} aria-hidden="true" />
               <span>{t("profile.bookInPerson")}</span>
-            </Link>
+            </PendingLink>
           </div>
         </div>
       </section>
@@ -248,14 +251,15 @@ export default async function DoctorPage({
             )}
 
             {/* Big Booking Button */}
-            <Link
+            <PendingLink
               href={bookHref}
               id="bookAppointmentBtn"
+              busyLabel={ts("loading")}
               className="w-full bg-primary hover:bg-primary-container text-on-primary py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
             >
               <CalendarCheck size={20} aria-hidden="true" />
               <span>{t("profile.submitBookingBtn")}</span>
-            </Link>
+            </PendingLink>
 
             <div className="flex items-center justify-center gap-1.5 text-xs text-on-surface-variant/80 pt-1">
               <Check size={16} className="text-primary" aria-hidden="true" />

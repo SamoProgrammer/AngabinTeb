@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { topics } from "@/db/schema";
 import { saveTopic } from "@/contexts/content/actions";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { PendingAdminButton } from "@/components/clinical/pending-admin-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default async function AdminTopicsPage() {
@@ -22,7 +22,7 @@ export default async function AdminTopicsPage() {
         <label className="block flex-1 space-y-1 text-sm">
           {tTopics("nameFa")} <Input name="name" required />
         </label>
-        <Button type="submit">{tCommon("create")}</Button>
+        <PendingAdminButton>{tCommon("create")}</PendingAdminButton>
       </form>
       <Table>
         <TableHeader>
@@ -43,7 +43,7 @@ export default async function AdminTopicsPage() {
                   <label className="block flex-1 space-y-1 text-sm">
                     {tCommon("slug")} <Input name="slug" defaultValue={topicItem.slug} required />
                   </label>
-                  <Button type="submit" variant="outline">{tCommon("save")}</Button>
+                  <PendingAdminButton variant="outline">{tCommon("save")}</PendingAdminButton>
                 </form>
               </TableCell>
             </TableRow>

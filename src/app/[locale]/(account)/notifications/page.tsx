@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
 import { listNotifications } from "@/contexts/support/queries";
 import { markNotificationsRead } from "@/contexts/support/actions";
+import { PendingButton } from "@/components/clinical/pending-button";
 import { resolveIcon } from "@/components/clinical/icons";
 import { formatJalaliDateTime } from "@/lib/format";
 import { BellOff, CheckCheck } from "lucide-react";
@@ -60,13 +61,12 @@ export default async function NotificationsPage({
 
           {unread.length > 0 && (
             <form action={markNotificationsRead} className="self-start sm:self-auto">
-              <button
-                type="submit"
+              <PendingButton
                 className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container text-on-surface text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
               >
                 <CheckCheck size={16} aria-hidden="true" />
                 <span>{t("markAllRead")}</span>
-              </button>
+              </PendingButton>
             </form>
           )}
         </div>

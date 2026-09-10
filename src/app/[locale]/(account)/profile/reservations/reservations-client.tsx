@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { useTranslations } from "next-intl";
 import {
   Banknote,
@@ -37,6 +37,7 @@ export default function ReservationsClient({
   locale: string;
 }) {
   const t = useTranslations("account.reservations");
+  const ts = useTranslations("states");
   const [items, setItems] = useState<ReservationRow[]>(rows);
   const [activeTab, setActiveTab] = useState<"upcoming" | "history">("upcoming");
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -122,12 +123,13 @@ export default function ReservationsClient({
               />
               <p className="text-sm font-bold text-on-surface mb-1">{t("noActive")}</p>
               <p className="text-xs text-on-surface-variant mb-4">{t("noActiveSub")}</p>
-              <Link
+              <PendingLink
                 href={`/${locale}/booking/doctors`}
+                busyLabel={ts("loading")}
                 className="bg-primary text-on-primary text-xs font-bold px-4 py-2 rounded-xl"
               >
                 {t("searchDoctors")}
-              </Link>
+              </PendingLink>
             </div>
           ) : (
             upcomingList.map((item) => (

@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { getSettings } from "@/contexts/platform/queries";
 import { saveSettings } from "@/contexts/platform/actions";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { PendingAdminButton } from "@/components/clinical/pending-admin-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 // Spec F-026: integration registry with owner, fallback and data boundary.
@@ -46,7 +46,7 @@ export default async function AdminSettingsPage() {
                 <form action={async (fd) => { "use server"; await saveSettings(fd); }} className="flex items-center gap-2">
                   <input type="hidden" name="key" value={it.key} />
                   <Input name="url" defaultValue={settings[it.key]?.url ?? ""} className="w-56" placeholder="https://…" aria-label={`${it.integration} ${tSettings("url")}`} />
-                  <Button type="submit" variant="outline">{tCommon("save")}</Button>
+                  <PendingAdminButton variant="outline">{tCommon("save")}</PendingAdminButton>
                 </form>
               </TableCell>
             </TableRow>

@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -26,6 +27,7 @@ export default function ClinicalRegistryFormPage({
   const router = useRouter();
   const t = useTranslations("account.registryForm");
   const tReg = useTranslations("account.registry");
+  const ts = useTranslations("states");
   const stageTitles = t.raw("stageTitles") as string[];
   const dir = locale === "en" ? "ltr" : "rtl";
   const fmt = (n: number | string) => (locale === "en" ? String(n) : toPersianDigits(n));
@@ -191,13 +193,14 @@ export default function ClinicalRegistryFormPage({
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full pt-2">
-            <Link
+            <PendingLink
               href={`/${locale}/profile/personal-info`}
+              busyLabel={ts("loading")}
               className="w-full sm:flex-1 bg-primary hover:bg-primary-container text-on-primary py-3 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-2"
             >
               <CircleUserRound size={18} aria-hidden="true" />
               <span>{t("viewProfile")}</span>
-            </Link>
+            </PendingLink>
             <button
               onClick={() => window.print()}
               className="w-full sm:w-auto bg-surface-container-high hover:bg-surface-container text-on-surface py-3 px-5 rounded-xl font-medium text-xs transition-colors flex items-center justify-center gap-2"

@@ -8,6 +8,7 @@ import { requireUser } from "@/contexts/identity/actions";
 import { listRequests } from "@/contexts/support/queries";
 import { createSupportRequest, markMessagesRead } from "@/contexts/support/actions";
 import { resolveIcon } from "@/components/clinical/icons";
+import { PendingButton } from "@/components/clinical/pending-button";
 import { formatJalaliDateTime, toPersianDigits } from "@/lib/format";
 
 export default async function ProfileMessagesPage({
@@ -53,12 +54,11 @@ export default async function ProfileMessagesPage({
           </h2>
           {unread.length > 0 && (
             <form action={markMessagesRead}>
-              <button
-                type="submit"
+              <PendingButton
                 className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container text-on-surface text-xs font-bold transition-colors cursor-pointer shadow-xs"
               >
                 {tNotif("markAllRead")}
-              </button>
+              </PendingButton>
             </form>
           )}
         </div>
@@ -147,12 +147,11 @@ export default async function ProfileMessagesPage({
                   placeholder={tSupportForm("labels.bodyPlaceholder")}
                   className="flex-1 bg-surface-container-low p-3 rounded-xl border border-outline-variant/30 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
-                <button
-                  type="submit"
+                <PendingButton
                   className="bg-primary hover:bg-primary-container text-on-primary p-3 rounded-xl transition-colors shrink-0"
                 >
                   <Send size={18} aria-hidden="true" />
-                </button>
+                </PendingButton>
               </div>
             </form>
           </div>

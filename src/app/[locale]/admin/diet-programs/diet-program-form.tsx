@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { redirect } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
+import { PendingAdminButton } from "@/components/clinical/pending-admin-button";
 import { Input } from "@/components/ui/input";
 
 type ActionResult = { ok?: boolean; id?: string; error?: string };
@@ -78,7 +78,7 @@ export function DietProgramForm({ action, locale = "fa" }: { action: Action; loc
         <textarea name="descriptionAr" rows={4}
           className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
       </label>
-      <Button type="submit">{tDiet("createBtn")}</Button>
+      <PendingAdminButton>{tDiet("createBtn")}</PendingAdminButton>
     </form>
   );
 }

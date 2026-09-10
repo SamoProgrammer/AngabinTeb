@@ -4,6 +4,7 @@ import { requireAdmin } from "@/contexts/identity/actions";
 import { getFoodAdmin } from "@/contexts/nutrition/queries";
 import { saveFood, saveServingUnit, saveFoodNutrient } from "@/contexts/nutrition/actions";
 import { Input } from "@/components/ui/input";
+import { PendingButton } from "@/components/clinical/pending-button";
 
 export default async function AdminFoodPage({
   params,
@@ -26,9 +27,9 @@ export default async function AdminFoodPage({
         <input type="hidden" name="id" value={food.id} />
         <Input name="name" defaultValue={food.name} required aria-label={tCommon("name")} />
         <Input name="category" defaultValue={food.category} required aria-label={tCommon("category")} />
-        <button type="submit" className="rounded-lg bg-emerald-600 px-6 py-2 font-medium text-white hover:bg-emerald-700 cursor-pointer">
+        <PendingButton className="rounded-lg bg-emerald-600 px-6 py-2 font-medium text-white hover:bg-emerald-700 cursor-pointer">
           {tCommon("save")}
-        </button>
+        </PendingButton>
       </form>
 
       <h2 className="mt-8 text-lg font-semibold">{tFoods("servingUnits")}</h2>
@@ -41,9 +42,9 @@ export default async function AdminFoodPage({
               <input type="hidden" name="foodId" value={food.id} />
               <Input name="name" defaultValue={su.name} className="w-40" aria-label={tCommon("name")} />
               <Input name="gramsEquivalent" defaultValue={su.gramsEquivalent} className="w-24" aria-label={tFoods("gramsEquivalent")} />
-              <button type="submit" className="rounded-lg border px-3 py-1 text-sm font-medium hover:bg-surface-container cursor-pointer">
+              <PendingButton className="rounded-lg border px-3 py-1 text-sm font-medium hover:bg-surface-container cursor-pointer">
                 {tCommon("save")}
-              </button>
+              </PendingButton>
             </form>
           </li>
         ))}
@@ -58,9 +59,9 @@ export default async function AdminFoodPage({
             <Input name={`amount-${n.nutrientId}`} defaultValue={n.amountPer100g} aria-label={n.name} />
           </label>
         ))}
-        <button type="submit" className="rounded-lg bg-emerald-600 px-6 py-2 font-medium text-white hover:bg-emerald-700 cursor-pointer">
+        <PendingButton className="rounded-lg bg-emerald-600 px-6 py-2 font-medium text-white hover:bg-emerald-700 cursor-pointer">
           {tFoods("saveNutrients")}
-        </button>
+        </PendingButton>
       </form>
     </div>
   );

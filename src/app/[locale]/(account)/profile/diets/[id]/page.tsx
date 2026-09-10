@@ -9,6 +9,7 @@ import { requireUser } from "@/contexts/identity/actions";
 import { myDietClaims } from "@/contexts/nutrition/queries";
 import { generateProgramDocument } from "@/contexts/nutrition/actions";
 import { PendingButton } from "@/components/clinical/pending-button";
+import { PendingLink } from "@/components/clinical/pending-link";
 import PrintButton from "./print-button";
 import {
   ArrowLeft,
@@ -39,6 +40,7 @@ export default async function ProfileDietDetailPage({
   const user = await requireUser();
   const { locale, id } = await params;
   const t = await getTranslations("nutrition");
+  const ts = await getTranslations("states");
   const dir = locale === "en" ? "ltr" : "rtl";
   const BackIcon = locale === "en" ? ArrowLeft : ArrowRight;
 
@@ -60,14 +62,15 @@ export default async function ProfileDietDetailPage({
 
   return (
     <div className="flex flex-col gap-6 text-start" dir={dir}>
-      <Link
+      <PendingLink
         href={`/${locale}/profile/diets`}
         aria-label="BackToDiets"
+        busyLabel={ts("loading")}
         className="inline-flex items-center gap-1.5 self-start text-xs font-bold text-on-surface-variant hover:text-primary transition-colors"
       >
         <BackIcon size={16} aria-hidden="true" />
         <span>{t("dietWizard.detailBack")}</span>
-      </Link>
+      </PendingLink>
 
       <section
         aria-label="ClaimDetail"

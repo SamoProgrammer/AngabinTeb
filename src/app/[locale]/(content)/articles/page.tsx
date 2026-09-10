@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { listContent, listTopics } from "@/contexts/content/queries";
 import { ArticleCard } from "@/components/clinical/media-cards";
 import { ArrowLeft, ArrowRight, SearchX } from "lucide-react";
@@ -36,6 +36,7 @@ export default async function ArticlesPage({
   const current = Number.isFinite(p) ? Math.max(1, p) : 1;
 
   const t = await getTranslations("articles");
+  const ts = await getTranslations("states");
   const dir = locale === "en" ? "ltr" : "rtl";
   const fmt = (n: number | string) =>
     locale === "fa" ? toPersianDigits(n) : String(n);
@@ -78,8 +79,9 @@ export default async function ArticlesPage({
         <div className="bg-surface-container-low/70 border border-outline-variant/30 rounded-2xl p-2 sm:p-3 shadow-xs">
           <div className="flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
             <div className="flex items-center gap-2 shrink-0">
-              <Link
+              <PendingLink
                 href={topicHref(locale, undefined, q)}
+                busyLabel={ts("loading")}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                   !topicSlug
                     ? "bg-primary text-on-primary shadow-xs"
@@ -87,13 +89,14 @@ export default async function ArticlesPage({
                 }`}
               >
                 {t("allArticles")}
-              </Link>
+              </PendingLink>
               {topics.map((topic) => {
                 const isActive = topic.slug === topicSlug;
                 return (
-                  <Link
+                  <PendingLink
                     key={topic.id}
                     href={topicHref(locale, topic.slug, q)}
+                    busyLabel={ts("loading")}
                     className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
                       isActive
                         ? "bg-primary text-on-primary shadow-xs"
@@ -101,17 +104,18 @@ export default async function ArticlesPage({
                     }`}
                   >
                     {topic.name}
-                  </Link>
+                  </PendingLink>
                 );
               })}
             </div>
-            <Link
+            <PendingLink
               href={`/${locale}/topics`}
+              busyLabel={ts("loading")}
               className="hidden sm:flex items-center gap-1 text-primary text-xs sm:text-sm font-bold hover:underline shrink-0 pe-2"
             >
               <span>{t("allTopics")}</span>
               <FwdIcon size={16} aria-hidden="true" />
-            </Link>
+            </PendingLink>
           </div>
         </div>
 
@@ -139,12 +143,13 @@ export default async function ArticlesPage({
               <SearchX size={48} className="text-outline" aria-hidden="true" />
               <p className="text-base font-bold text-on-surface">{t("emptyTitle")}</p>
               <p className="text-xs text-on-surface-variant">{t("emptyDesc")}</p>
-              <Link
+              <PendingLink
                 href={`/${locale}/articles`}
+                busyLabel={ts("loading")}
                 className="mt-2 inline-flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-xl text-xs font-semibold"
               >
                 {t("backBtn")}
-              </Link>
+              </PendingLink>
             </div>
           )}
         </section>
@@ -153,13 +158,14 @@ export default async function ArticlesPage({
         {pages > 1 && (
           <nav aria-label={t("paginationAria")} className="flex items-center justify-center gap-2 pt-6">
             {current > 1 && (
-              <Link
+              <PendingLink
                 href={pageHref(locale, current - 1, topicSlug, q)}
+                busyLabel={ts("loading")}
                 className="px-4 py-2 rounded-xl bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-xs sm:text-sm font-medium flex items-center gap-1"
               >
                 <BackIcon size={16} aria-hidden="true" />
                 <span>{t("prev")}</span>
-              </Link>
+              </PendingLink>
             )}
             <div className="flex items-center gap-1.5 text-xs sm:text-sm text-on-surface-variant px-3 py-2 bg-surface-container-lowest rounded-xl border border-outline-variant/30">
               <span>{t("page")}</span>
@@ -168,13 +174,14 @@ export default async function ArticlesPage({
               <span className="font-bold">{fmt(pages)}</span>
             </div>
             {current < pages && (
-              <Link
-                href={pageHref(locale, current + 1, topicSlug, q)}
+                <PendingLink
+                  href={pageHref(locale, current + 1, topicSlug, q)}
+                  busyLabel={ts("loading")}
                 className="px-4 py-2 rounded-xl bg-surface-container text-on-surface-variant hover:bg-surface-container-high text-xs sm:text-sm font-medium flex items-center gap-1"
               >
                 <span>{t("next")}</span>
                 <FwdIcon size={16} aria-hidden="true" />
-              </Link>
+              </PendingLink>
             )}
           </nav>
         )}

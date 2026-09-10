@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/clinical/pending-link";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,6 +18,7 @@ export default async function SupportPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("support.hub");
+  const ts = await getTranslations("states");
   const isRtl = locale !== "en";
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
@@ -62,9 +63,10 @@ export default async function SupportPage({
         {/* Support Inquiry Cards Grid */}
         <section aria-label={t("title")} className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {cards.map((c) => (
-            <Link
+            <PendingLink
               key={c.kind}
               href={`/${locale}/support/new?kind=${c.kind}`}
+              busyLabel={ts("loading")}
               className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs hover:shadow-tier-2 hover:border-primary/50 transition-all duration-300 flex flex-col justify-between text-start group"
             >
               <div>
@@ -85,7 +87,7 @@ export default async function SupportPage({
                   <ArrowIcon size={16} aria-hidden="true" />
                 </span>
               </div>
-            </Link>
+            </PendingLink>
           ))}
         </section>
 
@@ -100,13 +102,14 @@ export default async function SupportPage({
               <p className="text-xs text-on-surface-variant">{t("history.description")}</p>
             </div>
           </div>
-          <Link
+          <PendingLink
             href={`/${locale}/support/requests`}
+            busyLabel={ts("loading")}
             className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-primary hover:underline"
           >
             <span>{t("history.cta")}</span>
             <ArrowIcon size={16} aria-hidden="true" />
-          </Link>
+          </PendingLink>
         </div>
 
         {/* FAQ Quick Link Card */}
@@ -119,13 +122,14 @@ export default async function SupportPage({
               {t("faq.description")}
             </p>
           </div>
-          <Link
+          <PendingLink
             href={`/${locale}/faq`}
+            busyLabel={ts("loading")}
             className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:bg-primary-container transition-all shrink-0"
           >
             <CircleHelp size={18} aria-hidden="true" />
             <span>{t("faq.cta")}</span>
-          </Link>
+          </PendingLink>
         </div>
       </main>
     </div>

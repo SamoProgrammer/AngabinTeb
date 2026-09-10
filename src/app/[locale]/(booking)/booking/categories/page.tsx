@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/clinical/pending-link";
+import { PendingSubmit } from "@/components/clinical/pending-submit";
 import { CLINICAL_SPECIALTIES } from "@/lib/clinical-specialties";
 import {
   ArrowLeft,
@@ -24,6 +26,7 @@ export default async function BookingCategoriesPage({
   const { q } = await searchParams;
   const t = await getTranslations("booking");
   const tCommon = await getTranslations("common");
+  const ts = await getTranslations("states");
   const dir = locale === "en" ? "ltr" : "rtl";
   const ForwardArrow = locale === "en" ? ArrowRight : ArrowLeft;
   const fmt = (n: number | string) =>
@@ -94,19 +97,19 @@ export default async function BookingCategoriesPage({
               className="w-full bg-transparent px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none"
             />
             {q && (
-              <Link
+              <PendingLink
                 href={`/${locale}/booking/categories`}
+                busyLabel={ts("loading")}
                 className="text-xs text-on-surface-variant hover:text-error px-2 py-1"
               >
                 {t("clearSearch")}
-              </Link>
+              </PendingLink>
             )}
-            <button
-              type="submit"
+            <PendingSubmit
               className="bg-primary hover:bg-primary-container text-on-primary text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shrink-0"
             >
               {tCommon("search")}
-            </button>
+            </PendingSubmit>
           </form>
         </div>
       </section>

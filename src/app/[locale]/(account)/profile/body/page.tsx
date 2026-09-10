@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PendingButton } from "@/components/clinical/pending-button";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
 import { getPhysiology, weightHistory } from "@/contexts/nutrition/queries";
@@ -42,6 +43,7 @@ export default async function BodyPage({
   const { error } = await searchParams;
   const user = await requireUser();
   const t = await getTranslations("metabolism");
+  const ts = await getTranslations("states");
   const profile = await getPhysiology(user.id);
   const history = await weightHistory(user.id);
 
@@ -274,13 +276,12 @@ export default async function BodyPage({
             </div>
 
             {/* Submit CTA */}
-            <button
-              type="submit"
+            <PendingButton
               className="w-full bg-primary hover:bg-primary-container text-on-primary py-3 rounded-xl font-bold text-sm sm:text-base shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 mt-2"
             >
               <Save size={20} aria-hidden="true" />
               <span>{t("bodySubmitCta")}</span>
-            </button>
+            </PendingButton>
           </form>
         </div>
 
@@ -326,12 +327,13 @@ export default async function BodyPage({
             </div>
 
             <div className="pt-4 border-t border-outline-variant/20">
-              <Link
+              <PendingLink
                 href={`/${locale}/profile/calorie`}
+                busyLabel={ts("loading")}
                 className="w-full bg-primary hover:bg-primary/90 text-on-primary text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5"
               >
                 <span>{t("bodyBmiCta")}</span>
-              </Link>
+              </PendingLink>
             </div>
           </div>
 
@@ -352,12 +354,13 @@ export default async function BodyPage({
             </div>
 
             <div className="pt-4 border-t border-outline-variant/20">
-              <Link
+              <PendingLink
                 href={`/${locale}/profile/clinical`}
+                busyLabel={ts("loading")}
                 className="w-full bg-secondary hover:bg-secondary/90 text-on-secondary text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5"
               >
                 <span>{t("bodyRegistryCta")}</span>
-              </Link>
+              </PendingLink>
             </div>
           </div>
         </div>
@@ -412,12 +415,11 @@ export default async function BodyPage({
               />
             </div>
             <div className="sm:col-span-2">
-              <button
-                type="submit"
+              <PendingButton
                 className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary py-3 px-8 rounded-xl font-bold text-sm sm:text-base shadow-sm hover:shadow-md transition-all"
               >
                 {t("bodyWeighCta")}
-              </button>
+              </PendingButton>
             </div>
           </form>
         </div>

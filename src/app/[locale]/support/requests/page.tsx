@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { requireUser } from "@/contexts/identity/actions";
 import { listRequests } from "@/contexts/support/queries";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ export default async function MyRequestsPage({
   const user = await requireUser();
   const rows = await listRequests({ userId: user.id });
   const t = await getTranslations("support.requests");
+  const ts = await getTranslations("states");
   const isRtl = locale !== "en";
   const ArrowIcon = isRtl ? ArrowRight : ArrowLeft;
   const CtaArrowIcon = isRtl ? ArrowLeft : ArrowRight;
@@ -34,21 +35,23 @@ export default async function MyRequestsPage({
       <main className="mx-auto max-w-3xl px-4 sm:px-6">
         {/* Navigation & Header */}
         <div className="flex items-center justify-between gap-4 mb-6">
-          <Link
+          <PendingLink
             href={`/${locale}/support`}
+            busyLabel={ts("loading")}
             className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-primary hover:underline"
           >
             <ArrowIcon size={16} aria-hidden="true" />
             <span>{t("backLink")}</span>
-          </Link>
+          </PendingLink>
 
-          <Link
+          <PendingLink
             href={`/${locale}/support/new`}
+            busyLabel={ts("loading")}
             className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold bg-primary text-on-primary px-3.5 py-1.5 rounded-xl shadow-xs hover:bg-primary-container transition-all"
           >
             <Plus size={16} aria-hidden="true" />
             <span>{t("newRequest")}</span>
-          </Link>
+          </PendingLink>
         </div>
 
         {/* Page Title */}
@@ -112,13 +115,14 @@ export default async function MyRequestsPage({
               <p className="text-sm font-semibold text-on-surface-variant">
                 {t("empty")}
               </p>
-              <Link
+              <PendingLink
                 href={`/${locale}/support/new`}
+                busyLabel={ts("loading")}
                 className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"
               >
                 <span>{t("newRequest")}</span>
                 <CtaArrowIcon size={14} aria-hidden="true" />
-              </Link>
+              </PendingLink>
             </li>
           )}
         </ul>
