@@ -42,6 +42,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { toSignin } from "@/contexts/identity/return";
 
 export interface SubNavItem {
   label: string;
@@ -536,7 +537,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
             </div>
           ) : (
             <Link
-              href={`/${locale}/signin`}
+              href={toSignin(locale, pathname)}
               className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-primary shadow-tier-1 hover:bg-primary-container active:translate-y-px transition-all"
             >
               <User size={18} fill="currentColor" aria-hidden="true" />
@@ -631,7 +632,7 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
               </div>
             ) : (
               <Link
-                href={`/${locale}/signin`}
+                href={toSignin(locale, pathname)}
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-on-primary text-xs sm:text-sm font-semibold shadow-tier-1 hover:bg-primary-container transition-all"
               >

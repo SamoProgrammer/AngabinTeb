@@ -14,8 +14,9 @@ Goal: phone-OTP login stays valid 24h with sliding refresh + Remember-me 30d, ev
 ## 2. Return flow (central helper + path-echo header)
 
 - New pure helper `src/contexts/identity/return.ts`: `toSignin(locale, returnTo)` → `/{locale}/signin?returnUrl=<encodeURIComponent(returnTo)>`; `isSafeReturn(url, locale)` → true only when same-origin path, starts with `/{locale}/`, not `/signin`, not `/api-test`, no `//` or `http`.
-- Layouts/pages cannot read the subpath server-side, so `proxy.ts` echoes it: for guarded prefixes (`profile`, `admin`, `support`, `diet/payment`, `diet/check`) it sets request header `x-auth-return: <pathname+search>` via `NextResponse.next({ request: { headers } })`. No auth decision at the edge — pages still verify the session server-side (CVE-2025-29927 rule intact).
+- Layouts/pages cannot read the subpath server-side, so `proxy.ts` echoes it: for guarded prefixes (`profile`, `notifications`, `admin`, `support`, `diet/payment`, `diet/check`) it sets request header `x-auth-return: <pathname+search>` via `NextResponse.next({ request: { headers } })`. No auth decision at the edge — pages still verify the session server-side (CVE-2025-29927 rule intact). Adding a new auth-walled route = adding its prefix here.
 - `requireUser()` / `requireAdmin()` keep zero-arg signatures (backward compatible): they read `x-auth-return` from `headers()`, parse the locale from its prefix (fallback `fa`), and redirect via `toSignin`. No per-page call-site changes.
+- Client/server signin links never hardcode `/{locale}/signin`: header CTAs use `toSignin(locale, pathname)` (`usePathname`), public pages pass explicit targets (calculator signup → self, diary CTA → `/profile/calorie`).
 - Signin `returnUrl` handling (already reads `returnUrl|callbackUrl`): validate with `isSafeReturn`, fallback `/{locale}/profile/reservations`. Demo patient → validated `returnUrl`; demo admin → validated `returnUrl` if safe and under `/{locale}/admin`, else `/{locale}/admin`. OTP success → validated `returnUrl`.
 
 ## 3. Hardening
@@ -25,7 +26,7 @@ Goal: phone-OTP login stays valid 24h with sliding refresh + Remember-me 30d, ev
 - Demo route: stays 404 in production unless `DEMO_LOGIN_ENABLED=true` (existing gate untouched).
 - No password, no JWT access-token layer, no refresh_token table. `account.refreshToken` columns stay unused (OAuth placeholder, out of scope).
 
-## 4. Files touched (max 8)
+## 4. Files touched (max 10)
 
 1. `src/lib/auth.ts` (session config)
 2. `src/contexts/identity/return.ts` (new, pure)
@@ -35,6 +36,8 @@ Goal: phone-OTP login stays valid 24h with sliding refresh + Remember-me 30d, ev
 6. `src/app/[locale]/(auth)/signin/page.tsx` (Remember-me checkbox + safe-return + drop document.cookie)
 7. `src/app/api-test/login/route.ts` (comment only, no logic change)
 8. `messages/{fa,en,ar}.json` (`auth.rememberMe` key only)
+9. `src/components/layout/clinical-header.tsx` (guest CTAs via `toSignin(locale, pathname)`)
+10. `src/app/[locale]/(discovery)/calculator/page.tsx` (diary/signup CTAs via `toSignin`)
 
 Layouts and leaf pages keep bare `requireUser()` / `requireAdmin()` calls — return is automatic. The diet `?return=` clinical-form param is a separate feature, untouched.
 

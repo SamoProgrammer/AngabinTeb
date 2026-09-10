@@ -57,4 +57,13 @@ describe("toSignin / safeReturnOrDefault", () => {
     expect(safeReturnOrDefault("//evil.com", "fa")).toBe("/fa/profile/reservations");
     expect(defaultDashboard("en")).toBe("/en/profile/reservations");
   });
+  it("encodes account routes outside /profile (notifications)", () => {
+    expect(toSignin("fa", "/fa/notifications")).toBe("/fa/signin?returnUrl=%2Ffa%2Fnotifications");
+  });
+  it("encodes public-page returns (calculator signup, calorie diary)", () => {
+    expect(toSignin("fa", "/fa/calculator")).toBe("/fa/signin?returnUrl=%2Ffa%2Fcalculator");
+    expect(toSignin("fa", "/fa/profile/calorie")).toBe(
+      "/fa/signin?returnUrl=%2Ffa%2Fprofile%2Fcalorie",
+    );
+  });
 });

@@ -71,6 +71,7 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
 - Auth route `src/app/[locale]/(auth)/signin/page.tsx` lives in `(auth)`, NOT inside `(account)` which requires authentication (`await requireUser()`).
 - Session cookies in `better-auth` are HMAC SHA-256 signed (`${token}.${sig}`); test login endpoints use `makeSignature` from `better-auth/crypto` and raw cookie value (not `encodeURIComponent` to preserve `=` padding).
 - `ClinicalHeader` dynamically subscribes to `authClient.useSession()`, toggling between guest CTA («ورود») and user account dropdown (appointments, notifications, admin panel, sign-out).
+- **Auth return law (central, no exceptions):** every signin entry point carries a validated `returnUrl` so login lands back where the user started. Server guards stay zero-arg — `requireUser()`/`requireAdmin()` read the `x-auth-return` header that `proxy.ts` echoes on guarded prefixes (`profile`, `notifications`, `admin`, `support`, `diet/payment`, `diet/check`); adding a new auth-walled route = adding its prefix to that list. Client/server links never hardcode `/{locale}/signin` — use `toSignin(locale, path)` / `safeReturnOrDefault(raw, locale)` from `@/contexts/identity/return` (pure, client-safe). All returns pass `isSafeReturn` (same-origin, locale-prefixed, never `/signin` or `/api-test`). Session: 24h `expiresIn` + 12h sliding `updateAge`, Remember-me = 30d persistent else session cookie; session cookies are HttpOnly-only, never mirror into `document.cookie`.
 
 ## Current state
 

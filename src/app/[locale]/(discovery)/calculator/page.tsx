@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { UserRoundPlus } from "lucide-react";
 import { MetabolismCalculator } from "@/components/clinical/metabolism-calculator";
+import { toSignin } from "@/contexts/identity/return";
 
 export default async function CalculatorPage({
   params,
@@ -23,7 +24,7 @@ export default async function CalculatorPage({
         </p>
       </div>
 
-      <MetabolismCalculator locale={locale} diaryHref={`/${locale}/signin`} />
+      <MetabolismCalculator locale={locale} diaryHref={toSignin(locale, `/${locale}/profile/calorie`)} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-12">
         <div className="bg-surface-container-lowest rounded-3xl p-6 sm:p-8 shadow-xs border border-outline-variant/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -31,7 +32,7 @@ export default async function CalculatorPage({
             {t("signupNote")}
           </p>
           <Link
-            href={`/${locale}/signin`}
+            href={toSignin(locale, `/${locale}/calculator`)}
             className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary py-3 px-8 rounded-xl font-bold text-sm sm:text-base shadow-sm hover:shadow-md transition-all shrink-0"
           >
             <UserRoundPlus size={20} aria-hidden="true" />
