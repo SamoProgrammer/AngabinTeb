@@ -96,15 +96,18 @@ export async function logIntake(input: z.infer<typeof intakeSchema>) {
   return { ok: true as const };
 }
 
-const claimSchema = z.object({ programId: z.string().min(1) });
+const claimSchema = z.object({
+  programId: z.string().min(1),
+  organizationContext: z.enum(["banks", "universities", "health_centers", "clinics", "other"]).nullish(),
+});
 
 export async function claimDietProgram(input: FormData) {
   const user = await requireUser();
-  const parsed = claimSchema.safeParse({ programId: input.get("programId") });
+  const parsed = claimSchema.safeParse({ programId: input.get("programId"), organizationContext: input.get("organizationContext") });
   if (!parsed.success) return { ok: false as const, error: parsed.error.issues.map((i) => i.message).join("; ") };
   const programId = parsed.data.programId;
 
-  const [program] = await db.select({ id: dietPrograms.id }).from(dietPrograms).where(eq(dietPrograms.id, programId));
+  const [program] = await db.select({ id: dietPrograms.id, price: dietPrograms.price }).from(dietPrograms).where(eq(dietPrograms.id, programId));
   if (!program) return { ok: false as const, reason: "not_found" as const };
 
   const [existing] = await db
@@ -115,7 +118,7 @@ export async function claimDietProgram(input: FormData) {
 
   try {
     const claimId = randomUUID();
-    await db.insert(dietClaims).values({ id: claimId, userId: user.id, programId, status: "pending" });
+    await db.insert(dietClaims).values({ id: claimId, userId: user.id, programId, status: "pending", organizationContext: parsed.data.organizationContext ?? null, pricePaid: program.price });
     return { ok: true as const, claimId };
   } catch (err) {
     // partial unique index (user_id, program_id) where status != 'completed'

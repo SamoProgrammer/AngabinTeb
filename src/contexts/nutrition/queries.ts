@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { sql, eq, and, gte, lt, desc, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, providers, intakePeriods } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, providers, intakePeriods } from "@/db/schema";
 import { localizedRows } from "@/lib/translate";
 import { bmr, tdee, canAccessProgramContent, servingToGrams, nutrientsForIntake, sumDay, macroSplit, type ActivityLevel } from "./kernel";
 import type { FoodCard, FoodDetail, FoodOption, ProgramCard, ProgramContent } from "./model";
@@ -179,6 +179,41 @@ export const myClaims = cache(async (
     .select({ programId: dietClaims.programId, status: dietClaims.status })
     .from(dietClaims)
     .where(eq(dietClaims.userId, userId));
+});
+
+// Diet-claim registry for the profile list: claims joined to programs
+// (inner) + documents (left), newest first, with the program name overlaid
+// per locale and a hasDocument flag (no document row yet → false).
+export const myDietClaims = cache(async (userId: string, locale: string) => {
+  const rows = await db
+    .select({
+      claimId: dietClaims.id,
+      programId: dietClaims.programId,
+      programName: dietPrograms.name,
+      status: dietClaims.status,
+      pricePaid: dietClaims.pricePaid,
+      organizationContext: dietClaims.organizationContext,
+      createdAt: dietClaims.createdAt,
+      documentId: dietDocuments.id,
+    })
+    .from(dietClaims)
+    .innerJoin(dietPrograms, eq(dietClaims.programId, dietPrograms.id))
+    .leftJoin(dietDocuments, eq(dietDocuments.claimId, dietClaims.id))
+    .where(eq(dietClaims.userId, userId))
+    .orderBy(desc(dietClaims.createdAt));
+
+  const overlaid = await localizedRows(
+    "diet_program",
+    rows.map((r) => ({ id: r.programId, name: r.programName })),
+    locale,
+    ["name"],
+  );
+  const nameByProgramId = new Map<string, string>(overlaid.map((o) => [o.id, o.name]));
+  return rows.map(({ documentId, ...r }) => ({
+    ...r,
+    programName: nameByProgramId.get(r.programId) ?? r.programName,
+    hasDocument: documentId !== null,
+  }));
 });
 
 // Claim-gated serving point (ticket 13 / spec F1). The ONLY path that hands
