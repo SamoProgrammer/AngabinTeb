@@ -1149,6 +1149,16 @@
         "newService": "Create Clinical Service",
         "scheduling": "Schedule Slots",
         "newContent": "Publish New Article"
+      },
+      "queue": {
+        "needsReview": "Diets Needing Review",
+        "failed": "Failed Generations",
+        "support": "Open Support Tickets",
+        "today": "Today's Bookings",
+        "emptyAllClear": "All clear — nothing waiting",
+        "oldestWaiting": "Oldest waiting (days)",
+        "itemsUnit": "items",
+        "viewQueue": "View queue"
       }
     },
     "providers": {

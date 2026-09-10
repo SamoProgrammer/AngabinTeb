@@ -2,24 +2,36 @@ import Link from "next/link";
 import { count } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
-import { users, translations, providers, services, appointments, contents } from "@/db/schema";
+import { providers, services, appointments, contents } from "@/db/schema";
+import { allClaims } from "@/contexts/nutrition/queries";
+import { listRequests } from "@/contexts/support/queries";
+import { todaysBookings } from "@/contexts/booking/queries";
+import { PendingLink } from "@/components/clinical/pending-link";
 import {
   ArrowLeft,
   ArrowRight,
   BriefcaseMedical,
   Calendar,
+  CalendarCheck,
   CalendarDays,
   CirclePlus,
+  ClipboardCheck,
   FilePlus,
-  Globe,
   LayoutDashboard,
+  LifeBuoy,
   Newspaper,
   Stethoscope,
+  TriangleAlert,
   UserPlus,
-  Users,
   type LucideIcon,
 } from "lucide-react";
 import { toPersianDigits } from "@/lib/format";
+
+function oldestAgeDays(rows: { createdAt: Date | string }[]): number {
+  if (rows.length === 0) return 0;
+  const oldest = Math.min(...rows.map((r) => new Date(r.createdAt).getTime()));
+  return Math.max(0, Math.floor((Date.now() - oldest) / 86_400_000));
+}
 
 export default async function AdminOverviewPage({
   params,
@@ -33,31 +45,82 @@ export default async function AdminOverviewPage({
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
   const t = await getTranslations("admin.overview");
+  const tq = await getTranslations("admin.overview.queue");
+  const ts = await getTranslations("states");
+  const busyLabel = ts("loading");
 
   const [
-    userCount,
+    claims,
+    openRequests,
+    today,
     providerCount,
     serviceCount,
     appointmentCount,
     contentCount,
-    translationCount,
   ] = await Promise.all([
-    db.select({ n: count() }).from(users),
+    allClaims(),
+    listRequests({ status: "open" }),
+    todaysBookings(),
     db.select({ n: count() }).from(providers),
     db.select({ n: count() }).from(services),
     db.select({ n: count() }).from(appointments),
     db.select({ n: count() }).from(contents),
-    db.select({ n: count() }).from(translations),
   ]);
 
-  const stats: { title: string; value: number; icon: LucideIcon; href: string; note: string }[] = [
+  const needsReview = claims.filter((c) => c.status === "needs_review");
+  const failed = claims.filter((c) => c.status === "failed");
+  const needsReviewAge = oldestAgeDays(needsReview);
+  const failedAge = oldestAgeDays(failed);
+
+  const fmtCount = (n: number) => (locale === "en" ? n : toPersianDigits(n));
+  const fmtAge = (days: number) =>
+    locale === "en" ? `${days}` : toPersianDigits(days);
+
+  const queues: {
+    testid: string;
+    title: string;
+    href: string;
+    icon: LucideIcon;
+    total: number;
+    ageDays: number | null;
+  }[] = [
     {
-      title: t("stats.users.title"),
-      value: userCount[0]?.n ?? 0,
-      icon: Users,
-      href: `${prefix}/admin/settings`,
-      note: t("stats.users.note"),
+      testid: "queue-needs-review",
+      title: tq("needsReview"),
+      href: `${prefix}/admin/diet-programs/claims?status=needs_review`,
+      icon: ClipboardCheck,
+      total: needsReview.length,
+      ageDays: needsReviewAge,
     },
+    {
+      testid: "queue-failed",
+      title: tq("failed"),
+      href: `${prefix}/admin/diet-programs/claims?status=failed`,
+      icon: TriangleAlert,
+      total: failed.length,
+      ageDays: failedAge,
+    },
+    {
+      testid: "queue-support",
+      title: tq("support"),
+      href: `${prefix}/admin/support?status=open`,
+      icon: LifeBuoy,
+      total: openRequests.length,
+      ageDays: null,
+    },
+    {
+      testid: "queue-today",
+      title: tq("today"),
+      href: `${prefix}/admin/scheduling`,
+      icon: CalendarCheck,
+      total: today.length,
+      ageDays: null,
+    },
+  ];
+
+  const allClear = queues.every((q) => q.total === 0);
+
+  const stats: { title: string; value: number; icon: LucideIcon; href: string; note: string }[] = [
     {
       title: t("stats.providers.title"),
       value: providerCount[0]?.n ?? 0,
@@ -85,13 +148,6 @@ export default async function AdminOverviewPage({
       icon: Newspaper,
       href: `${prefix}/admin/content`,
       note: t("stats.content.note"),
-    },
-    {
-      title: t("stats.translations.title"),
-      value: translationCount[0]?.n ?? 0,
-      icon: Globe,
-      href: `${prefix}/admin/settings`,
-      note: t("stats.translations.note"),
     },
   ];
 
@@ -125,8 +181,51 @@ export default async function AdminOverviewPage({
         </div>
       </div>
 
+      {/* Work Queues */}
+      <section aria-label="Work Queues" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {queues.map((q) => (
+          <PendingLink
+            key={q.testid}
+            data-testid={q.testid}
+            href={q.href}
+            busyLabel={busyLabel}
+            className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs hover:shadow-tier-1 hover:border-primary/40 transition-all flex flex-col justify-between text-start group"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-xs font-bold text-on-surface-variant">{q.title}</span>
+              <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition-transform">
+                <q.icon size={22} aria-hidden="true" />
+              </div>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-extrabold text-on-surface">
+                {fmtCount(q.total)}
+              </span>
+              <span className="text-xs text-on-surface-variant">{tq("itemsUnit")}</span>
+            </div>
+            <div className="mt-2 text-[11px] text-on-surface-variant">
+              {q.total === 0 ? (
+                <span>{tq("emptyAllClear")}</span>
+              ) : q.ageDays !== null ? (
+                <span>
+                  {tq("oldestWaiting")}: {fmtAge(q.ageDays)}
+                </span>
+              ) : null}
+            </div>
+            <div className="mt-4 pt-3 border-t border-outline-variant/10 flex items-center justify-between text-[11px] text-outline">
+              <span>{tq("viewQueue")}</span>
+              <ArrowIcon size={14} className="group-hover:text-primary transition-colors" aria-hidden="true" />
+            </div>
+          </PendingLink>
+        ))}
+      </section>
+
+      {allClear && (
+        <p className="text-sm text-on-surface-variant text-start">{tq("emptyAllClear")}</p>
+      )}
+
       {/* Metrics Cards Grid */}
-      <section aria-label="Stats Overview" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <section aria-label="Stats Overview" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, idx) => (
           <Link
             key={idx}
@@ -159,14 +258,15 @@ export default async function AdminOverviewPage({
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {quickActions.map((qa, idx) => (
-            <Link
+            <PendingLink
               key={idx}
               href={qa.href}
+              busyLabel={busyLabel}
               className="p-4 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-xs sm:text-sm font-semibold flex items-center gap-2.5 transition-colors border border-outline-variant/10"
             >
               <qa.icon size={20} className="text-primary" aria-hidden="true" />
               <span>{qa.title}</span>
-            </Link>
+            </PendingLink>
           ))}
         </div>
       </section>

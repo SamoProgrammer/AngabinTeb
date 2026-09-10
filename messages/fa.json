@@ -1149,6 +1149,16 @@
         "newService": "ایجاد خدمت درمانی",
         "scheduling": "زمان‌بندی اسلات‌ها",
         "newContent": "انتشار مقاله جدید"
+      },
+      "queue": {
+        "needsReview": "رژیم‌های نیازمند بررسی",
+        "failed": "تولیدهای ناموفق",
+        "support": "تیکت‌های باز پشتیبانی",
+        "today": "نوبت‌های امروز",
+        "emptyAllClear": "موردی در انتظار نیست",
+        "oldestWaiting": "قدیمی‌ترین انتظار (روز)",
+        "itemsUnit": "مورد",
+        "viewQueue": "مشاهده صف"
       }
     },
     "providers": {

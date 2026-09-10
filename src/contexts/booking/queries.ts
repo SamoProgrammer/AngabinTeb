@@ -1,8 +1,9 @@
 import "server-only";
 import { cache } from "react";
-import { desc, eq, and } from "drizzle-orm";
+import { desc, eq, and, gte, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { appointments, services, availabilitySlots, providers, locations } from "@/db/schema";
+import { tehranDayBounds } from "./kernel";
 
 export const myAppointments = cache(async (userId: string) => {
   return db
@@ -107,4 +108,28 @@ export const listBookingsForDoctor = cache(async (providerId: string, status?: s
     .orderBy(desc(availabilitySlots.startsAt))
     .limit(pageSize)
     .offset((page - 1) * pageSize);
+});
+
+export const todaysBookings = cache(async () => {
+  const { start, end } = tehranDayBounds(new Date());
+  return db
+    .select({
+      id: appointments.id,
+      status: appointments.status,
+      paymentStatus: appointments.paymentStatus,
+      partySize: appointments.partySize,
+      price: appointments.price,
+      patientName: appointments.patientName,
+      patientPhone: appointments.patientPhone,
+      serviceName: services.name,
+      providerName: providers.name,
+      startsAt: availabilitySlots.startsAt,
+    })
+    .from(appointments)
+    .innerJoin(services, eq(appointments.serviceId, services.id))
+    .innerJoin(providers, eq(appointments.providerId, providers.id))
+    .innerJoin(availabilitySlots, eq(appointments.slotId, availabilitySlots.id))
+    .where(and(gte(availabilitySlots.startsAt, start), lt(availabilitySlots.startsAt, end)))
+    .orderBy(availabilitySlots.startsAt)
+    .limit(50);
 });
