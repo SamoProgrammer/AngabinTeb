@@ -18,6 +18,8 @@ ALTER TABLE "diet_claim" ADD COLUMN "price_paid" numeric(12, 0);--> statement-br
 ALTER TABLE "diet_claim" ADD COLUMN "retry_count" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
 ALTER TABLE "registry_snapshot" ADD CONSTRAINT "registry_snapshot_claim_id_diet_claim_id_fk" FOREIGN KEY ("claim_id") REFERENCES "public"."diet_claim"("id") ON DELETE cascade ON UPDATE no action;
 --> statement-breakpoint
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+--> statement-breakpoint
 UPDATE diet_claim SET status='ready' WHERE status IN ('paid','generating') AND id IN (SELECT claim_id FROM diet_document);
 --> statement-breakpoint
-INSERT INTO weight_log (id, user_id, weight_kg, logged_at) SELECT gen_random_uuid(), user_id, weight_kg, CURRENT_DATE FROM physiology_profile;
+INSERT INTO weight_log (id, user_id, weight_kg, logged_at) SELECT gen_random_uuid()::text, user_id, weight_kg, CURRENT_DATE FROM physiology_profile WHERE weight_kg IS NOT NULL;

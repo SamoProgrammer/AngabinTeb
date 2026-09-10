@@ -152,7 +152,7 @@ export function missingRegistrySections(row: Record<string, unknown>): string[] 
   return (SNAPSHOT_COLUMNS as readonly string[]).filter((c) => row[c] == null);
 }
 
-export const CLAIM_STATUSES = ["pending", "paid", "generating", "needs_review", "ready", "failed"] as const;
+export const CLAIM_STATUSES = ["pending", "paid", "generating", "needs_review", "ready", "failed", "completed"] as const;
 
 export function nextGenerationStatus(opts: { ok: boolean; retryCount: number }): "needs_review" | "generating" | "failed" {
   if (opts.ok) return "needs_review";

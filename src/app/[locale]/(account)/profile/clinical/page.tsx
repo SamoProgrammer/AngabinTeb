@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
@@ -22,6 +23,7 @@ export default function ClinicalRegistryFormPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = use(params);
+  const router = useRouter();
   const t = useTranslations("account.registryForm");
   const tReg = useTranslations("account.registry");
   const stageTitles = t.raw("stageTitles") as string[];
@@ -123,6 +125,13 @@ export default function ClinicalRegistryFormPage({
     setSubmitError(null);
     try {
       const res = await submitRegistry({ ...formData });
+      // Diet-wizard loop (?return=/diet/check?claim=…): skip the receipt and
+      // send the user back to the check step, which re-freezes the snapshot.
+      const rawReturn = new URLSearchParams(window.location.search).get("return");
+      if (rawReturn && rawReturn.startsWith("/") && !rawReturn.startsWith("//")) {
+        router.push(`/${locale}${rawReturn}`);
+        return;
+      }
       setSubmittedDossier({
         id: res.id,
         submittedAt: formatJalaliDate(new Date(), locale),

@@ -27,7 +27,7 @@ export default async function DietPaymentPage({
   const dir = locale === "en" ? "ltr" : "rtl";
 
   if (typeof claimId !== "string" || !claimId) notFound();
-  const claim = await getMyClaim(user.id, claimId);
+  const claim = await getMyClaim(user.id, claimId, locale);
   if (!claim) notFound();
   if (claim.status !== "pending") redirect(`/${locale}/diet/check?claim=${claim.claimId}`);
 

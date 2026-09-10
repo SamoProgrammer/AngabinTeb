@@ -414,7 +414,8 @@ export const listProgramsByType = cache(async (planType: string, locale: string)
 
 // Wizard steps 4–5: one claim of THIS user joined to its program. Another
 // user's claim id yields null so callers can notFound() without leaking.
-export const getMyClaim = cache(async (userId: string, claimId: string) => {
+// Program name/description are overlaid per locale (fa overlay is identity).
+export const getMyClaim = cache(async (userId: string, claimId: string, locale: string) => {
   const [row] = await db
     .select({
       claimId: dietClaims.id,
@@ -432,5 +433,16 @@ export const getMyClaim = cache(async (userId: string, claimId: string) => {
     .from(dietClaims)
     .innerJoin(dietPrograms, eq(dietClaims.programId, dietPrograms.id))
     .where(and(eq(dietClaims.id, claimId), eq(dietClaims.userId, userId)));
-  return row ?? null;
+  if (!row) return null;
+  const [overlaid] = await localizedRows(
+    "diet_program",
+    [{ id: row.programId, name: row.programName, description: row.programDescription }],
+    locale,
+    ["name", "description"],
+  );
+  return {
+    ...row,
+    programName: overlaid?.name ?? row.programName,
+    programDescription: overlaid?.description ?? row.programDescription,
+  };
 });
