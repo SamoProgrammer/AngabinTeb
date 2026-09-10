@@ -103,6 +103,19 @@ export default async function AdminDietClaimsPage({
                     >
                       {r.status}
                     </span>
+                    {r.lastError && (r.status === "failed" || r.status === "generating") && (
+                      <details className="mt-1">
+                        <summary className="cursor-pointer py-1 text-[11px] font-bold text-destructive">
+                          {t("errorLabel")}
+                        </summary>
+                        <pre
+                          dir="ltr"
+                          className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap rounded-xl bg-destructive/10 p-3 text-start text-[11px] leading-relaxed text-destructive"
+                        >
+                          {r.lastError}
+                        </pre>
+                      </details>
+                    )}
                   </TableCell>
                   <TableCell>{ageText}</TableCell>
                   <TableCell>

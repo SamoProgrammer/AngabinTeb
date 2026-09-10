@@ -231,6 +231,7 @@ export const allClaims = cache(async () => {
       pricePaid: dietClaims.pricePaid,
       status: dietClaims.status,
       retryCount: dietClaims.retryCount,
+      lastError: dietClaims.lastError,
       createdAt: dietClaims.createdAt,
       documentBody: dietDocuments.bodyMarkdown,
       snapshotId: registrySnapshots.id,

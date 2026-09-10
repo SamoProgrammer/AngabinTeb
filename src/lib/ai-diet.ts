@@ -91,8 +91,12 @@ async function resolveModel(id: string): Promise<LanguageModel> {
   // so a static `gateway` import would break them. Production resolves the
   // AI Gateway model; without it the id is passed through (mocked in tests).
   process.env.AI_GATEWAY_API_KEY ??= apiKey;
-  const mod = (await import("ai")) as { gateway?: (modelId: string) => LanguageModel };
-  if (typeof mod.gateway === "function") return mod.gateway(id);
+  try {
+    const mod = (await import("ai")) as { gateway?: (modelId: string) => LanguageModel };
+    if (typeof mod.gateway === "function") return mod.gateway(id);
+  } catch {
+    // Partial "ai" mocks (tests) expose no gateway — fall through.
+  }
   return id as unknown as LanguageModel;
 }
 

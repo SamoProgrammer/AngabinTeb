@@ -232,8 +232,11 @@ export async function generateProgramDocument(claimId: string, opts?: { dbc?: ty
       await tx.update(dietClaims).set({ status: "needs_review" }).where(eq(dietClaims.id, claimId));
     });
     return { ok: true as const };
-  } catch {
-    await dbc.update(dietClaims).set({ status: nextGenerationStatus({ ok: false, retryCount: claim.retryCount ?? 0 }), retryCount: (claim.retryCount ?? 0) + 1 }).where(eq(dietClaims.id, claimId));
+  } catch (err) {
+    // Persist the failure message (truncated) so the admin queue can show
+    // WHAT went wrong — otherwise failures are only visible in Vercel logs.
+    const message = (err instanceof Error ? err.message : String(err)).slice(0, 2000);
+    await dbc.update(dietClaims).set({ status: nextGenerationStatus({ ok: false, retryCount: claim.retryCount ?? 0 }), retryCount: (claim.retryCount ?? 0) + 1, lastError: message }).where(eq(dietClaims.id, claimId));
     return { ok: false as const, reason: "generation_failed" as const };
   }
 }

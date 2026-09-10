@@ -1,0 +1,1 @@
+ALTER TABLE "diet_claim" ADD COLUMN "last_error" text;

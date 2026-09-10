@@ -130,6 +130,7 @@ export const dietClaims = pgTable("diet_claim", {
   organizationContext: text("organization_context"), // banks|universities|health_centers|clinics|other
   pricePaid: numeric("price_paid", { precision: 12, scale: 0 }),
   retryCount: integer("retry_count").notNull().default(0),
+  lastError: text("last_error"), // latest generation failure message (truncated), surfaced in admin queue
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   uniqueIndex("one_claim_per_program").on(t.userId, t.programId).where(sql`status != 'completed'`),
