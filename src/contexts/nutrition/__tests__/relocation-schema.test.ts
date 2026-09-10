@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { dietClaims, registrySnapshots } from "@/db/schema/nutrition";
-import { nextGenerationStatus, toSnapshotValues, allowedClaimTransition } from "../kernel";
+import { nextGenerationStatus, toSnapshotValues, allowedClaimTransition, missingRegistrySections } from "../kernel";
 
 // NOTE: brief's helper used Object.keys(getTableConfig(t).columns), but in
 // drizzle-orm 0.45 getTableConfig().columns is an Array (keys "0","1",...),
@@ -42,4 +42,12 @@ test("admin claim transitions: review→ready allowed, paid/ready locked", () =>
   expect(allowedClaimTransition("needs_review", "ready")).toBe(true);
   expect(allowedClaimTransition("pending", "ready")).toBe(false);
   expect(allowedClaimTransition("ready", "paid")).toBe(false);
+});
+
+test("missingRegistrySections lists every null section", () => {
+  expect(missingRegistrySections({ personInfo: {} })).toEqual([
+    "medicalHistory", "drugHistory", "addictionHistory",
+    "nutritionInfo", "cardiovascularQuestions", "anthropometric", "medicalDocuments",
+  ]);
+  expect(missingRegistrySections({})).toHaveLength(8);
 });

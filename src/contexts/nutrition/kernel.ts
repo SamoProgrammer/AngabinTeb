@@ -148,6 +148,10 @@ export function toSnapshotValues(registry: Record<string, unknown>): Record<stri
   return Object.fromEntries(SNAPSHOT_COLUMNS.map((c) => [c, registry[c] ?? null]));
 }
 
+export function missingRegistrySections(row: Record<string, unknown>): string[] {
+  return (SNAPSHOT_COLUMNS as readonly string[]).filter((c) => row[c] == null);
+}
+
 export const CLAIM_STATUSES = ["pending", "paid", "generating", "needs_review", "ready", "failed"] as const;
 
 export function nextGenerationStatus(opts: { ok: boolean; retryCount: number }): "needs_review" | "generating" | "failed" {

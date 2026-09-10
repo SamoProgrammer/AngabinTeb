@@ -2,9 +2,9 @@ import "server-only";
 import { cache } from "react";
 import { sql, eq, and, gte, lt, desc, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, providers, intakePeriods, registrySnapshots, users } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, providers, intakePeriods, registrySnapshots, users, clinicalRegistries } from "@/db/schema";
 import { localizedRows } from "@/lib/translate";
-import { bmr, tdee, canAccessProgramContent, servingToGrams, nutrientsForIntake, sumDay, macroSplit, type ActivityLevel } from "./kernel";
+import { bmr, tdee, canAccessProgramContent, servingToGrams, nutrientsForIntake, sumDay, macroSplit, missingRegistrySections, SNAPSHOT_COLUMNS, type ActivityLevel } from "./kernel";
 import type { FoodCard, FoodDetail, FoodOption, ProgramCard, ProgramContent } from "./model";
 
 export const getPhysiology = cache(async (userId: string) => {
@@ -360,4 +360,67 @@ export const periodTotals = cache(async (userId: string, periodId: string) => {
     macros: macroSplit(tdeeValue),
     entryCount: entries.length,
   };
+});
+
+// Registry completeness for the diet wizard check step (Task 6b): a dossier
+// counts as complete only once submitted; otherwise the missing snapshot
+// sections are listed so the UI can point back at the clinical form.
+export const getRegistryStatus = cache(async (userId: string) => {
+  const [row] = await db.select().from(clinicalRegistries).where(eq(clinicalRegistries.userId, userId));
+  if (!row || !row.submittedAt) return { complete: false as const, missingSections: row ? missingRegistrySections(row) : [...SNAPSHOT_COLUMNS] };
+  return { complete: true as const, missingSections: [] as string[] };
+});
+
+// Wizard step 1: distinct clinical program types for the type cards.
+export const listProgramTypes = cache(async (): Promise<string[]> => {
+  const rows = await db
+    .selectDistinct({ planType: dietPrograms.planType })
+    .from(dietPrograms)
+    .orderBy(dietPrograms.planType);
+  return rows.map((r) => r.planType);
+});
+
+// Wizard step 2: programs of one type — same card shape + overlay pattern as
+// listPrograms (which filters by org context, signature untouched).
+export const listProgramsByType = cache(async (planType: string, locale: string): Promise<ProgramCard[]> => {
+  const rows = await db
+    .select({
+      id: dietPrograms.id,
+      name: dietPrograms.name,
+      description: dietPrograms.description,
+      organizationContext: dietPrograms.organizationContext,
+      planType: dietPrograms.planType,
+      durationDays: dietPrograms.durationDays,
+      price: dietPrograms.price,
+      practitionerName: providers.name,
+      practitionerPhone: providers.phone,
+    })
+    .from(dietPrograms)
+    .leftJoin(providers, eq(dietPrograms.practitionerId, providers.id))
+    .where(eq(dietPrograms.planType, planType))
+    .orderBy(dietPrograms.name);
+  return (await localizedRows("diet_program", rows, locale, ["name", "description"])) as ProgramCard[];
+});
+
+// Wizard steps 4–5: one claim of THIS user joined to its program. Another
+// user's claim id yields null so callers can notFound() without leaking.
+export const getMyClaim = cache(async (userId: string, claimId: string) => {
+  const [row] = await db
+    .select({
+      claimId: dietClaims.id,
+      status: dietClaims.status,
+      pricePaid: dietClaims.pricePaid,
+      organizationContext: dietClaims.organizationContext,
+      createdAt: dietClaims.createdAt,
+      programId: dietPrograms.id,
+      programName: dietPrograms.name,
+      programDescription: dietPrograms.description,
+      planType: dietPrograms.planType,
+      durationDays: dietPrograms.durationDays,
+      price: dietPrograms.price,
+    })
+    .from(dietClaims)
+    .innerJoin(dietPrograms, eq(dietClaims.programId, dietPrograms.id))
+    .where(and(eq(dietClaims.id, claimId), eq(dietClaims.userId, userId)));
+  return row ?? null;
 });
