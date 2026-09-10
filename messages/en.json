@@ -65,6 +65,7 @@
     "demoLoggingIn": "Signing in...",
     "demoPatient": "Demo Patient",
     "demoAdmin": "Demo Admin",
+    "rememberMe": "Remember me (30 days)",
     "phoneExample": "Example: 09121234567 (11-digit Iranian mobile)",
     "demoError": "Demo login failed. Please sign in via SMS.",
     "invalidPhone": "Please enter a valid 11-digit mobile number starting with 09.",

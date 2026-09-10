@@ -7,6 +7,8 @@ import { users, sessions } from "@/db/schema";
 // Demo login is ON in dev, and in prod only with explicit opt-in:
 // DEMO_LOGIN_ENABLED=true. Anyone with the URL can mint a session
 // (including admin), so never enable it on a site with real patient data.
+// Sessions live 24h to match the OTP session lifetime; the cookie is
+// HttpOnly (Set-Cookie) — clients must not mirror it into document.cookie.
 function isDemoLoginEnabled() {
   return process.env.DEMO_LOGIN_ENABLED === "true" || process.env.NODE_ENV !== "production";
 }
