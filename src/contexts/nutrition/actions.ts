@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, clinicalRegistries, registrySnapshots, nutrients, translations, intakePeriods, supportRequests } from "@/db/schema";
+import { physiologyProfiles, weightLogs, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, clinicalRegistries, registrySnapshots, nutrients, translations, intakePeriods, supportRequests } from "@/db/schema";
 import { requireAdmin, requireUser } from "@/contexts/identity/actions";
 import { buildDietPrompt, summarizeRegistry, generateDietPlan, DIET_DOC_FOOTER, DIET_PROMPT_VERSION } from "@/lib/ai-diet";
 import { servingToGrams, nutrientsForIntake, validatePeriodInput, toSnapshotValues, nextGenerationStatus, allowedClaimTransition } from "./kernel";
@@ -503,5 +503,15 @@ export async function createPeriod(input: {
 export async function deleteIntake(id: string) {
   const user = await requireUser();
   await db.delete(foodIntakes).where(and(eq(foodIntakes.id, id), eq(foodIntakes.userId, user.id)));
+  return { ok: true as const };
+}
+
+const weightSchema = z.object({ weightKg: z.number().min(25).max(300), loggedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) });
+export async function logWeight(input: { weightKg: number; loggedAt: string }) {
+  const user = await requireUser();
+  const parsed = weightSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: parsed.error.issues.map((i) => i.message).join("; ") };
+  await db.insert(weightLogs).values({ id: randomUUID(), userId: user.id, weightKg: String(parsed.data.weightKg), loggedAt: parsed.data.loggedAt });
+  await db.update(physiologyProfiles).set({ weightKg: String(parsed.data.weightKg), updatedAt: new Date() }).where(eq(physiologyProfiles.userId, user.id));
   return { ok: true as const };
 }

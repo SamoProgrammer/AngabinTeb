@@ -901,6 +901,25 @@
         }
       ]
     },
+    "hub": {
+      "title": "پرونده من",
+      "subtitle": "نمای کلی سلامت و تغذیه",
+      "identityTitle": "مشخصات فردی",
+      "identityEdit": "ویرایش مشخصات",
+      "identityEmpty": "نام ثبت نشده",
+      "dietsTitle": "رژیم‌های من",
+      "dietsEmpty": "هنوز رژیمی ثبت نشده است",
+      "dietsAll": "مشاهده همه",
+      "calorieTitle": "دوره کالری فعال",
+      "calorieEmpty": "هنوز دوره‌ای نساخته‌ای",
+      "calorieCta": "مشاهده دوره‌ها",
+      "calorieEntries": "{count} ثبت",
+      "bodyTitle": "وضعیت بدنی",
+      "bodyEmpty": "نمایه‌ای ثبت نشده است",
+      "bodyCta": "مشاهده نمایه بدنی",
+      "primaryNew": "دریافت رژیم جدید",
+      "primaryResume": "ادامه پرداخت"
+    },
     "personalInfo": {
       "home": "صفحه اصلی",
       "breadcrumb": "اطلاعات فردی و هویتی",
@@ -1658,6 +1677,12 @@
     "pillar3Title": "پشتیبانی اختصاصی بیمار",
     "pillar3Desc": "پاسخگویی به سوالات مربوط به نوبت‌دهی، راهنمایی شرایط مراجعه و پیگیری درخواست‌های مراجعان."
   },
+  "calculator": {
+    "title": "ماشین‌حساب متابولیسم",
+    "subtitle": "سوخت‌وساز پایه و کالری روزانه‌ات را رایگان حساب کن",
+    "signupNote": "برای ذخیره نمایه و شروع دوره کالری وارد شو",
+    "signupCta": "ورود / ثبت‌نام"
+  },
   "metabolism": {
     "sectionAria": "محاسبه‌گر بالینی سوخت‌وساز و متابولیسم",
     "badge": "محاسبه‌گر بالینی سوخت‌وساز پایه",
@@ -1708,6 +1733,13 @@
     "bodyActVeryActiveLabel": "ورزشکار حرفه‌ای",
     "bodyActVeryActiveDesc": "تمرینات سنگین روزانه یا فعالیت بدنی طاقت‌فرسا",
     "bodySubmitCta": "محاسبه و ذخیره در پرونده سلامت",
+    "bodyWeighTitle": "ثبت وزن جدید",
+    "bodyWeighDateLabel": "تاریخ ثبت",
+    "bodyWeighCta": "ثبت وزن",
+    "bodyWeighError": "وزن یا تاریخ نامعتبر است",
+    "bodyWeighHistoryTitle": "سوابق وزن",
+    "bodyWeighEmpty": "هنوز وزنی ثبت نشده است",
+    "bodyWeighSummary": "کمترین: {min} کیلوگرم • بیشترین: {max} کیلوگرم • آخرین: {current} کیلوگرم",
     "bodyProfileSummary": "نمایه ذخیره‌شده: {sex}، {age} ساله، قد {height} سانتی‌متر، وزن {weight} کیلوگرم، {activity}",
     "bodyBmiCta": "شروع دوره کالری",
     "bodyRegistryTitle": "پرونده سلامت",

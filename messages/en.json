@@ -901,6 +901,25 @@
         }
       ]
     },
+    "hub": {
+      "title": "My profile",
+      "subtitle": "Health and nutrition overview",
+      "identityTitle": "Personal info",
+      "identityEdit": "Edit info",
+      "identityEmpty": "No name saved",
+      "dietsTitle": "My diets",
+      "dietsEmpty": "No diets claimed yet",
+      "dietsAll": "View all",
+      "calorieTitle": "Active calorie period",
+      "calorieEmpty": "No period created yet",
+      "calorieCta": "View periods",
+      "calorieEntries": "{count} entries",
+      "bodyTitle": "Body snapshot",
+      "bodyEmpty": "No profile saved yet",
+      "bodyCta": "View body profile",
+      "primaryNew": "Get a new diet",
+      "primaryResume": "Resume payment"
+    },
     "personalInfo": {
       "home": "Home",
       "breadcrumb": "Personal Profile",
@@ -1658,6 +1677,12 @@
     "pillar3Title": "Dedicated Patient Care",
     "pillar3Desc": "Responsive assistance for appointment scheduling, in-clinic arrival protocols, and patient inquiries."
   },
+  "calculator": {
+    "title": "Metabolism calculator",
+    "subtitle": "Estimate your BMR and daily calories for free",
+    "signupNote": "Sign in to save your profile and start a calorie period",
+    "signupCta": "Sign in / Sign up"
+  },
   "metabolism": {
     "sectionAria": "Clinical Metabolism & Caloric Expenditure Calculator",
     "badge": "Clinical Basal Metabolism Calculator",
@@ -1708,6 +1733,13 @@
     "bodyActVeryActiveLabel": "Professional Athlete",
     "bodyActVeryActiveDesc": "Heavy daily training or strenuous physical labor",
     "bodySubmitCta": "Calculate & Save to Health Record",
+    "bodyWeighTitle": "Log new weight",
+    "bodyWeighDateLabel": "Log date",
+    "bodyWeighCta": "Log weight",
+    "bodyWeighError": "Invalid weight or date",
+    "bodyWeighHistoryTitle": "Weight history",
+    "bodyWeighEmpty": "No weigh-ins logged yet",
+    "bodyWeighSummary": "Lowest: {min} kg • Highest: {max} kg • Latest: {current} kg",
     "bodyProfileSummary": "Saved profile: {sex}, {age} y/o, {height} cm, {weight} kg, {activity}",
     "bodyBmiCta": "Start a calorie period",
     "bodyRegistryTitle": "Health Record",

@@ -901,6 +901,25 @@
         }
       ]
     },
+    "hub": {
+      "title": "ملفي",
+      "subtitle": "نظرة عامة على الصحة والتغذية",
+      "identityTitle": "المعلومات الشخصية",
+      "identityEdit": "تعديل المعلومات",
+      "identityEmpty": "لم يتم حفظ الاسم",
+      "dietsTitle": "حمياتي",
+      "dietsEmpty": "لا توجد حميات بعد",
+      "dietsAll": "عرض الكل",
+      "calorieTitle": "دورة السعرات النشطة",
+      "calorieEmpty": "لم يتم إنشاء دورة بعد",
+      "calorieCta": "عرض الدورات",
+      "calorieEntries": "{count} تسجيل",
+      "bodyTitle": "لقطة الجسم",
+      "bodyEmpty": "لم يتم حفظ ملف بعد",
+      "bodyCta": "عرض الملف البدني",
+      "primaryNew": "الحصول على حمية جديدة",
+      "primaryResume": "مواصلة الدفع"
+    },
     "personalInfo": {
       "home": "الرئيسية",
       "breadcrumb": "الملف الشخصي",
@@ -1658,6 +1677,12 @@
     "pillar3Title": "دعم مخصص للمرضى",
     "pillar3Desc": "إجابة فورية على استفسارات حجز المواعيد وشروط المراجعة ومتابعة احتياجات المراجعين."
   },
+  "calculator": {
+    "title": "حاسبة الأيض",
+    "subtitle": "احسب معدل الأيض وسعراتك اليومية مجاناً",
+    "signupNote": "سجّل الدخول لحفظ ملفك وبدء دورة السعرات",
+    "signupCta": "تسجيل الدخول"
+  },
   "metabolism": {
     "sectionAria": "حاسبة الأيض ومعدل الحرق السريرية",
     "badge": "حاسبة الأيض ومعدل الحرق الأساسي",
@@ -1708,6 +1733,13 @@
     "bodyActVeryActiveLabel": "رياضي محترف",
     "bodyActVeryActiveDesc": "تدريبات يومية شاقة أو عمل بدني مجهد",
     "bodySubmitCta": "حساب وحفظ في ملف الصحة",
+    "bodyWeighTitle": "تسجيل وزن جديد",
+    "bodyWeighDateLabel": "تاريخ التسجيل",
+    "bodyWeighCta": "تسجيل الوزن",
+    "bodyWeighError": "الوزن أو التاريخ غير صالح",
+    "bodyWeighHistoryTitle": "سجل الوزن",
+    "bodyWeighEmpty": "لا توجد تسجيلات وزن بعد",
+    "bodyWeighSummary": "الأدنى: {min} كجم • الأعلى: {max} كجم • الأحدث: {current} كجم",
     "bodyProfileSummary": "الملف المحفوظ: {sex}، العمر {age} سنة، الطول {height} سم، الوزن {weight} كجم، {activity}",
     "bodyBmiCta": "ابدأ دورة السعرات",
     "bodyRegistryTitle": "ملف الصحة",

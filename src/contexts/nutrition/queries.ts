@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { sql, eq, and, gte, lt, desc, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, providers, intakePeriods, registrySnapshots, users, clinicalRegistries } from "@/db/schema";
+import { physiologyProfiles, weightLogs, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, providers, intakePeriods, registrySnapshots, users, clinicalRegistries } from "@/db/schema";
 import { localizedRows } from "@/lib/translate";
 import { bmr, tdee, canAccessProgramContent, servingToGrams, nutrientsForIntake, sumDay, macroSplit, missingRegistrySections, SNAPSHOT_COLUMNS, type ActivityLevel } from "./kernel";
 import type { FoodCard, FoodDetail, FoodOption, ProgramCard, ProgramContent } from "./model";
@@ -360,6 +360,16 @@ export const periodTotals = cache(async (userId: string, periodId: string) => {
     macros: macroSplit(tdeeValue),
     entryCount: entries.length,
   };
+});
+
+// Weigh-in history for the profile body page (Task 6c). Ascending, capped
+// at 60 rows.
+// ponytail: server-side SVG chart later; plain list for now
+export const weightHistory = cache(async (userId: string) => {
+  return db.select().from(weightLogs)
+    .where(eq(weightLogs.userId, userId))
+    .orderBy(weightLogs.loggedAt)
+    .limit(60);
 });
 
 // Registry completeness for the diet wizard check step (Task 6b): a dossier
