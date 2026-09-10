@@ -31,4 +31,11 @@ describe("admin primitives", () => {
     expect(html).toContain("<dialog");
     expect(html).toContain("دسته جدید");
   });
+  it("empty renders title and action link", () => {
+    const html = renderToString(
+      <AdminEmpty title="خالی" hint="راهنما" actionHref="/fa/admin" actionLabel="ایجاد" />,
+    );
+    expect(html).toContain("خالی");
+    expect(html).toContain("/fa/admin");
+  });
 });
