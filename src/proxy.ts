@@ -48,6 +48,12 @@ export function proxy(req: NextRequest) {
         307,
       );
     }
+    const guarded = ["/profile", "/admin", "/support", "/diet/payment", "/diet/check"];
+    if (guarded.some((g) => rest === g || rest.startsWith(`${g}/`))) {
+      const echo = new Headers(req.headers);
+      echo.set("x-auth-return", `${pathname}${req.nextUrl.search}`);
+      return NextResponse.next({ request: { headers: echo } });
+    }
     return NextResponse.next();
   }
 
