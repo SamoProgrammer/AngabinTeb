@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { services, providers, serviceCategories, locations, diagnosticServices, translations } from "@/db/schema";
 import { createService, updateService } from "@/contexts/catalog/actions";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { ServiceForm } from "../service-form";
 
 export default async function AdminServiceEditPage({
@@ -12,7 +13,9 @@ export default async function AdminServiceEditPage({
   params: Promise<{ id: string; locale?: string }>;
 }) {
   const { id, locale } = await params;
+  const activeLocale = locale ?? "fa";
   const tServices = await getTranslations("admin.services");
+  const tNav = await getTranslations("admin.nav");
 
   const [providerRows, categoryRows, locationRows] = await Promise.all([
     db.select({ id: providers.id, name: providers.name }).from(providers).orderBy(providers.name),
@@ -23,7 +26,14 @@ export default async function AdminServiceEditPage({
   if (id === "new") {
     return (
       <div className="text-start">
-        <h1 className="mb-6 text-2xl font-bold">{tServices("newTitle")}</h1>
+        <AdminPageHeader
+          crumbs={[
+            { label: tNav("dashboard"), href: `/${activeLocale}/admin` },
+            { label: tServices("title"), href: `/${activeLocale}/admin/services` },
+            { label: tServices("newTitle") },
+          ]}
+          title={tServices("newTitle")}
+        />
         <ServiceForm
           action={createService}
           providers={providerRows}
@@ -60,7 +70,14 @@ export default async function AdminServiceEditPage({
 
   return (
     <div className="text-start">
-      <h1 className="mb-6 text-2xl font-bold">{tServices("editTitle")}</h1>
+      <AdminPageHeader
+        crumbs={[
+          { label: tNav("dashboard"), href: `/${activeLocale}/admin` },
+          { label: tServices("title"), href: `/${activeLocale}/admin/services` },
+          { label: tServices("editTitle") },
+        ]}
+        title={tServices("editTitle")}
+      />
       <ServiceForm
         action={updateService.bind(null, id)}
         initial={initial}

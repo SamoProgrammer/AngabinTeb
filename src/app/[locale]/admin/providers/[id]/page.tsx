@@ -8,6 +8,7 @@ import { createProvider, updateProvider } from "@/contexts/catalog/actions";
 import { listSchedules, listExceptions, listProviderServices } from "@/contexts/catalog/queries";
 import { listBookingsForDoctor } from "@/contexts/booking/queries";
 import { ProviderForm } from "../provider-form";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { ScheduleTab } from "./schedule-tab";
 import { SlotsTab } from "./slots-tab";
 import { BookingsTab } from "./bookings-tab";
@@ -31,6 +32,7 @@ export default async function AdminProviderEditPage({
   const activeLocale = locale ?? "fa";
   const tProviders = await getTranslations("admin.providers");
   const tScheduling = await getTranslations("admin.scheduling");
+  const tNav = await getTranslations("admin.nav");
 
   if (id === "new") {
     const specialties = await db
@@ -39,7 +41,14 @@ export default async function AdminProviderEditPage({
       .orderBy(serviceCategories.name);
     return (
       <div className="text-start">
-        <h1 className="mb-6 text-2xl font-bold">{tProviders("newTitle")}</h1>
+        <AdminPageHeader
+          crumbs={[
+            { label: tNav("dashboard"), href: `/${activeLocale}/admin` },
+            { label: tProviders("title"), href: `/${activeLocale}/admin/providers` },
+            { label: tProviders("newTitle") },
+          ]}
+          title={tProviders("newTitle")}
+        />
         <ProviderForm action={createProvider} specialties={specialties} locale={locale} />
       </div>
     );
@@ -80,7 +89,14 @@ export default async function AdminProviderEditPage({
     const exceptions = await listExceptions(id, today, plus90);
     return (
       <div className="text-start">
-        <h1 className="mb-6 text-2xl font-bold">{provider.name}</h1>
+        <AdminPageHeader
+          crumbs={[
+            { label: tNav("dashboard"), href: `/${activeLocale}/admin` },
+            { label: tProviders("title"), href: `/${activeLocale}/admin/providers` },
+            { label: provider.name },
+          ]}
+          title={provider.name}
+        />
         {nav}
         <ScheduleTab
           providerId={id}
@@ -114,7 +130,14 @@ export default async function AdminProviderEditPage({
       .limit(100);
     return (
       <div className="text-start">
-        <h1 className="mb-6 text-2xl font-bold">{provider.name}</h1>
+        <AdminPageHeader
+          crumbs={[
+            { label: tNav("dashboard"), href: `/${activeLocale}/admin` },
+            { label: tProviders("title"), href: `/${activeLocale}/admin/providers` },
+            { label: provider.name },
+          ]}
+          title={provider.name}
+        />
         {nav}
         <SlotsTab
           providerId={id}
@@ -138,7 +161,14 @@ export default async function AdminProviderEditPage({
     const bookings = await listBookingsForDoctor(id);
     return (
       <div className="text-start">
-        <h1 className="mb-6 text-2xl font-bold">{provider.name}</h1>
+        <AdminPageHeader
+          crumbs={[
+            { label: tNav("dashboard"), href: `/${activeLocale}/admin` },
+            { label: tProviders("title"), href: `/${activeLocale}/admin/providers` },
+            { label: provider.name },
+          ]}
+          title={provider.name}
+        />
         {nav}
         <BookingsTab
           bookings={bookings.map((b) => ({ ...b, startsAt: b.startsAt?.toISOString() ?? null }))}
@@ -172,7 +202,14 @@ export default async function AdminProviderEditPage({
 
   return (
     <div className="text-start">
-      <h1 className="mb-6 text-2xl font-bold">{tProviders("editTitle")}</h1>
+      <AdminPageHeader
+        crumbs={[
+          { label: tNav("dashboard"), href: `/${activeLocale}/admin` },
+          { label: tProviders("title"), href: `/${activeLocale}/admin/providers` },
+          { label: tProviders("editTitle") },
+        ]}
+        title={tProviders("editTitle")}
+      />
       {nav}
       <ProviderForm
         action={updateProvider.bind(null, id)}
