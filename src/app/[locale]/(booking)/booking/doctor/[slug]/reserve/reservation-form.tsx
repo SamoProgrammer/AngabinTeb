@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -48,6 +49,7 @@ export function DoctorReservationForm({
   locale = "fa",
 }: DoctorReservationFormProps) {
   const t = useTranslations("booking");
+  const ts = useTranslations("states");
   const router = useRouter();
   const digits = (n: number | string) =>
     locale === "en" ? String(n) : toPersianDigits(n);
@@ -170,10 +172,11 @@ export function DoctorReservationForm({
           {days.map((d) => {
             const isSelected = initialDate === d.iso;
             return (
-              <Link
+              <PendingLink
                 key={d.iso}
                 href={`/${locale}/booking/doctor/${doctorSlug}/reserve?date=${d.iso}`}
                 aria-current={isSelected ? "date" : undefined}
+                busyLabel={ts("loading")}
                 className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
                   isSelected
                     ? "bg-primary text-on-primary border-primary shadow-sm scale-[1.02]"
@@ -184,7 +187,7 @@ export function DoctorReservationForm({
                 <span className={`text-[10px] mt-0.5 ${isSelected ? "text-on-primary/80" : "text-on-surface-variant"}`}>
                   {d.dateLabel}
                 </span>
-              </Link>
+              </PendingLink>
             );
           })}
         </div>

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { listServices } from "@/contexts/catalog/queries";
 import { ServiceCard, type ServiceData } from "@/components/catalog/service-card";
 import { toPersianDigits } from "@/lib/format";
@@ -60,6 +60,7 @@ export default async function ServicesPage({
   const p = Number(page ?? 1);
   const current = Number.isFinite(p) ? Math.max(1, p) : 1;
   const t = await getTranslations("services");
+  const ts = await getTranslations("states");
   const dir = locale === "en" ? "ltr" : "rtl";
   const fmt = (n: number | string) =>
     locale === "en" ? String(n) : toPersianDigits(n);
@@ -152,13 +153,14 @@ export default async function ServicesPage({
                 cat.slug === currentCategory ||
                 (!currentCategory && cat.id === "all");
               return (
-                <Link
+                <PendingLink
                   key={cat.id}
                   href={
                     cat.slug
                       ? `/${locale}/services?category=${encodeURIComponent(cat.slug)}`
                       : `/${locale}/services`
                   }
+                  busyLabel={ts("loading")}
                   className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5 ${
                     isActive
                       ? "bg-primary text-on-primary shadow-sm"
@@ -167,7 +169,7 @@ export default async function ServicesPage({
                 >
                   {cat.icon ? <cat.icon size={16} aria-hidden="true" /> : null}
                   <span>{t(cat.labelKey)}</span>
-                </Link>
+                </PendingLink>
               );
             })}
           </div>
@@ -193,12 +195,13 @@ export default async function ServicesPage({
 
           {/* Fasting Toggle Link */}
           <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-            <Link
+            <PendingLink
               href={
                 fasting === "no-fasting"
                   ? `/${locale}/services${category ? `?category=${category}` : ""}`
                   : `/${locale}/services?fasting=no-fasting${category ? `&category=${category}` : ""}`
               }
+              busyLabel={ts("loading")}
               className={`text-xs px-3 py-2 rounded-xl border transition-colors flex items-center gap-1.5 ${
                 fasting === "no-fasting"
                   ? "border-primary bg-primary/10 text-primary font-bold"
@@ -207,7 +210,7 @@ export default async function ServicesPage({
             >
               <CircleCheckBig size={16} aria-hidden="true" />
               <span>{t("fastingOnly")}</span>
-            </Link>
+            </PendingLink>
           </div>
         </div>
       </section>
@@ -246,13 +249,14 @@ export default async function ServicesPage({
             className="bg-surface-container-lowest p-4 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex items-center justify-between gap-2 mt-6"
           >
             {current > 1 ? (
-              <Link
+              <PendingLink
                 href={pageHref(locale, category ?? "", q ?? "", fasting ?? "", current - 1)}
+                busyLabel={ts("loading")}
                 className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
               >
                 <ChevronRight size={16} aria-hidden="true" />
                 <span>{t("pagePrev")}</span>
-              </Link>
+              </PendingLink>
             ) : (
               <div />
             )}
@@ -265,13 +269,14 @@ export default async function ServicesPage({
             </span>
 
             {current < totalPages ? (
-              <Link
+              <PendingLink
                 href={pageHref(locale, category ?? "", q ?? "", fasting ?? "", current + 1)}
+                busyLabel={ts("loading")}
                 className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
               >
                 <span>{t("pageNext")}</span>
                 <ChevronLeft size={16} aria-hidden="true" />
-              </Link>
+              </PendingLink>
             ) : (
               <div />
             )}

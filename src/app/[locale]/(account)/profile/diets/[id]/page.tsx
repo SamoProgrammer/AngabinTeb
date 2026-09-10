@@ -8,6 +8,7 @@ import { dietDocuments } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 import { myDietClaims } from "@/contexts/nutrition/queries";
 import { generateProgramDocument } from "@/contexts/nutrition/actions";
+import { PendingButton } from "@/components/clinical/pending-button";
 import PrintButton from "./print-button";
 import {
   ArrowLeft,
@@ -163,14 +164,13 @@ export default async function ProfileDietDetailPage({
               revalidatePath(`/${locale}/profile/diets/${claim.claimId}`);
             }}
           >
-            <button
-              type="submit"
+            <PendingButton
               aria-label="Retry"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-3 rounded-xl shadow-xs transition-all"
             >
               <RotateCcw size={18} aria-hidden="true" />
               <span>{t("dietDocRetry")}</span>
-            </button>
+            </PendingButton>
           </form>
         )}
 

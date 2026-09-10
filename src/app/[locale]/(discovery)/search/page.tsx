@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { searchAll } from "@/contexts/catalog/queries";
 import { EmptyState, ErrorState } from "@/components/clinical/empty-state";
+import { PendingLink } from "@/components/clinical/pending-link";
+import { PendingSubmit } from "@/components/clinical/pending-submit";
 import {
   ArrowLeft,
   ArrowRight,
@@ -26,6 +28,7 @@ export default async function SearchPage({
   const { locale } = await params;
   const { q, type } = await searchParams;
   const t = await getTranslations("search");
+  const ts = await getTranslations("states");
   const dir = locale === "en" ? "ltr" : "rtl";
   const fmt = (n: string | number) =>
     locale === "en" ? String(n) : toPersianDigits(n);
@@ -122,30 +125,31 @@ export default async function SearchPage({
                 className="w-full bg-transparent text-sm sm:text-base text-on-surface focus:outline-none placeholder:text-on-surface-variant/60 py-2"
               />
               {queryTerm && (
-                <Link
+                <PendingLink
                   href={`/${locale}/search${type ? `?type=${type}` : ""}`}
+                  busyLabel={ts("loading")}
                   className="p-1 text-on-surface-variant hover:text-on-surface rounded-full transition-colors"
                   title={t("clearTitle")}
                 >
                   <X size={16} aria-hidden="true" />
-                </Link>
+                </PendingLink>
               )}
             </div>
-            <button
-              type="submit"
+            <PendingSubmit
               className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary font-medium text-sm sm:text-base px-6 py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{t("submit")}</span>
               <ArrowIcon size={16} aria-hidden="true" />
-            </button>
+            </PendingSubmit>
           </form>
 
           {/* Quick Category Tabs */}
           <div className="flex items-center justify-center gap-2 flex-wrap text-xs sm:text-sm">
             {categories.map((cat) => (
-              <Link
+              <PendingLink
                 key={cat.id}
                 href={cat.href}
+                busyLabel={ts("loading")}
                 className={`px-4 py-1.5 rounded-full font-medium transition-colors ${
                   currentTab === cat.id
                     ? "bg-primary text-on-primary shadow-xs"
@@ -153,7 +157,7 @@ export default async function SearchPage({
                 }`}
               >
                 {cat.label}
-              </Link>
+              </PendingLink>
             ))}
           </div>
         </div>
@@ -170,12 +174,13 @@ export default async function SearchPage({
                   <ListFilter size={20} className="text-primary" aria-hidden="true" />
                   <h2 className="text-sm font-bold text-on-surface">{t("filtersTitle")}</h2>
                 </div>
-                <Link
+                <PendingLink
                   href={`/${locale}/search`}
+                  busyLabel={ts("loading")}
                   className="text-xs text-primary hover:underline font-medium"
                 >
                   {t("resetFilters")}
-                </Link>
+                </PendingLink>
               </div>
 
               {/* Specialty Filter Links */}
@@ -185,9 +190,10 @@ export default async function SearchPage({
                 </span>
                 <div className="flex flex-col gap-1.5 text-xs sm:text-sm">
                   {specialties.map((spec) => (
-                    <Link
+                    <PendingLink
                       key={spec.query}
                       href={`/${locale}/search?q=${encodeURIComponent(spec.query)}`}
+                      busyLabel={ts("loading")}
                       className={`flex items-center justify-between px-3 py-2 rounded-xl border transition-colors ${
                         queryTerm.includes(spec.query)
                           ? "border-primary bg-primary/5 text-primary font-bold"
@@ -200,7 +206,7 @@ export default async function SearchPage({
                         className="text-on-surface-variant shrink-0"
                         aria-hidden="true"
                       />
-                    </Link>
+                    </PendingLink>
                   ))}
                 </div>
               </div>

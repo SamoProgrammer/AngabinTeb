@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/clinical/pending-link";
+import { PendingSubmit } from "@/components/clinical/pending-submit";
 import { listDoctors } from "@/contexts/catalog/queries";
 import { DoctorCard, type DoctorData } from "@/components/catalog/doctor-card";
 import { toPersianDigits } from "@/lib/format";
@@ -44,6 +45,7 @@ export default async function DoctorsPage({
   const p = Number(page ?? 1);
   const current = Number.isFinite(p) ? Math.max(1, p) : 1;
   const t = await getTranslations("doctors");
+  const ts = await getTranslations("states");
   const dir = locale === "en" ? "ltr" : "rtl";
   const fmt = (n: number | string) =>
     locale === "en" ? String(n) : toPersianDigits(n);
@@ -125,13 +127,14 @@ export default async function DoctorsPage({
                 item.slug === currentSpecialty ||
                 (!currentSpecialty && item.id === "all");
               return (
-                <Link
+                <PendingLink
                   key={item.id}
                   href={
                     item.slug
                       ? `/${locale}/doctors?specialty=${encodeURIComponent(item.slug)}`
                       : `/${locale}/doctors`
                   }
+                  busyLabel={ts("loading")}
                   className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
                     isActive
                       ? "bg-primary text-on-primary shadow-sm"
@@ -139,7 +142,7 @@ export default async function DoctorsPage({
                   }`}
                 >
                   {item.label}
-                </Link>
+                </PendingLink>
               );
             })}
           </div>
@@ -177,12 +180,11 @@ export default async function DoctorsPage({
                   <input type="hidden" name="specialty" value={specialty} />
                 )}
                 {city && <input type="hidden" name="city" value={city} />}
-                <button
-                  type="submit"
+                <PendingSubmit
                   className="bg-primary hover:bg-primary-container text-on-primary text-xs font-medium py-2 px-4 rounded-xl transition-colors self-end"
                 >
                   {t("searchSubmit")}
-                </button>
+                </PendingSubmit>
               </form>
             </div>
 
@@ -190,20 +192,22 @@ export default async function DoctorsPage({
             <div className="bg-surface-container-lowest p-5 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-on-surface">{t("filtersTitle")}</span>
-                <Link
+                <PendingLink
                   href={`/${locale}/doctors`}
+                  busyLabel={ts("loading")}
                   className="text-xs text-primary hover:underline font-medium"
                 >
                   {t("clearFilters")}
-                </Link>
+                </PendingLink>
               </div>
 
               {/* City Filter */}
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-bold text-on-surface">{t("cityLabel")}</span>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <Link
+                  <PendingLink
                     href={`/${locale}/doctors?city=tehran${specialty ? `&specialty=${specialty}` : ""}`}
+                    busyLabel={ts("loading")}
                     className={`flex items-center justify-center gap-1.5 p-2 rounded-xl border transition-colors ${
                       city === "tehran" || !city
                         ? "border-primary bg-primary/5 text-primary font-bold"
@@ -211,9 +215,10 @@ export default async function DoctorsPage({
                     }`}
                   >
                     <span>{t("cityTehran")}</span>
-                  </Link>
-                  <Link
+                  </PendingLink>
+                  <PendingLink
                     href={`/${locale}/doctors?city=other${specialty ? `&specialty=${specialty}` : ""}`}
+                    busyLabel={ts("loading")}
                     className={`flex items-center justify-center gap-1.5 p-2 rounded-xl border transition-colors ${
                       city === "other"
                         ? "border-primary bg-primary/5 text-primary font-bold"
@@ -221,7 +226,7 @@ export default async function DoctorsPage({
                     }`}
                   >
                     <span>{t("cityOther")}</span>
-                  </Link>
+                  </PendingLink>
                 </div>
               </div>
 
@@ -299,13 +304,14 @@ export default async function DoctorsPage({
                 className="bg-surface-container-lowest p-4 rounded-2xl shadow-tier-1 border border-outline-variant/30 flex items-center justify-between gap-2"
               >
                 {current > 1 ? (
-                  <Link
+                  <PendingLink
                     href={pageHref(locale, specialty ?? "", city ?? "", q ?? "", current - 1)}
+                    busyLabel={ts("loading")}
                     className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
                   >
                     <ChevronRight size={16} aria-hidden="true" />
                     <span>{t("pagePrev")}</span>
-                  </Link>
+                  </PendingLink>
                 ) : (
                   <div />
                 )}
@@ -318,13 +324,14 @@ export default async function DoctorsPage({
                 </span>
 
                 {current < totalPages ? (
-                  <Link
+                  <PendingLink
                     href={pageHref(locale, specialty ?? "", city ?? "", q ?? "", current + 1)}
+                    busyLabel={ts("loading")}
                     className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
                   >
                     <span>{t("pageNext")}</span>
                     <ChevronLeft size={16} aria-hidden="true" />
-                  </Link>
+                  </PendingLink>
                 ) : (
                   <div />
                 )}

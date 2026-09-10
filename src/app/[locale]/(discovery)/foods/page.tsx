@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/clinical/pending-link";
+import { PendingSubmit } from "@/components/clinical/pending-submit";
 import { db } from "@/db";
 import { foods } from "@/db/schema";
 import { searchFoods } from "@/contexts/nutrition/queries";
@@ -45,6 +47,7 @@ export default async function FoodsPage({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const t = await getTranslations("nutrition");
+  const ts = await getTranslations("states");
   const PrevIcon = locale === "en" ? ChevronLeft : ChevronRight;
   const NextIcon = locale === "en" ? ChevronRight : ChevronLeft;
   const resultsCount = (rCount: number, tCount: number) =>
@@ -104,13 +107,12 @@ export default async function FoodsPage({
               ))}
             </select>
 
-            <button
-              type="submit"
+            <PendingSubmit
               className="bg-primary hover:bg-primary-container text-on-primary text-xs sm:text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0"
             >
               <Search size={18} aria-hidden="true" />
               <span>{t("foodsSearchBtn")}</span>
-            </button>
+            </PendingSubmit>
           </div>
         </form>
       </section>
@@ -177,13 +179,14 @@ export default async function FoodsPage({
               className="bg-surface-container-lowest p-4 rounded-2xl shadow-xs border border-outline-variant/30 flex items-center justify-between gap-2"
             >
               {current > 1 ? (
-                <Link
+                <PendingLink
                   href={pageHref(locale, q, category, current - 1)}
+                  busyLabel={ts("loading")}
                   className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
                 >
                   <PrevIcon size={16} aria-hidden="true" />
                   <span>{t("foodsPrevPage")}</span>
-                </Link>
+                </PendingLink>
               ) : (
                 <div />
               )}
@@ -193,13 +196,14 @@ export default async function FoodsPage({
               </span>
 
               {current < totalPages ? (
-                <Link
+                <PendingLink
                   href={pageHref(locale, q, category, current + 1)}
+                  busyLabel={ts("loading")}
                   className="px-4 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center gap-1"
                 >
                   <span>{t("foodsNextPage")}</span>
                   <NextIcon size={16} aria-hidden="true" />
-                </Link>
+                </PendingLink>
               ) : (
                 <div />
               )}

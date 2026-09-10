@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingButton } from "@/components/clinical/pending-button";
+import { PendingLink } from "@/components/clinical/pending-link";
 import { redirect } from "next/navigation";
 import { listProgramTypes, listProgramsByType } from "@/contexts/nutrition/queries";
 import { claimDietProgram } from "@/contexts/nutrition/actions";
@@ -53,6 +54,7 @@ export default async function DietWizardPage({
   const { locale } = await params;
   const { step, type, program, org } = await searchParams;
   const t = await getTranslations("nutrition");
+  const ts = await getTranslations("states");
   const typeLabel = (pt: string) => {
     const key = `dietWizard.dietType.${pt}`;
     const v = t(key);
@@ -98,16 +100,17 @@ export default async function DietWizardPage({
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {types.map((pt) => (
-              <Link
+              <PendingLink
                 key={pt}
                 href={`?step=2&type=${encodeURIComponent(pt)}`}
+                busyLabel={ts("loading")}
                 className="bg-surface-container-lowest rounded-3xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all border border-outline-variant/30 flex items-center gap-3"
               >
                 <span className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                   <Salad size={24} aria-hidden="true" />
                 </span>
                 <span className="font-bold text-sm sm:text-base text-on-surface">{typeLabel(pt)}</span>
-              </Link>
+              </PendingLink>
             ))}
           </div>
         </section>
@@ -116,13 +119,14 @@ export default async function DietWizardPage({
       {/* Step 2 — programs of the chosen type (public) */}
       {currentStep === 2 && (
         <section aria-label="WizardStep2" className="flex flex-col gap-4">
-          <Link
+          <PendingLink
             href="?step=1"
+            busyLabel={ts("loading")}
             className="inline-flex items-center gap-1.5 self-start text-xs font-bold text-on-surface-variant hover:text-primary transition-colors"
           >
             <BackIcon size={16} aria-hidden="true" />
             <span>{t("dietWizard.back")}</span>
-          </Link>
+          </PendingLink>
           <h2 className="text-base sm:text-lg font-bold text-on-surface">
             {t("dietWizard.step2Title")}
           </h2>
@@ -192,14 +196,15 @@ export default async function DietWizardPage({
                         <span className="text-xs text-on-surface-variant">{t("dietCurrency")}</span>
                       </div>
                     </div>
-                    <Link
+                    <PendingLink
                       href={`?step=3&type=${encodeURIComponent(selectedType)}&program=${p.id}`}
                       aria-label="SelectProgram"
+                      busyLabel={ts("loading")}
                       className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-3 rounded-xl shadow-xs hover:shadow-md transition-all inline-flex items-center justify-center gap-2"
                     >
                       <CircleCheckBig size={18} aria-hidden="true" />
                       <span>{t("dietWizard.selectCta")}</span>
-                    </Link>
+                    </PendingLink>
                   </div>
                 </article>
               ))}
@@ -211,13 +216,14 @@ export default async function DietWizardPage({
       {/* Step 3 — org + price preview + claim (public viewing; claiming signs in) */}
       {currentStep === 3 && (
         <section aria-label="WizardStep3" className="flex flex-col gap-4">
-          <Link
+          <PendingLink
             href={selectedType ? `?step=2&type=${encodeURIComponent(selectedType)}` : "?step=1"}
+            busyLabel={ts("loading")}
             className="inline-flex items-center gap-1.5 self-start text-xs font-bold text-on-surface-variant hover:text-primary transition-colors"
           >
             <BackIcon size={16} aria-hidden="true" />
             <span>{t("dietWizard.back")}</span>
-          </Link>
+          </PendingLink>
           <h2 className="text-base sm:text-lg font-bold text-on-surface">
             {t("dietWizard.step3Title")}
           </h2>
@@ -234,10 +240,11 @@ export default async function DietWizardPage({
                   const c = CONTEXT_DEFS[cid];
                   const isSelected = selectedOrg === cid;
                   return (
-                    <Link
+                    <PendingLink
                       key={cid}
                       href={`?step=3&type=${encodeURIComponent(selectedType ?? "")}&program=${selectedProgram.id}&org=${cid}`}
                       aria-label={`Org-${cid}`}
+                      busyLabel={ts("loading")}
                       className={`flex items-center gap-2.5 p-4 rounded-2xl border transition-all ${
                         isSelected
                           ? "border-primary bg-primary/10 text-on-surface"
@@ -249,13 +256,14 @@ export default async function DietWizardPage({
                         <span className="font-bold text-xs sm:text-sm">{t(c.labelKey)}</span>
                         <span className="text-[11px] text-on-surface-variant">{t(c.hintKey)}</span>
                       </span>
-                    </Link>
+                    </PendingLink>
                   );
                 })}
-                <Link
+                <PendingLink
                   key="none"
                   href={`?step=3&type=${encodeURIComponent(selectedType ?? "")}&program=${selectedProgram.id}&org=none`}
                   aria-label="Org-none"
+                  busyLabel={ts("loading")}
                   className={`flex items-center gap-2.5 p-4 rounded-2xl border transition-all ${
                     selectedOrg === "none"
                       ? "border-primary bg-primary/10 text-on-surface"
@@ -265,9 +273,9 @@ export default async function DietWizardPage({
                   <CircleUserRound size={22} className="text-primary shrink-0" aria-hidden="true" />
                   <span className="flex flex-col">
                     <span className="font-bold text-xs sm:text-sm">{t("dietWizard.orgNoneLabel")}</span>
-                    <span className="text-[11px] text-on-surface-variant">{t("dietWizard.orgNoneHint")}</span>
-                  </span>
-                </Link>
+                        <span className="text-[11px] text-on-surface-variant">{t("dietWizard.orgNoneHint")}</span>
+                      </span>
+                    </PendingLink>
               </div>
               <div className="bg-surface-container-lowest rounded-3xl p-6 shadow-xs border border-outline-variant/30 flex flex-col gap-3">
                 <div className="flex items-center justify-between gap-2">
@@ -285,14 +293,13 @@ export default async function DietWizardPage({
                     <input type="hidden" name="organizationContext" value={selectedOrg} />
                   )}
                   <input type="hidden" name="locale" value={locale} />
-                  <button
-                    type="submit"
+                  <PendingButton
                     aria-label="ConfirmClaim"
                     className="w-full sm:w-auto bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-3 rounded-xl shadow-xs hover:shadow-md transition-all inline-flex items-center justify-center gap-2"
                   >
                     <CircleCheckBig size={18} aria-hidden="true" />
                     <span>{t("dietWizard.claimCta")}</span>
-                  </button>
+                  </PendingButton>
                   <p className="text-[11px] text-on-surface-variant">{t("dietWizard.signinNote")}</p>
                 </form>
               </div>

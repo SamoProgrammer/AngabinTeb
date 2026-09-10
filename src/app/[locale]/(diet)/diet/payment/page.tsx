@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/contexts/identity/actions";
 import { getMyClaim } from "@/contexts/nutrition/queries";
 import { markDietClaimPaid } from "@/contexts/nutrition/actions";
+import { PendingButton } from "@/components/clinical/pending-button";
 import { Wallet } from "lucide-react";
 
 const ORG_LABEL_KEYS: Record<string, string> = {
@@ -74,14 +75,13 @@ export default async function DietPaymentPage({
             redirect(`/${locale}/diet/check?claim=${claim.claimId}`);
           }}
         >
-          <button
-            type="submit"
+          <PendingButton
             aria-label="ConfirmPay"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-3 rounded-xl shadow-xs hover:shadow-md transition-all"
           >
             <Wallet size={18} aria-hidden="true" />
             <span>{t("dietWizard.payConfirm")}</span>
-          </button>
+          </PendingButton>
         </form>
       </section>
     </div>

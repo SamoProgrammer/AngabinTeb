@@ -30,7 +30,8 @@
   "states": {
     "errorTitle": "Could not load this page",
     "errorHint": "Check your connection and try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "loading": "Loading…"
   },
   "feedback": {
     "capacityExceeded": "This slot just filled; please pick another time.",
