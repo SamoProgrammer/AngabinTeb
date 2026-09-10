@@ -82,9 +82,12 @@ async function resolveModel(id: string): Promise<LanguageModel> {
   if (baseURL) {
     // Custom OpenAI-compatible endpoint (proxy, local model, …): the
     // provider prefix (if any) is not part of the model name there.
+    // .chat() forces the /chat/completions API: the provider default is
+    // the Responses API, which third-party gateways emulate incompletely
+    // (AvalAI drops the reasoning `summary` the SDK schema requires).
     const { createOpenAI } = await import("@ai-sdk/openai");
     const name = id.includes("/") ? id.slice(id.indexOf("/") + 1) : id;
-    return createOpenAI({ baseURL, apiKey })(name);
+    return createOpenAI({ baseURL, apiKey }).chat(name);
   }
   // AI Gateway reads AI_GATEWAY_API_KEY; accept AI_API_KEY as its alias so
   // one key var covers both paths (never overrides an explicit gateway key).
