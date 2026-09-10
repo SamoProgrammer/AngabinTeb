@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { dietDocuments } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
-import { myDietClaims } from "@/contexts/nutrition/queries";
+import { myDietClaims, getRegistryStatus } from "@/contexts/nutrition/queries";
 import { generateProgramDocument } from "@/contexts/nutrition/actions";
 import { PendingButton } from "@/components/clinical/pending-button";
 import { PendingLink } from "@/components/clinical/pending-link";
@@ -52,6 +52,9 @@ export default async function ProfileDietDetailPage({
   const [document] = claim.hasDocument
     ? await db.select().from(dietDocuments).where(eq(dietDocuments.claimId, claim.claimId))
     : [];
+  // Paid claims need the registry state to pick the right CTA: incomplete →
+  // back to the check step; complete → kick off AI preparation.
+  const registry = claim.status === "paid" ? await getRegistryStatus(user.id) : null;
   const statusKey = STATUS_KEYS[claim.status];
   // failed branches off after generating; otherwise progress is linear.
   const reached = (s: string) =>
@@ -134,16 +137,36 @@ export default async function ProfileDietDetailPage({
             <span>{t("dietWizard.resumePayment")}</span>
           </Link>
         )}
-        {claim.status === "paid" && (
+        {claim.status === "paid" && registry && !registry.complete && (
           <div className="flex flex-col gap-3">
             <p className="text-xs text-on-surface-variant leading-relaxed">{t("dietWizard.paidNote")}</p>
-            <Link
+            <PendingLink
               href={`/${locale}/diet/check?claim=${claim.claimId}`}
               aria-label="ResumeCheck"
+              busyLabel={ts("loading")}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-3 rounded-xl shadow-xs transition-all"
             >
               <span>{t("dietWizard.resumeCheck")}</span>
-            </Link>
+            </PendingLink>
+          </div>
+        )}
+        {claim.status === "paid" && (!registry || registry.complete) && (
+          <div className="flex flex-col gap-3">
+            <p className="text-xs text-on-surface-variant leading-relaxed">{t("dietWizard.readyToPrepare")}</p>
+            <form
+              action={async () => {
+                "use server";
+                await generateProgramDocument(claim.claimId);
+                revalidatePath(`/${locale}/profile/diets/${claim.claimId}`);
+              }}
+            >
+              <PendingButton
+                aria-label="StartPreparation"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-3 rounded-xl shadow-xs transition-all"
+              >
+                <span>{t("dietWizard.startPreparation")}</span>
+              </PendingButton>
+            </form>
           </div>
         )}
 

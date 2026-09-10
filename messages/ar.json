@@ -1983,6 +1983,8 @@
       "failedAdminNote": "تم إخطار فريقنا وسيراجع هذا الخطأ؛ لا حاجة لأي إجراء آخر.",
       "supportCta": "اتصل بالدعم",
       "detailBack":  "رجوع إلى برامجي",
+      "readyToPrepare": "الملف السريري مكتمل؛ ابدأ تحضير البرنامج.",
+      "startPreparation": "بدء التحضير",
       "dietType": {
         "weight_loss": "إدارة الوزن",
         "athletes": "الرياضيون واللياقة",
