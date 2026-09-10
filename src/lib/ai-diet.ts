@@ -76,6 +76,7 @@ export function summarizeRegistry(row: RegistryRow | null | undefined): string {
 }
 
 async function resolveModel(id: string): Promise<LanguageModel> {
+
   const apiKey = process.env.AI_API_KEY ?? "";
   const baseURL = process.env.AI_BASE_URL?.trim();
   if (baseURL) {
@@ -100,16 +101,30 @@ async function resolveModel(id: string): Promise<LanguageModel> {
   return id as unknown as LanguageModel;
 }
 
+function hostOf(url: string): string {
+  try {
+    return new URL(url.trim()).host;
+  } catch {
+    return "unparseable-base-url";
+  }
+}
+
 export async function generateDietPlan(prompt: string): Promise<string> {
   if (!process.env.AI_API_KEY) {
     throw new Error("AI_API_KEY is not set — diet generation needs a model key");
   }
   const modelId = process.env.AI_MODEL ?? "openai/gpt-5.4";
-  const { text } = await generateText({
-    model: await resolveModel(modelId),
-    maxOutputTokens: 8000,
-    system: DIET_SYSTEM,
-    prompt,
-  });
-  return text;
+  const via = process.env.AI_BASE_URL?.trim() ? `custom endpoint ${hostOf(process.env.AI_BASE_URL)}` : "AI Gateway";
+  try {
+    const { text } = await generateText({
+      model: await resolveModel(modelId),
+      maxOutputTokens: 8000,
+      system: DIET_SYSTEM,
+      prompt,
+    });
+    return text;
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(`diet generation via ${via} model "${modelId}" failed: ${detail}`);
+  }
 }
