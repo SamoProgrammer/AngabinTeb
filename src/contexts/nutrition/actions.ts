@@ -171,7 +171,10 @@ export async function freezeRegistrySnapshotForUser(userId: string, opts?: { dbc
 // ready / failed. Accepts own claims in `paid` (fresh) or `generating`
 // (retry after a failed attempt); admins drive retries through
 // `retryClaimGeneration`, which passes the claim owner's id as `ownerId`
-// (requireAdmin runs first there, so no caller session is needed here).
+// after `requireAdmin()`. A foreign `ownerId` (present and != session user)
+// re-verifies the admin session below, so a non-admin caller cannot mint
+// documents against someone else's claim by passing their id; same-user or
+// omitted `ownerId` behaves exactly as the self-serve path always has.
 // Sets `generating` first, then generates, stores the document with the
 // specialist-review footer, and flips to `needs_review`. On any throw the
 // claim stays `generating` (retryable); `paid`/`generating`/`ready` are all
@@ -179,7 +182,9 @@ export async function freezeRegistrySnapshotForUser(userId: string, opts?: { dbc
 // working untouched.
 export async function generateProgramDocument(claimId: string, opts?: { dbc?: typeof db; ownerId?: string }) {
   const dbc = opts?.dbc ?? db;
-  const ownerId = opts?.ownerId ?? (await requireUser()).id;
+  const sessionUserId = (await requireUser()).id;
+  if (opts?.ownerId && opts.ownerId !== sessionUserId) await requireAdmin();
+  const ownerId = opts?.ownerId ?? sessionUserId;
   const [claim] = await dbc
     .select({ id: dietClaims.id, programId: dietClaims.programId, status: dietClaims.status, retryCount: dietClaims.retryCount })
     .from(dietClaims)
@@ -248,6 +253,11 @@ export async function approveClaim(claimId: string) {
   return { ok: true as const };
 }
 
+// generating|failed|paid → generating (retryCount reset, then generate).
+// needs_review is deliberately NOT retried here: needs_review→generating is
+// reserved for requestClaimChanges (patient note attached), and retrying over
+// an existing reviewed document would strand it — the existing-doc branch in
+// generateProgramDocument returns ok without touching the claim's status.
 export async function retryClaimGeneration(claimId: string) {
   await requireAdmin();
   const [claim] = await db
@@ -255,6 +265,7 @@ export async function retryClaimGeneration(claimId: string) {
     .from(dietClaims)
     .where(eq(dietClaims.id, claimId));
   if (!claim) return { ok: false as const, reason: "not_found" as const };
+  if (claim.status === "needs_review") return { ok: false as const, reason: "invalid_status" as const };
   if (!allowedClaimTransition(claim.status, "generating")) return { ok: false as const, reason: "invalid_status" as const };
   await db.update(dietClaims).set({ status: "generating", retryCount: 0 }).where(eq(dietClaims.id, claimId));
   return generateProgramDocument(claimId, { ownerId: claim.userId });
@@ -262,6 +273,7 @@ export async function retryClaimGeneration(claimId: string) {
 
 export async function requestClaimChanges(claimId: string, note: string) {
   await requireAdmin();
+  if (!note.trim()) return { ok: false as const, reason: "invalid_input" as const };
   const [claim] = await db
     .select({ id: dietClaims.id, userId: dietClaims.userId, status: dietClaims.status })
     .from(dietClaims)
@@ -283,6 +295,7 @@ export async function requestClaimChanges(claimId: string, note: string) {
 
 export async function saveDocumentBody(claimId: string, markdown: string) {
   await requireAdmin();
+  if (!markdown.trim()) return { ok: false as const, reason: "invalid_input" as const };
   const [claim] = await db
     .select({ id: dietClaims.id, status: dietClaims.status })
     .from(dietClaims)
