@@ -112,7 +112,7 @@ export default async function HomePage({
       title: t("hubHomeTitle"),
       desc: t("hubHomeDesc"),
       cta: t("hubHomeCta"),
-      href: `/${locale}/nutrition/diet`,
+      href: `/${locale}/diet`,
       icon: HousePlus,
     },
   ];
@@ -279,7 +279,7 @@ export default async function HomePage({
       </section>
 
       {/* 5. Live Metabolism Calculator (Screen #13 — real Mifflin-St Jeor engine) */}
-      <MetabolismCalculator locale={locale} diaryHref={`/${locale}/nutrition/calorie`} />
+      <MetabolismCalculator locale={locale} diaryHref={`/${locale}/profile/calorie`} />
 
       {/* 6. Clinical Knowledge & Video Library Showcase */}
       <section

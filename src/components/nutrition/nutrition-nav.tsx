@@ -21,19 +21,19 @@ export function NutritionNav({ locale = "fa" }: NutritionNavProps) {
   }> = [
     {
       label: t("calorie"),
-      href: `/${locale}/nutrition/calorie`,
+      href: `/${locale}/profile/calorie`,
       icon: Flame,
       isActive: pathname.includes("/calorie"),
     },
     {
       label: t("diet"),
-      href: `/${locale}/nutrition/diet`,
+      href: `/${locale}/diet`,
       icon: NotebookPen,
       isActive: pathname.includes("/diet"),
     },
     {
       label: t("body"),
-      href: `/${locale}/nutrition/body`,
+      href: `/${locale}/profile/body`,
       icon: Accessibility,
       isActive: pathname.includes("/body"),
     },

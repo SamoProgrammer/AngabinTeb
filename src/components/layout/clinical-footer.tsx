@@ -36,10 +36,10 @@ export function ClinicalFooter({ locale = "fa" }: ClinicalFooterProps) {
     ],
     col2Title: t("col2Title"),
     col2Links: [
-      link("col2Link1", "/nutrition/diet"),
+      link("col2Link1", "/diet"),
       link("col2Link2", "/foods"),
-      link("col2Link3", "/nutrition/calorie"),
-      link("col2Link4", "/nutrition/body"),
+      link("col2Link3", "/profile/calorie"),
+      link("col2Link4", "/profile/body"),
     ],
     col3Title: t("col3Title"),
     col3Links: [

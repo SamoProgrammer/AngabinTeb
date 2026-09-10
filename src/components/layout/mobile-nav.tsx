@@ -24,7 +24,7 @@ export function MobileNav({ locale = "fa" }: MobileNavProps) {
   const items: Array<{ label: string; href: string; icon: LucideIcon; exact: boolean }> = [
     { label: labels.home, href: `/${locale}`, icon: House, exact: true },
     { label: labels.doctors, href: `/${locale}/booking/categories`, icon: Stethoscope, exact: false },
-    { label: labels.nutrition, href: `/${locale}/nutrition/diet`, icon: Utensils, exact: false },
+    { label: labels.nutrition, href: `/${locale}/diet`, icon: Utensils, exact: false },
     { label: labels.appointments, href: `/${locale}/profile/reservations`, icon: CalendarDays, exact: false },
     { label: labels.support, href: `/${locale}/notes/site-help`, icon: Headset, exact: false },
   ];

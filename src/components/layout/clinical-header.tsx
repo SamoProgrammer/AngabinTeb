@@ -91,12 +91,12 @@ const NAV_STRUCTURE: NavHubSkeleton[] = [
   {
     id: "nutrition",
     icon: Utensils,
-    path: "/nutrition/diet",
+    path: "/diet",
     items: [
-      { key: "diets", path: "/nutrition/diet", icon: Flower2 },
-      { key: "foodAnalysis", path: "/nutrition/calorie", icon: Calculator },
+      { key: "diets", path: "/diet", icon: Flower2 },
+      { key: "foodAnalysis", path: "/profile/calorie", icon: Calculator },
       { key: "foods", path: "/foods", icon: Utensils },
-      { key: "diary", path: "/nutrition/body", icon: FilePenLine },
+      { key: "diary", path: "/profile/body", icon: FilePenLine },
     ],
   },
   {

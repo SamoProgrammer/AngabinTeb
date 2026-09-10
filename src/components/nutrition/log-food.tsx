@@ -307,7 +307,7 @@ export function LogFood({
               <span>{t.successMsg}</span>
             </div>
             <Link
-              href={`/${currentLocale}/nutrition/calorie`}
+              href={`/${currentLocale}/profile/calorie`}
               className="text-[11px] underline hover:text-primary-container"
             >
               {t.viewDiary}

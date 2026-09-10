@@ -353,7 +353,7 @@ export default async function BodyPage({
 
             <div className="pt-4 border-t border-outline-variant/20">
               <Link
-                href={`/${locale}/registry`}
+                href={`/${locale}/profile/clinical`}
                 className="w-full bg-secondary hover:bg-secondary/90 text-on-secondary text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5"
               >
                 <span>{t("bodyRegistryCta")}</span>
