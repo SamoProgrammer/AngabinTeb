@@ -9,6 +9,11 @@ import {
   saveDocumentBody,
 } from "@/contexts/nutrition/actions";
 import { allClaims } from "@/contexts/nutrition/queries";
+import { parseListParams, paginate } from "@/components/admin/list-params";
+import { AdminPagination } from "@/components/admin/admin-table";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { ConfirmAction } from "@/components/admin/confirm-action";
+import { PendingLink } from "@/components/clinical/pending-link";
 import ClaimPoller from "./claim-poller";
 import ClaimModal from "./claim-modal";
 import { PendingButton } from "@/components/clinical/pending-button";
@@ -25,29 +30,112 @@ const STATUS_STYLES: Record<string, string> = {
   completed: "bg-surface-container-low text-on-surface-variant",
 };
 
+const CLAIM_TABS = ["all", "pending", "paid", "generating", "needs_review", "ready", "failed"] as const;
+
 export default async function AdminDietClaimsPage({
   params,
+  searchParams,
 }: {
   params?: Promise<{ locale?: string }>;
+  searchParams?: Promise<{ status?: string; page?: string }>;
 }) {
   const resolved = params ? await params : {};
   const locale = resolved.locale === "en" || resolved.locale === "ar" ? resolved.locale : "fa";
   const dir = locale === "en" ? "ltr" : "rtl";
+  const prefix = `/${locale}`;
 
   await requireAdmin();
 
   const t = await getTranslations("admin.dietPrograms.claims");
   const tCommon = await getTranslations("admin.common");
+  const tDiet = await getTranslations("admin.dietPrograms");
+  const tNav = await getTranslations("admin.nav");
+  const ts = await getTranslations("states");
+  const busyLabel = ts("loading");
+
+  const { tab, page } = parseListParams((await searchParams) ?? {}, {
+    tabs: CLAIM_TABS,
+    defaultTab: "needs_review",
+  });
 
   const rows = await allClaims();
 
+  const counts: Record<string, number> = { all: rows.length };
+  for (const r of rows) counts[r.status] = (counts[r.status] ?? 0) + 1;
+
+  // ponytail: in-page status filter + slice; move to a DB-level filter past ~200 claims.
+  const filtered = tab === "all" ? rows : rows.filter((r) => r.status === tab);
+  const { items, totalPages } = paginate(filtered, page);
+
+  const fmtCount = (n: number) => (locale === "en" ? `${n}` : toPersianDigits(n));
+  const prevLabel = locale === "en" ? "Previous" : locale === "ar" ? "السابق" : "قبلی";
+  const nextLabel = locale === "en" ? "Next" : locale === "ar" ? "التالي" : "بعدی";
+  const confirmCopy =
+    locale === "en"
+      ? {
+          title: "Confirm cancellation",
+          message: "This claim will be cancelled and removed from the queue. Continue?",
+          cancelLabel: "Back",
+        }
+      : locale === "ar"
+        ? {
+            title: "تأكيد الإلغاء",
+            message: "سيتم إلغاء هذا الطلب وإخراجه من القائمة. هل تريد المتابعة؟",
+            cancelLabel: "رجوع",
+          }
+        : {
+            title: "تأیید لغو درخواست",
+            message: "این درخواست لغو می‌شود و از صف خارج می‌گردد. ادامه می‌دهید؟",
+            cancelLabel: "انصراف",
+          };
+
   return (
     <div className="text-start" dir={dir}>
-      <h1 className="mb-6 text-2xl font-bold">{t("title")}</h1>
+      <AdminPageHeader
+        crumbs={[
+          { label: tNav("dashboard"), href: `${prefix}/admin` },
+          { label: tDiet("title"), href: `${prefix}/admin/diet-programs` },
+          { label: t("title") },
+        ]}
+        title={t("title")}
+      />
       {rows.length === 0 ? (
         <p className="text-sm text-on-surface-variant">{t("empty")}</p>
       ) : (
-        <Table>
+        <>
+          <nav aria-label={tCommon("status")} className="mb-4 flex flex-wrap items-center gap-2">
+            {CLAIM_TABS.map((s) => {
+              const active = tab === s;
+              return (
+                <PendingLink
+                  key={s}
+                  href={`?status=${s}`}
+                  busyLabel={busyLabel}
+                  aria-current={active ? "page" : undefined}
+                  className={
+                    active
+                      ? "inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-on-primary"
+                      : "inline-flex items-center gap-1.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest px-3 py-1.5 text-xs font-bold text-on-surface-variant transition-colors hover:border-primary/40 hover:text-primary"
+                  }
+                >
+                  <span>{s}</span>
+                  <span
+                    className={
+                      active
+                        ? "rounded-full bg-on-primary/20 px-1.5 py-0.5 text-[11px]"
+                        : "rounded-full bg-surface-container px-1.5 py-0.5 text-[11px]"
+                    }
+                  >
+                    {fmtCount(s === "all" ? rows.length : (counts[s] ?? 0))}
+                  </span>
+                </PendingLink>
+              );
+            })}
+          </nav>
+          {items.length === 0 ? (
+            <p className="text-sm text-on-surface-variant">{t("empty")}</p>
+          ) : (
+            <Table>
           <TableHeader>
             <TableRow>
               <TableHead>{t("claimant")}</TableHead>
@@ -61,7 +149,7 @@ export default async function AdminDietClaimsPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((r) => {
+            {items.map((r) => {
               const formattedPrice =
                 r.pricePaid == null
                   ? tCommon("emptyValue")
@@ -239,20 +327,28 @@ export default async function AdminDietClaimsPage({
                         </form>
                       )}
                       {r.status !== "completed" && (
-                        <form
-                          action={async (fd: FormData) => {
-                            "use server";
-                            await cancelClaim(String(fd.get("claimId")));
-                          }}
-                        >
-                          <input type="hidden" name="claimId" value={r.claimId} />
-                          <PendingButton
-                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive transition-colors hover:bg-destructive/20"
-                          >
-                            <X size={14} aria-hidden="true" />
-                            <span>{t("cancel")}</span>
-                          </PendingButton>
-                        </form>
+                        <ConfirmAction
+                          openLabel={t("cancel")}
+                          title={confirmCopy.title}
+                          message={confirmCopy.message}
+                          cancelLabel={confirmCopy.cancelLabel}
+                          confirmSlot={
+                            <form
+                              action={async (fd: FormData) => {
+                                "use server";
+                                await cancelClaim(String(fd.get("claimId")));
+                              }}
+                            >
+                              <input type="hidden" name="claimId" value={r.claimId} />
+                              <PendingButton
+                                className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive transition-colors hover:bg-destructive/20"
+                              >
+                                <X size={14} aria-hidden="true" />
+                                <span>{t("cancel")}</span>
+                              </PendingButton>
+                            </form>
+                          }
+                        />
                       )}
                     </div>
                   </TableCell>
@@ -261,6 +357,17 @@ export default async function AdminDietClaimsPage({
             })}
           </TableBody>
         </Table>
+          )}
+          <div className="mt-4">
+            <AdminPagination
+              page={page}
+              totalPages={totalPages}
+              hrefFor={(p) => `?status=${tab}&page=${p}`}
+              prevLabel={prevLabel}
+              nextLabel={nextLabel}
+            />
+          </div>
+        </>
       )}
     </div>
   );

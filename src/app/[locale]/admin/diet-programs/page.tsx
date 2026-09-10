@@ -5,6 +5,8 @@ import { createDietProgram } from "@/contexts/nutrition/actions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toPersianDigits } from "@/lib/format";
 import { DietProgramForm } from "./diet-program-form";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { PendingLink } from "@/components/clinical/pending-link";
 
 export default async function AdminDietProgramsPage({
   params,
@@ -13,15 +15,37 @@ export default async function AdminDietProgramsPage({
 }) {
   const resolved = params ? await params : {};
   const locale = resolved.locale === "en" || resolved.locale === "ar" ? resolved.locale : "fa";
+  const prefix = `/${locale}`;
 
   const tDiet = await getTranslations("admin.dietPrograms");
   const tCommon = await getTranslations("admin.common");
+  const tNav = await getTranslations("admin.nav");
+  const ts = await getTranslations("states");
+
+  const queueLabel =
+    locale === "en"
+      ? "View claim queue"
+      : locale === "ar"
+        ? "عرض قائمة الطلبات"
+        : "مشاهده صف درخواست‌ها";
 
   const rows = await db.select().from(dietPrograms).orderBy(dietPrograms.name);
 
   return (
     <div className="text-start">
-      <h1 className="mb-6 text-2xl font-bold">{tDiet("title")}</h1>
+      <AdminPageHeader
+        crumbs={[{ label: tNav("dashboard"), href: `${prefix}/admin` }, { label: tDiet("title") }]}
+        title={tDiet("title")}
+        action={
+          <PendingLink
+            href={`${prefix}/admin/diet-programs/claims?status=needs_review`}
+            busyLabel={ts("loading")}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-on-primary transition-colors hover:bg-primary-container sm:text-sm"
+          >
+            {queueLabel}
+          </PendingLink>
+        }
+      />
       <Table>
         <TableHeader>
           <TableRow>
