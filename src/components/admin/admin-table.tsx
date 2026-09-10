@@ -7,11 +7,15 @@ export interface AdminToolbarProps {
   placeholder: string;
   searchLabel: string;
   currentQ?: string;
+  hidden?: Record<string, string>;
 }
 
-export function AdminToolbar({ placeholder, searchLabel, currentQ = "" }: AdminToolbarProps) {
+export function AdminToolbar({ placeholder, searchLabel, currentQ = "", hidden }: AdminToolbarProps) {
   return (
     <form method="get" role="search" className="flex items-center gap-2">
+      {hidden
+        ? Object.entries(hidden).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)
+        : null}
       <Input name="q" defaultValue={currentQ} placeholder={placeholder} className="max-w-xs" />
       <PendingSubmit className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-on-primary text-xs sm:text-sm font-bold hover:bg-primary-container transition-colors">
         {searchLabel}

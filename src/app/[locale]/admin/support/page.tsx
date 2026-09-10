@@ -74,6 +74,7 @@ export default async function AdminSupportPage({
               placeholder={tSearch("search")}
               searchLabel={tCommon("filter")}
               currentQ={q}
+              hidden={{ status: tab }}
             />
           </div>
           <nav aria-label={tCommon("status")} className="mb-4 flex flex-wrap items-center gap-2">
