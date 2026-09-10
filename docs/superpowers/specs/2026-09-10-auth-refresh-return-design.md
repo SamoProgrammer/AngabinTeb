@@ -11,12 +11,12 @@ Goal: phone-OTP login stays valid 24h with sliding refresh + Remember-me 30d, ev
 - Demo `/api-test/login`: align expiry to 24h (already 24h), keep UI buttons as-is. Fix only the double-cookie write: keep `Set-Cookie HttpOnly` from route, drop `document.cookie` mirror in `signin/page.tsx:128`.
 - Logout everywhere calls `authClient.signOut()` (revokes server session + clears cookie). No change to OTP send/verify throttle (5 sends / 10min per number, 3 tries per code).
 
-## 2. Return flow (central helper)
+## 2. Return flow (central helper + path-echo header)
 
 - New pure helper `src/contexts/identity/return.ts`: `toSignin(locale, returnTo)` → `/{locale}/signin?returnUrl=<encodeURIComponent(returnTo)>`; `isSafeReturn(url, locale)` → true only when same-origin path, starts with `/{locale}/`, not `/signin`, not `/api-test`, no `//` or `http`.
-- `requireUser(locale?: string, returnTo?: string)` / `requireAdmin(locale?, returnTo?)` build the redirect via helper. Callers pass locale + current path: `(account)/layout`, `admin/layout`, `support/requests`, `support/new`, `(diet)/diet/payment`, `(diet)/diet/check`, profile subpages keep calling bare `requireUser()` (layout already guards).
-- `proxy.ts` stays locale-only (CVE-2025-29927 rule untouched). No edge auth check.
-- Signin `returnUrl` handling (already reads `returnUrl|callbackUrl`): validate with `isSafeReturn`, fallback `/{locale}/profile/reservations`. Demo patient → validated `returnUrl`; demo admin → validated `returnUrl` if safe and under `/admin`, else `/{locale}/admin`. OTP success → validated `returnUrl`.
+- Layouts/pages cannot read the subpath server-side, so `proxy.ts` echoes it: for guarded prefixes (`profile`, `admin`, `support`, `diet/payment`, `diet/check`) it sets request header `x-auth-return: <pathname+search>` via `NextResponse.next({ request: { headers } })`. No auth decision at the edge — pages still verify the session server-side (CVE-2025-29927 rule intact).
+- `requireUser()` / `requireAdmin()` keep zero-arg signatures (backward compatible): they read `x-auth-return` from `headers()`, parse the locale from its prefix (fallback `fa`), and redirect via `toSignin`. No per-page call-site changes.
+- Signin `returnUrl` handling (already reads `returnUrl|callbackUrl`): validate with `isSafeReturn`, fallback `/{locale}/profile/reservations`. Demo patient → validated `returnUrl`; demo admin → validated `returnUrl` if safe and under `/{locale}/admin`, else `/{locale}/admin`. OTP success → validated `returnUrl`.
 
 ## 3. Hardening
 
@@ -25,18 +25,18 @@ Goal: phone-OTP login stays valid 24h with sliding refresh + Remember-me 30d, ev
 - Demo route: stays 404 in production unless `DEMO_LOGIN_ENABLED=true` (existing gate untouched).
 - No password, no JWT access-token layer, no refresh_token table. `account.refreshToken` columns stay unused (OAuth placeholder, out of scope).
 
-## 4. Files touched (max 10)
+## 4. Files touched (max 8)
 
 1. `src/lib/auth.ts` (session config)
 2. `src/contexts/identity/return.ts` (new, pure)
-3. `src/contexts/identity/actions.ts` (requireUser/requireAdmin signature + redirect)
-4. `src/app/[locale]/(account)/layout.tsx` (pass locale + path)
-5. `src/app/[locale]/admin/layout.tsx` (same)
-6. `src/app/[locale]/support/requests/page.tsx`, `support/new/page.tsx` (pass returnTo)
-7. `src/app/[locale]/(diet)/diet/payment/page.tsx`, `diet/check/page.tsx` (same)
-8. `src/app/[locale]/(auth)/signin/page.tsx` (Remember-me checkbox + safe-return + drop document.cookie)
-9. `src/app/api-test/login/route.ts` (cookie comment only, no logic change except maxAge align)
-10. `messages/{fa,en,ar}.json` (`auth.rememberMe` key only)
+3. `src/contexts/identity/actions.ts` (requireUser/requireAdmin read header)
+4. `src/contexts/identity/__tests__/return.test.ts` (new)
+5. `src/proxy.ts` (x-auth-return echo on guarded prefixes only)
+6. `src/app/[locale]/(auth)/signin/page.tsx` (Remember-me checkbox + safe-return + drop document.cookie)
+7. `src/app/api-test/login/route.ts` (comment only, no logic change)
+8. `messages/{fa,en,ar}.json` (`auth.rememberMe` key only)
+
+Layouts and leaf pages keep bare `requireUser()` / `requireAdmin()` calls — return is automatic. The diet `?return=` clinical-form param is a separate feature, untouched.
 
 ## 5. Testing
 
