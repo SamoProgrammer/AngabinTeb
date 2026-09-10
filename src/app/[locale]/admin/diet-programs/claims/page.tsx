@@ -6,8 +6,6 @@ import {
   cancelClaim,
   forceRegenerate,
   requestClaimChanges,
-  resetClaimToPaid,
-  retryClaimGeneration,
   saveDocumentBody,
 } from "@/contexts/nutrition/actions";
 import { allClaims } from "@/contexts/nutrition/queries";
@@ -124,7 +122,6 @@ export default async function AdminDietClaimsPage({
                   </TableCell>
                   <TableCell>{ageText}</TableCell>
                   <TableCell>
-                    <div className="flex min-w-44 flex-col gap-2">
                     <ClaimModal
                       openLabel={t("viewDetails")}
                       title={`${r.programName} — ${r.userName}`}
@@ -148,8 +145,8 @@ export default async function AdminDietClaimsPage({
                           dir: "ltr",
                         },
                       ]}
-                    />
-                    <form
+                    >
+                      <form
                         action={async (fd: FormData) => {
                           "use server";
                           await requestClaimChanges(
@@ -157,7 +154,7 @@ export default async function AdminDietClaimsPage({
                             String(fd.get("note") ?? ""),
                           );
                         }}
-                        className="mt-2 flex flex-col gap-2"
+                        className="flex flex-col gap-2"
                       >
                         <input type="hidden" name="claimId" value={r.claimId} />
                         <input
@@ -184,12 +181,12 @@ export default async function AdminDietClaimsPage({
                             String(fd.get("body") ?? ""),
                           );
                         }}
-                        className="mt-2 flex flex-col gap-2"
+                        className="flex flex-col gap-2"
                       >
                         <input type="hidden" name="claimId" value={r.claimId} />
                         <textarea
                           name="body"
-                          rows={2}
+                          rows={6}
                           dir="ltr"
                           defaultValue={r.documentBody ?? ""}
                           placeholder={t("bodyPlaceholder")}
@@ -202,79 +199,61 @@ export default async function AdminDietClaimsPage({
                           <span>{t("saveBody")}</span>
                         </PendingButton>
                       </form>
-                    </div>
+                    </ClaimModal>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1.5">
-                      <form
-                        action={async (fd: FormData) => {
-                          "use server";
-                          await approveClaim(String(fd.get("claimId")));
-                        }}
-                      >
-                        <input type="hidden" name="claimId" value={r.claimId} />
-                        <PendingButton
-                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-on-primary transition-colors hover:bg-primary-container"
+                      {r.status === "needs_review" && (
+                        <form
+                          action={async (fd: FormData) => {
+                            "use server";
+                            await approveClaim(String(fd.get("claimId")));
+                          }}
                         >
-                          <Check size={14} aria-hidden="true" />
-                          <span>{t("approve")}</span>
-                        </PendingButton>
-                      </form>
-                      <form
-                        action={async (fd: FormData) => {
-                          "use server";
-                          await retryClaimGeneration(String(fd.get("claimId")));
-                        }}
-                      >
-                        <input type="hidden" name="claimId" value={r.claimId} />
-                        <PendingButton
-                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-surface-container px-3 py-2 text-xs font-bold text-on-surface transition-colors hover:bg-surface-container-high"
+                          <input type="hidden" name="claimId" value={r.claimId} />
+                          <PendingButton
+                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-on-primary transition-colors hover:bg-primary-container"
+                          >
+                            <Check size={14} aria-hidden="true" />
+                            <span>{t("approve")}</span>
+                          </PendingButton>
+                        </form>
+                      )}
+                      {(r.status === "paid" ||
+                        r.status === "generating" ||
+                        r.status === "needs_review" ||
+                        r.status === "failed") && (
+                        <form
+                          action={async (fd: FormData) => {
+                            "use server";
+                            await forceRegenerate(String(fd.get("claimId")));
+                          }}
                         >
-                          <RotateCcw size={14} aria-hidden="true" />
-                          <span>{t("retry")}</span>
-                        </PendingButton>
-                      </form>
-                      <form
-                        action={async (fd: FormData) => {
-                          "use server";
-                          await forceRegenerate(String(fd.get("claimId")));
-                        }}
-                      >
-                        <input type="hidden" name="claimId" value={r.claimId} />
-                        <PendingButton
-                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary/10 px-3 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/20"
+                          <input type="hidden" name="claimId" value={r.claimId} />
+                          <PendingButton
+                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary/10 px-3 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/20"
+                          >
+                            <RotateCcw size={14} aria-hidden="true" />
+                            <span>{t("forceRegen")}</span>
+                          </PendingButton>
+                        </form>
+                      )}
+                      {r.status !== "completed" && (
+                        <form
+                          action={async (fd: FormData) => {
+                            "use server";
+                            await cancelClaim(String(fd.get("claimId")));
+                          }}
                         >
-                          <RotateCcw size={14} aria-hidden="true" />
-                          <span>{t("forceRegen")}</span>
-                        </PendingButton>
-                      </form>
-                      <form
-                        action={async (fd: FormData) => {
-                          "use server";
-                          await resetClaimToPaid(String(fd.get("claimId")));
-                        }}
-                      >
-                        <input type="hidden" name="claimId" value={r.claimId} />
-                        <PendingButton
-                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-surface-container px-3 py-2 text-xs font-bold text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface"
-                        >
-                          <span>{t("resetClaim")}</span>
-                        </PendingButton>
-                      </form>
-                      <form
-                        action={async (fd: FormData) => {
-                          "use server";
-                          await cancelClaim(String(fd.get("claimId")));
-                        }}
-                      >
-                        <input type="hidden" name="claimId" value={r.claimId} />
-                        <PendingButton
-                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive transition-colors hover:bg-destructive/20"
-                        >
-                          <X size={14} aria-hidden="true" />
-                          <span>{t("cancel")}</span>
-                        </PendingButton>
-                      </form>
+                          <input type="hidden" name="claimId" value={r.claimId} />
+                          <PendingButton
+                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive transition-colors hover:bg-destructive/20"
+                          >
+                            <X size={14} aria-hidden="true" />
+                            <span>{t("cancel")}</span>
+                          </PendingButton>
+                        </form>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

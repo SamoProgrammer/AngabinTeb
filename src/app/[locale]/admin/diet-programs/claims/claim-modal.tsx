@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { Eye, X } from "lucide-react";
 
 export type ClaimModalSection = {
@@ -18,10 +18,12 @@ export default function ClaimModal({
   openLabel,
   title,
   sections,
+  children,
 }: {
   openLabel: string;
   title: string;
   sections: ClaimModalSection[];
+  children?: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   return (
@@ -39,7 +41,7 @@ export default function ClaimModal({
         onClick={(e) => {
           if (e.target === ref.current) ref.current?.close();
         }}
-        className="max-h-[85dvh] w-[min(48rem,92dvw)] rounded-3xl bg-surface-container-lowest p-0 text-on-surface shadow-tier-3 backdrop:bg-black/50"
+        className="m-auto max-h-[85dvh] w-[min(48rem,92dvw)] rounded-3xl bg-surface-container-lowest p-0 text-on-surface shadow-tier-3 backdrop:bg-black/50"
       >
         <div className="sticky top-0 flex items-center justify-between gap-2 border-b border-outline-variant/20 bg-surface-container-lowest px-5 py-3">
           <span className="text-sm font-extrabold">{title}</span>
@@ -72,6 +74,7 @@ export default function ClaimModal({
               )}
             </section>
           ))}
+          {children}
         </div>
       </dialog>
     </>
