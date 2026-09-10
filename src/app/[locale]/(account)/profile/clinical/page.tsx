@@ -19,10 +19,11 @@ import { submitRegistry } from "@/contexts/identity/actions";
 export default function ClinicalRegistryFormPage({
   params,
 }: {
-  params: Promise<{ locale: string; id: string }>;
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale, id } = use(params);
+  const { locale } = use(params);
   const t = useTranslations("account.registryForm");
+  const tReg = useTranslations("account.registry");
   const stageTitles = t.raw("stageTitles") as string[];
   const dir = locale === "en" ? "ltr" : "rtl";
   const fmt = (n: number | string) => (locale === "en" ? String(n) : toPersianDigits(n));
@@ -210,7 +211,7 @@ export default function ClinicalRegistryFormPage({
             {t("home")}
           </Link>
           <span className="opacity-40">/</span>
-          <Link href={`/${locale}/registry`} className="hover:text-primary transition-colors">
+          <Link href={`/${locale}/profile/clinical`} className="hover:text-primary transition-colors">
             {t("registry")}
           </Link>
           <span className="opacity-40">/</span>
@@ -218,6 +219,9 @@ export default function ClinicalRegistryFormPage({
             {t("stageBreadcrumb", { stage: localizeStage(currentStage), title: stageTitles[Number(currentStage) - 1] })}
           </span>
         </div>
+
+        {/* Folded from the old /registry overview on relocation (Task 6a) */}
+        <p className="text-xs text-on-surface-variant leading-relaxed">{tReg("description")}</p>
 
         {/* 8-Stage Progress Stepper */}
         <div className="bg-surface-container-lowest p-4 sm:p-5 rounded-3xl shadow-tier-1 border border-outline-variant/30 overflow-x-auto scrollbar-none">
@@ -271,7 +275,7 @@ export default function ClinicalRegistryFormPage({
               </h2>
             </div>
             <span className="text-xs bg-surface-container-low text-on-surface-variant px-3 py-1 rounded-full">
-              {t("draftId", { draft: id === "new" ? "EHR-DRAFT" : id })}
+              {t("draftId", { draft: t("draftNew") })}
             </span>
           </div>
 
