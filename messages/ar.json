@@ -1288,6 +1288,9 @@
         "noDocument": "لم يتم توليد نص بعد",
         "docView": "عرض كامل",
         "resetClaim": "إعادة البدء",
+        "viewDetails": "عرض",
+        "noError": "لم يتم تسجيل خطأ",
+        "forceRegen": "إعادة التوليد",
         "errorLabel": "خطأ",
         "empty": "لا توجد طلبات في القائمة."
       }

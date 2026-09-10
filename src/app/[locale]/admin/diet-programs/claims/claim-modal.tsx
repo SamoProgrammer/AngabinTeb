@@ -3,18 +3,25 @@
 import { useRef } from "react";
 import { Eye, X } from "lucide-react";
 
-// Native <dialog> viewer for long AI documents / errors: no dependency,
+export type ClaimModalSection = {
+  title: string;
+  body: string | null;
+  emptyText: string;
+  dir?: "auto" | "ltr" | "rtl";
+  tone?: "plain" | "danger";
+};
+
+// One modal per row holding ALL view data (snapshot JSON, AI document,
+// error). Forms and action buttons stay inline in the row. Native <dialog>:
 // Esc + backdrop click close for free. Purely presentational.
-export default function DocModal({
+export default function ClaimModal({
   openLabel,
   title,
-  body,
-  dir = "auto",
+  sections,
 }: {
   openLabel: string;
   title: string;
-  body: string;
-  dir?: "auto" | "ltr" | "rtl";
+  sections: ClaimModalSection[];
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   return (
@@ -45,8 +52,26 @@ export default function DocModal({
             <X size={18} aria-hidden="true" />
           </button>
         </div>
-        <div dir={dir} className="max-h-[70dvh] overflow-auto whitespace-pre-wrap p-5 text-xs leading-loose">
-          {body}
+        <div className="flex max-h-[70dvh] flex-col gap-4 overflow-auto p-5">
+          {sections.map((s) => (
+            <section key={s.title} className="flex flex-col gap-1.5">
+              <h3 className="text-xs font-extrabold text-on-surface-variant">{s.title}</h3>
+              {s.body ? (
+                <div
+                  dir={s.dir ?? "auto"}
+                  className={`whitespace-pre-wrap rounded-xl p-3 text-start text-[11px] leading-relaxed ${
+                    s.tone === "danger"
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-surface-container-low text-on-surface"
+                  }`}
+                >
+                  {s.body}
+                </div>
+              ) : (
+                <p className="text-[11px] text-on-surface-variant">{s.emptyText}</p>
+              )}
+            </section>
+          ))}
         </div>
       </dialog>
     </>

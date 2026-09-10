@@ -312,6 +312,27 @@ export async function retryClaimGeneration(claimId: string) {
   return generateProgramDocument(claimId, { ownerId: claim.userId });
 }
 
+// Regenerate on demand from ANY active state (even with a document already
+// stored): drops the old document, clears the error, and runs a fresh
+// generation. The patient-visible states never offer this — admin only.
+export async function forceRegenerate(claimId: string) {
+  await requireAdmin();
+  const [claim] = await db
+    .select({ id: dietClaims.id, userId: dietClaims.userId, status: dietClaims.status })
+    .from(dietClaims)
+    .where(eq(dietClaims.id, claimId));
+  if (!claim) return { ok: false as const, reason: "not_found" as const };
+  if (claim.status === "pending" || claim.status === "completed") {
+    return { ok: false as const, reason: "invalid_status" as const };
+  }
+  await db.delete(dietDocuments).where(eq(dietDocuments.claimId, claimId));
+  await db
+    .update(dietClaims)
+    .set({ status: "generating", retryCount: 0, lastError: null })
+    .where(eq(dietClaims.id, claimId));
+  return generateProgramDocument(claimId, { ownerId: claim.userId });
+}
+
 export async function requestClaimChanges(claimId: string, note: string) {
   await requireAdmin();
   if (!note.trim()) return { ok: false as const, reason: "invalid_input" as const };

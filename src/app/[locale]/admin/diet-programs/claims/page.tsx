@@ -4,6 +4,7 @@ import { requireAdmin } from "@/contexts/identity/actions";
 import {
   approveClaim,
   cancelClaim,
+  forceRegenerate,
   requestClaimChanges,
   resetClaimToPaid,
   retryClaimGeneration,
@@ -11,7 +12,7 @@ import {
 } from "@/contexts/nutrition/actions";
 import { allClaims } from "@/contexts/nutrition/queries";
 import ClaimPoller from "./claim-poller";
-import DocModal from "./doc-modal";
+import ClaimModal from "./claim-modal";
 import { PendingButton } from "@/components/clinical/pending-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toPersianDigits } from "@/lib/format";
@@ -123,21 +124,32 @@ export default async function AdminDietClaimsPage({
                   </TableCell>
                   <TableCell>{ageText}</TableCell>
                   <TableCell>
-                    <details>
-                      <summary className="cursor-pointer py-2 text-xs font-bold text-primary">
-                        {t("snapshot")}
-                      </summary>
-                      {snapshot ? (
-                        <pre
-                          dir="ltr"
-                          className="mt-2 max-h-64 overflow-auto rounded-xl bg-surface-container-low p-3 text-start text-[11px] leading-relaxed"
-                        >
-                          {JSON.stringify(snapshot, null, 2)}
-                        </pre>
-                      ) : (
-                        <p className="mt-2 text-xs text-on-surface-variant">{t("noSnapshot")}</p>
-                      )}
-                      <form
+                    <div className="flex min-w-44 flex-col gap-2">
+                    <ClaimModal
+                      openLabel={t("viewDetails")}
+                      title={`${r.programName} — ${r.userName}`}
+                      sections={[
+                        {
+                          title: t("errorLabel"),
+                          body: r.lastError,
+                          emptyText: t("noError"),
+                          dir: "ltr",
+                          tone: "danger",
+                        },
+                        {
+                          title: t("docTitle"),
+                          body: r.documentBody,
+                          emptyText: t("noDocument"),
+                        },
+                        {
+                          title: t("snapshot"),
+                          body: snapshot ? JSON.stringify(snapshot, null, 2) : null,
+                          emptyText: t("noSnapshot"),
+                          dir: "ltr",
+                        },
+                      ]}
+                    />
+                    <form
                         action={async (fd: FormData) => {
                           "use server";
                           await requestClaimChanges(
@@ -175,19 +187,9 @@ export default async function AdminDietClaimsPage({
                         className="mt-2 flex flex-col gap-2"
                       >
                         <input type="hidden" name="claimId" value={r.claimId} />
-                        <span className="text-xs font-bold text-on-surface">{t("docTitle")}</span>
-                        {r.documentBody ? (
-                          <DocModal
-                            openLabel={t("docView")}
-                            title={t("docTitle")}
-                            body={r.documentBody}
-                          />
-                        ) : (
-                          <p className="text-xs text-on-surface-variant">{t("noDocument")}</p>
-                        )}
                         <textarea
                           name="body"
-                          rows={3}
+                          rows={2}
                           dir="ltr"
                           defaultValue={r.documentBody ?? ""}
                           placeholder={t("bodyPlaceholder")}
@@ -200,7 +202,7 @@ export default async function AdminDietClaimsPage({
                           <span>{t("saveBody")}</span>
                         </PendingButton>
                       </form>
-                    </details>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1.5">
@@ -230,6 +232,20 @@ export default async function AdminDietClaimsPage({
                         >
                           <RotateCcw size={14} aria-hidden="true" />
                           <span>{t("retry")}</span>
+                        </PendingButton>
+                      </form>
+                      <form
+                        action={async (fd: FormData) => {
+                          "use server";
+                          await forceRegenerate(String(fd.get("claimId")));
+                        }}
+                      >
+                        <input type="hidden" name="claimId" value={r.claimId} />
+                        <PendingButton
+                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary/10 px-3 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/20"
+                        >
+                          <RotateCcw size={14} aria-hidden="true" />
+                          <span>{t("forceRegen")}</span>
                         </PendingButton>
                       </form>
                       <form
