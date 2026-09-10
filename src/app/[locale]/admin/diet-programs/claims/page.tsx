@@ -158,10 +158,22 @@ export default async function AdminDietClaimsPage({
                         className="mt-2 flex flex-col gap-2"
                       >
                         <input type="hidden" name="claimId" value={r.claimId} />
+                        <span className="text-xs font-bold text-on-surface">{t("docTitle")}</span>
+                        {r.documentBody ? (
+                          <div
+                            dir="auto"
+                            className="max-h-64 overflow-auto whitespace-pre-wrap rounded-xl bg-surface-container-low p-3 text-start text-[11px] leading-relaxed text-on-surface"
+                          >
+                            {r.documentBody}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-on-surface-variant">{t("noDocument")}</p>
+                        )}
                         <textarea
                           name="body"
                           rows={3}
                           dir="ltr"
+                          defaultValue={r.documentBody ?? ""}
                           placeholder={t("bodyPlaceholder")}
                           className="rounded-xl border border-outline-variant/30 bg-surface-container-low p-2.5 text-start text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
                         />

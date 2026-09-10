@@ -232,6 +232,7 @@ export const allClaims = cache(async () => {
       status: dietClaims.status,
       retryCount: dietClaims.retryCount,
       createdAt: dietClaims.createdAt,
+      documentBody: dietDocuments.bodyMarkdown,
       snapshotId: registrySnapshots.id,
       personInfo: registrySnapshots.personInfo,
       medicalHistory: registrySnapshots.medicalHistory,
@@ -246,6 +247,7 @@ export const allClaims = cache(async () => {
     .innerJoin(dietPrograms, eq(dietClaims.programId, dietPrograms.id))
     .innerJoin(users, eq(dietClaims.userId, users.id))
     .leftJoin(registrySnapshots, eq(registrySnapshots.claimId, dietClaims.id))
+    .leftJoin(dietDocuments, eq(dietDocuments.claimId, dietClaims.id))
     .orderBy(desc(dietClaims.createdAt))
     .limit(100);
 });
