@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { safeReturnOrDefault } from "@/contexts/identity/return";
 import {
   ArrowLeft,
   ArrowRight,
@@ -27,9 +28,7 @@ function SignInForm({ locale }: { locale: string }) {
   const searchParams = useSearchParams();
 
   const rawReturnUrl = searchParams.get("returnUrl") || searchParams.get("callbackUrl");
-  const returnUrl = (rawReturnUrl && !rawReturnUrl.includes("/signin"))
-    ? rawReturnUrl
-    : `/${locale}/profile/reservations`;
+  const returnUrl = safeReturnOrDefault(rawReturnUrl, locale);
 
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -37,6 +36,7 @@ function SignInForm({ locale }: { locale: string }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [isDemoPending, setIsDemoPending] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   // Normalize Iranian phone number (converts Persian/Arabic numerals to ASCII, trims)
   function normalizePhone(input: string): string {
@@ -97,6 +97,7 @@ function SignInForm({ locale }: { locale: string }) {
         const { error } = await authClient.phoneNumber.verify({
           phoneNumber,
           code: cleanCode,
+          rememberMe,
         });
 
         if (error) {
@@ -121,13 +122,12 @@ function SignInForm({ locale }: { locale: string }) {
     try {
       const res = await fetch(`/api-test/login?role=${requestedRole}`, { method: "POST" });
       if (!res.ok) throw new Error("Demo login endpoint unavailable");
-      const { signedCookie, cookieName } = await res.json();
-      if (signedCookie) {
-        const name = cookieName || "better-auth.session_token";
-        const secure = window.location.protocol === "https:" ? "; Secure" : "";
-        document.cookie = `${name}=${signedCookie}; path=/; max-age=86400; SameSite=Lax${secure}`;
-      }
-      window.location.href = requestedRole === "admin" ? `/${locale}/admin` : returnUrl;
+      // Session cookie arrives via HttpOnly Set-Cookie; never mirror into document.cookie.
+      const target =
+        requestedRole === "admin" && !returnUrl.startsWith(`/${locale}/admin`)
+          ? `/${locale}/admin`
+          : returnUrl;
+      window.location.href = target;
     } catch {
       setErrorMessage(t("demoError"));
       toast.error(t("demoError"), { duration: 4000 });
@@ -299,6 +299,21 @@ function SignInForm({ locale }: { locale: string }) {
               </div>
             </form>
           )}
+
+          {/* Remember me */}
+          <label
+            htmlFor="remember-me"
+            className="mt-5 flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-on-surface cursor-pointer"
+          >
+            <input
+              id="remember-me"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 rounded accent-primary"
+            />
+            <span>{t("rememberMe")}</span>
+          </label>
 
           {/* Divider */}
           <div className="relative my-6">
