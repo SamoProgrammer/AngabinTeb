@@ -5,10 +5,13 @@ import {
   approveClaim,
   cancelClaim,
   requestClaimChanges,
+  resetClaimToPaid,
   retryClaimGeneration,
   saveDocumentBody,
 } from "@/contexts/nutrition/actions";
 import { allClaims } from "@/contexts/nutrition/queries";
+import ClaimPoller from "./claim-poller";
+import DocModal from "./doc-modal";
 import { PendingButton } from "@/components/clinical/pending-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toPersianDigits } from "@/lib/format";
@@ -89,6 +92,7 @@ export default async function AdminDietClaimsPage({
               return (
                 <TableRow key={r.claimId}>
                   <TableCell className="font-medium">
+                    <ClaimPoller claimId={r.claimId} status={r.status} />
                     <span className="block">{r.userName}</span>
                     <span className="block text-[11px] text-on-surface-variant" dir="ltr">
                       {r.userId}
@@ -173,12 +177,11 @@ export default async function AdminDietClaimsPage({
                         <input type="hidden" name="claimId" value={r.claimId} />
                         <span className="text-xs font-bold text-on-surface">{t("docTitle")}</span>
                         {r.documentBody ? (
-                          <div
-                            dir="auto"
-                            className="max-h-64 overflow-auto whitespace-pre-wrap rounded-xl bg-surface-container-low p-3 text-start text-[11px] leading-relaxed text-on-surface"
-                          >
-                            {r.documentBody}
-                          </div>
+                          <DocModal
+                            openLabel={t("docView")}
+                            title={t("docTitle")}
+                            body={r.documentBody}
+                          />
                         ) : (
                           <p className="text-xs text-on-surface-variant">{t("noDocument")}</p>
                         )}
@@ -227,6 +230,19 @@ export default async function AdminDietClaimsPage({
                         >
                           <RotateCcw size={14} aria-hidden="true" />
                           <span>{t("retry")}</span>
+                        </PendingButton>
+                      </form>
+                      <form
+                        action={async (fd: FormData) => {
+                          "use server";
+                          await resetClaimToPaid(String(fd.get("claimId")));
+                        }}
+                      >
+                        <input type="hidden" name="claimId" value={r.claimId} />
+                        <PendingButton
+                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-surface-container px-3 py-2 text-xs font-bold text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface"
+                        >
+                          <span>{t("resetClaim")}</span>
                         </PendingButton>
                       </form>
                       <form

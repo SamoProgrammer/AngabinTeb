@@ -121,10 +121,15 @@ export async function generateDietPlan(prompt: string): Promise<string> {
   try {
     const { text } = await generateText({
       model: await resolveModel(modelId),
-      maxOutputTokens: 8000,
+      // GLM-5.3-flash thinks ALWAYS-ON at max depth by default and burns the
+      // shared output budget on reasoning → empty answer. "low" is the
+      // cheapest valid level on this family (medium silently becomes max).
+      providerOptions: { openai: { reasoningEffort: "low" } },
+      maxOutputTokens: 12000,
       system: DIET_SYSTEM,
       prompt,
     });
+    if (!text.trim()) throw new Error("model returned empty text (reasoning exhausted the output budget)");
     return text;
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);

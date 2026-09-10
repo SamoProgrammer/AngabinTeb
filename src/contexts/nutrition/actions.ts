@@ -241,6 +241,44 @@ export async function generateProgramDocument(claimId: string, opts?: { dbc?: ty
   }
 }
 
+// Poll target for the admin queue + detail pages: tiny status payload.
+// requireAdmin FIRST — this claim may belong to any user.
+export async function getAdminClaimStatus(claimId: string) {
+  await requireAdmin();
+  const [claim] = await db
+    .select({ id: dietClaims.id, status: dietClaims.status, retryCount: dietClaims.retryCount })
+    .from(dietClaims)
+    .where(eq(dietClaims.id, claimId));
+  if (!claim) return { ok: false as const, reason: "not_found" as const };
+  const [doc] = await db
+    .select({ id: dietDocuments.id })
+    .from(dietDocuments)
+    .where(eq(dietDocuments.claimId, claimId));
+  return { ok: true as const, status: claim.status, retryCount: claim.retryCount, hasDocument: !!doc };
+}
+
+// Recovery for bogus outputs (e.g. footer-only documents from empty model
+// text): deletes the document, clears the error, back to paid for a clean
+// re-run. Allowed from any non-terminal state except pending (nothing to
+// reset) and completed (archived).
+export async function resetClaimToPaid(claimId: string) {
+  await requireAdmin();
+  const [claim] = await db
+    .select({ id: dietClaims.id, status: dietClaims.status })
+    .from(dietClaims)
+    .where(eq(dietClaims.id, claimId));
+  if (!claim) return { ok: false as const, reason: "not_found" as const };
+  if (claim.status === "pending" || claim.status === "completed") {
+    return { ok: false as const, reason: "invalid_status" as const };
+  }
+  await db.delete(dietDocuments).where(eq(dietDocuments.claimId, claimId));
+  await db
+    .update(dietClaims)
+    .set({ status: "paid", retryCount: 0, lastError: null })
+    .where(eq(dietClaims.id, claimId));
+  return { ok: true as const };
+}
+
 // Admin claim queue (profile-nutrition relocation). Every action re-verifies
 // the admin session FIRST, loads the claim for ANY user, and guards the flip
 // with allowedClaimTransition from kernel.ts.

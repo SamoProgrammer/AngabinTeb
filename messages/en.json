@@ -1283,6 +1283,8 @@
         "bodyPlaceholder": "Final program text (markdown)…",
         "docTitle": "AI-generated text",
         "noDocument": "No text generated yet",
+        "docView": "View full",
+        "resetClaim": "Restart",
         "errorLabel": "Error",
         "cancel": "Cancel claim",
         "snapshot": "Frozen registry snapshot (JSON)",
