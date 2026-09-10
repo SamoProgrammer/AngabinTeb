@@ -21,7 +21,7 @@ Next 16.3.3 App Router (Turbopack) · React 19 · TS 7.0.2 (oxlint only, NO type
 
 ```
 src/app/[locale]/          # App Router: (discovery), (booking), (account), (auth), (nutrition), (content), (marketing), admin/
-  # Nutrition IA (4 routes only): (nutrition)/calorie (+[id] دوره periods), (nutrition)/diet (+[id] claim-gated AI programs), (nutrition)/body (BMI + profile), (discovery)/foods (+[id] public DB). Deleted: diary, food-analysis/*, booking/offline-diet, nutrition/nutrition, foods/meal-type (proxy.ts 307s cover old URLs).
+  # Nutrition IA (profile-centric): (account)/profile hub + clinical (registry) + diets/[id] (claim statuses) + calorie/[id] (periods) + body (weigh-ins); public (diet)/diet wizard (type→tier→org→payment→check), (discovery)/calculator + foods. Deleted: (nutrition) group, diary, food-analysis/*, offline-diet, foods/meal-type (proxy.ts 307s cover old URLs).
 src/components/clinical/   # Domain assemblies: DoctorCard, ServiceCard, UniversalSearchBar, TrustMetrics, MetabolismCalculator, icons.ts (Material→Lucide map + resolveIcon)
 src/components/layout/     # Global chrome: ClinicalHeader (mega-dropdowns, auth menu), ClinicalFooter, MobileNav, AdminShell
 src/components/ui/         # shadcn (base-ui variant) vendored
@@ -57,7 +57,7 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
 - **Jalali dates only:** all date/datetime UI goes through `JalaliDatePicker` (`@/components/clinical/jalali-date-picker`, emits hidden Gregorian input) + `formatJalali*` — native `type="date"`/`datetime-local` is forbidden (use picker + `type="time"` for times).
 - **Server Actions export async only:** Turbopack build fails on sync exports from `"use server"` modules — pure helpers live in `kernel.ts` (see `validatePeriodInput` precedent), actions stay async.
 - **DAL reads are `cache()`d:** every `contexts/*/queries.ts` export is wrapped in React `cache()` with `server-only` line 1 — keep the pattern on new queries.
-- **Diet claims:** statuses `pending → paid → generating → ready` (`diet_claim`, partial unique index `status != 'completed'` untouched); AI output stored as long-form markdown in `diet_document` (claim FK unique), never structured JSON.
+- **Diet claims:** statuses `pending → paid → generating → needs_review → ready` (+ `failed` after 3 strikes, `completed` on cancel; partial unique index `status != 'completed'` untouched); AI output stored as long-form markdown in `diet_document` (claim FK unique), never structured JSON. Claim carries `organization_context` (nullable enum, insurance) + frozen `price_paid`; user retry renders on `generating` only (`failed` is admin-owned). Admin queue at `admin/diet-programs/claims` (approve / retry / request-changes via supportRequests / edit doc / cancel).
 - **Periods:** `intake_period` carries a physiology snapshot (history never rewrites); `food_intake.meal_slot` ∈ breakfast/lunch/dinner/snack + nullable `period_id`.
 - `proxy.ts` not `middleware.ts` — locale negotiation + optimistic redirects only; every page/action re-verifies session server-side (CVE-2025-29927). Bare links (`/services/...`, `/nutrition/...`) are redirected via `proxy.ts` to `/${locale}/...` preserving searchParams.
 - `LocaleSwitcher` replaces path prefix (`segments[0] = nextLocale`) and calls `window.location.assign` for clean RTL/LTR layout and font reloading. Never append locale to path (`/en/ar` is prevented).
@@ -74,7 +74,11 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
 
 ## Current state
 
-- **HEAD:** `d3669a2` (nutrition simplification + Jalali dates shipped; DB index fix applied to prod)
+- **HEAD:** `864538a` (profile-centric nutrition relocation shipped: 9 tasks + fix wave, all reviews clean)
+- **Shipped Profile Nutrition Relocation (2026-09-09, spec `docs/superpowers/specs/2026-09-09-profile-nutrition-relocation-design.md`, plan `docs/superpowers/plans/2026-09-09-profile-nutrition-relocation.md`):**
+  - **Profile hub:** `/profile` (identity + diets + calorie + body cards), `clinical` (relocated 8-stage registry, honors `?return=`), `diets/[id]` (status timeline + frozen-snapshot banner), `calorie/[id]` (moved tracker), `body` (`weight_log` log + history, physiology sync).
+  - **Public wizard:** `/diet` (type → tier → org → payment → registry-check), resumable `pending` claims, snapshot frozen at payment (`registry_snapshot`, idempotent), `/calculator` public BMR page.
+  - **Review chain + admin:** generation lands `needs_review`, 3-strike `failed`, admin approve/retry/edit/cancel with `ownerId` enforcement + blank-input guards.
 - **Shipped Nutrition Simplification (2026-09-08/09, spec `docs/superpowers/specs/2026-09-08-nutrition-simplification-design.md`):**
   - **4-route IA:** `calorie` (دوره periods: profile snapshot → entries + محاسبه), `diet` (org → type → payment → registry → AI برنامه as plain text), `body` (BMI + profile + registry entry), public `foods` DB. Dashboard, guest funnel, offline-diet stubs, meal-type nuked (~2k lines + 87 locale keys).
   - **AI diet generation:** `ai@7` `generateText` (high maxTokens, Persian long-form), `AI_BASE_URL` switches to OpenAI-compatible provider; no key → clear throw, claim stays `generating` with retry; footer carries specialist-review line.
@@ -89,7 +93,7 @@ bunx playwright test     # e2e (needs dev server + seeded DB)
   - **Admin Console & Account (Screens 12, 14, 15):** Unified `AdminShell` layout with sidebar navigation, tables and forms for Doctors, Services, Nutrition, Foods, Content, Support tickets, and Audit logs; Patient Account (`/appointments`, `/notifications`).
   - **Authentication & Multi-language:** Phone-OTP auth, HMAC SHA-256 session token cookies, demo login, 3 full locales (`fa`, `en`, `ar`), clean routing.
   - **Purge Completed:** 5 legacy subsystems purged in migrations 0010-0012 (appointment payments, home-care serviceability, ambulance dispatch, provider portal, support assignment). Booking kernel, nutrition, content, i18n, admin intact.
-- **Verification status:** 144 pages built successfully (`next build`), 86 unit tests passing + 16 skipped (`vitest`), oxlint 0 errors, tsc 0 errors.
+- **Verification status:** 162 pages built successfully (`next build`), unit suite green (Neon-gated DB tests skip without a branch DB — never run bare `bun run test` where `.env` points at prod), oxlint 0 errors, tsc 0 errors.
 - **Next:** Human deferred verification (R10) — `docker compose up -d` → `db:migrate` → all `db:seed*` → `tsc` → `lint` → `test` → `build` → `playwright test`.
 - **Manager vision (simplified):** booking for doctors/clinics/services (by specialty/type), rehab/home-care/ambulance as plain `service_type` rows, nutrition body→calorie/nutrient + diet, food/educational blog (article/video/pamphlet/FAQ), 3 locales, accounts/appointments. Paid = downloadable content, not appointment charge.
 - **R10 status:** implementation complete; human owns verification. Never commit `.superpowers/`.
