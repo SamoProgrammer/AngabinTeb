@@ -1381,10 +1381,18 @@
       "brand": "Angabin Teb",
       "portalLink": "View Main Portal",
       "adminBadge": "Chief System Administrator",
-      "adminPanel": "Admin Panel"
+      "adminPanel": "Admin Panel",
+      "signOut": "Sign out"
     },
     "nav": {
       "dashboard": "Operations Dashboard",
+      "claims": "Diet Claims Queue",
+      "groups": {
+        "operations": "Operations",
+        "catalog": "Catalog",
+        "knowledge": "Knowledge",
+        "system": "System"
+      },
       "providers": "Doctors & Providers",
       "services": "Services & Diagnostics",
       "categories": "Service Categories",

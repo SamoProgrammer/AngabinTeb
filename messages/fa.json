@@ -1381,10 +1381,18 @@
       "brand": "انگبین طب",
       "portalLink": "مشاهده پورتال اصلی",
       "adminBadge": "مدیر ارشد سامانه",
-      "adminPanel": "پنل مدیر"
+      "adminPanel": "پنل مدیر",
+      "signOut": "خروج"
     },
     "nav": {
       "dashboard": "داشبورد عملیات",
+      "claims": "صف درخواست‌های رژیم",
+      "groups": {
+        "operations": "عملیات",
+        "catalog": "کاتالوگ",
+        "knowledge": "دانش",
+        "system": "سامانه"
+      },
       "providers": "پزشکان و ارائه‌دهندگان",
       "services": "خدمات و آزمایش‌ها",
       "categories": "دسته‌بندی خدمات",
