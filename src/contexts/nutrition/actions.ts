@@ -4,10 +4,10 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { sql, eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, clinicalRegistries, registrySnapshots, nutrients, translations, intakePeriods } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, clinicalRegistries, registrySnapshots, nutrients, translations, intakePeriods, supportRequests } from "@/db/schema";
 import { requireAdmin, requireUser } from "@/contexts/identity/actions";
 import { buildDietPrompt, summarizeRegistry, generateDietPlan, DIET_DOC_FOOTER, DIET_PROMPT_VERSION } from "@/lib/ai-diet";
-import { servingToGrams, nutrientsForIntake, validatePeriodInput, toSnapshotValues, nextGenerationStatus } from "./kernel";
+import { servingToGrams, nutrientsForIntake, validatePeriodInput, toSnapshotValues, nextGenerationStatus, allowedClaimTransition } from "./kernel";
 import { getPhysiology, getPeriod } from "./queries";
 
 function parseOrError<T>(schema: z.ZodType<T>, input: unknown): { ok: true; data: T } | { ok: false; error: string } {
@@ -167,19 +167,23 @@ export async function freezeRegistrySnapshotForUser(userId: string, opts?: { dbc
   return { ok: true as const, frozen };
 }
 
-// Long-form AI diet document (Task 5). Accepts own claims in `paid` (fresh)
-// or `generating` (retry after a failed attempt). Sets `generating` first,
-// then generates, stores the document with the specialist-review footer, and
-// flips to `ready`. On any throw the claim stays `generating` (retryable);
-// `paid`/`generating`/`ready` are all != 'completed' so the
-// one_claim_per_program partial unique index keeps working untouched.
-export async function generateProgramDocument(claimId: string, opts?: { dbc?: typeof db }) {
+// Long-form AI diet document. Chain: paid → generating → needs_review →
+// ready / failed. Accepts own claims in `paid` (fresh) or `generating`
+// (retry after a failed attempt); admins drive retries through
+// `retryClaimGeneration`, which passes the claim owner's id as `ownerId`
+// (requireAdmin runs first there, so no caller session is needed here).
+// Sets `generating` first, then generates, stores the document with the
+// specialist-review footer, and flips to `needs_review`. On any throw the
+// claim stays `generating` (retryable); `paid`/`generating`/`ready` are all
+// != 'completed' so the one_claim_per_program partial unique index keeps
+// working untouched.
+export async function generateProgramDocument(claimId: string, opts?: { dbc?: typeof db; ownerId?: string }) {
   const dbc = opts?.dbc ?? db;
-  const user = await requireUser();
+  const ownerId = opts?.ownerId ?? (await requireUser()).id;
   const [claim] = await dbc
     .select({ id: dietClaims.id, programId: dietClaims.programId, status: dietClaims.status, retryCount: dietClaims.retryCount })
     .from(dietClaims)
-    .where(and(eq(dietClaims.id, claimId), eq(dietClaims.userId, user.id)));
+    .where(and(eq(dietClaims.id, claimId), eq(dietClaims.userId, ownerId)));
   if (!claim) return { ok: false as const, reason: "not_found" as const };
   const [existingDoc] = await dbc
     .select({ id: dietDocuments.id })
@@ -194,9 +198,9 @@ export async function generateProgramDocument(claimId: string, opts?: { dbc?: ty
   await dbc.update(dietClaims).set({ status: "generating" }).where(eq(dietClaims.id, claimId));
   try {
     const [program] = await dbc.select().from(dietPrograms).where(eq(dietPrograms.id, claim.programId));
-    const [profile] = await dbc.select().from(physiologyProfiles).where(eq(physiologyProfiles.userId, user.id));
-    const [registry] = await dbc.select().from(clinicalRegistries).where(eq(clinicalRegistries.userId, user.id));
-    const periods = await dbc.select().from(intakePeriods).where(eq(intakePeriods.userId, user.id));
+    const [profile] = await dbc.select().from(physiologyProfiles).where(eq(physiologyProfiles.userId, ownerId));
+    const [registry] = await dbc.select().from(clinicalRegistries).where(eq(clinicalRegistries.userId, ownerId));
+    const periods = await dbc.select().from(intakePeriods).where(eq(intakePeriods.userId, ownerId));
     const age = profile
       ? Math.floor((Date.now() - new Date(profile.birthDate).getTime()) / (365.25 * 24 * 3600 * 1000))
       : 30;
@@ -227,6 +231,88 @@ export async function generateProgramDocument(claimId: string, opts?: { dbc?: ty
     await dbc.update(dietClaims).set({ status: nextGenerationStatus({ ok: false, retryCount: claim.retryCount ?? 0 }), retryCount: (claim.retryCount ?? 0) + 1 }).where(eq(dietClaims.id, claimId));
     return { ok: false as const, reason: "generation_failed" as const };
   }
+}
+
+// Admin claim queue (profile-nutrition relocation). Every action re-verifies
+// the admin session FIRST, loads the claim for ANY user, and guards the flip
+// with allowedClaimTransition from kernel.ts.
+export async function approveClaim(claimId: string) {
+  await requireAdmin();
+  const [claim] = await db
+    .select({ id: dietClaims.id, status: dietClaims.status })
+    .from(dietClaims)
+    .where(eq(dietClaims.id, claimId));
+  if (!claim) return { ok: false as const, reason: "not_found" as const };
+  if (!allowedClaimTransition(claim.status, "ready")) return { ok: false as const, reason: "invalid_status" as const };
+  await db.update(dietClaims).set({ status: "ready" }).where(eq(dietClaims.id, claimId));
+  return { ok: true as const };
+}
+
+export async function retryClaimGeneration(claimId: string) {
+  await requireAdmin();
+  const [claim] = await db
+    .select({ id: dietClaims.id, userId: dietClaims.userId, status: dietClaims.status })
+    .from(dietClaims)
+    .where(eq(dietClaims.id, claimId));
+  if (!claim) return { ok: false as const, reason: "not_found" as const };
+  if (!allowedClaimTransition(claim.status, "generating")) return { ok: false as const, reason: "invalid_status" as const };
+  await db.update(dietClaims).set({ status: "generating", retryCount: 0 }).where(eq(dietClaims.id, claimId));
+  return generateProgramDocument(claimId, { ownerId: claim.userId });
+}
+
+export async function requestClaimChanges(claimId: string, note: string) {
+  await requireAdmin();
+  const [claim] = await db
+    .select({ id: dietClaims.id, userId: dietClaims.userId, status: dietClaims.status })
+    .from(dietClaims)
+    .where(eq(dietClaims.id, claimId));
+  if (!claim) return { ok: false as const, reason: "not_found" as const };
+  if (!allowedClaimTransition(claim.status, "generating")) return { ok: false as const, reason: "invalid_status" as const };
+  await db.update(dietClaims).set({ status: "generating" }).where(eq(dietClaims.id, claimId));
+  // Patient-visible note via the same support_request rows the profile
+  // messages page lists (listRequests) — the claimId rides in the body.
+  await db.insert(supportRequests).values({
+    id: randomUUID(),
+    userId: claim.userId,
+    kind: "question",
+    subject: "درخواست اصلاح برنامه تغذیه",
+    body: `${note.trim()}\n\nشناسه درخواست: ${claimId}`,
+  });
+  return { ok: true as const };
+}
+
+export async function saveDocumentBody(claimId: string, markdown: string) {
+  await requireAdmin();
+  const [claim] = await db
+    .select({ id: dietClaims.id, status: dietClaims.status })
+    .from(dietClaims)
+    .where(eq(dietClaims.id, claimId));
+  if (!claim) return { ok: false as const, reason: "not_found" as const };
+  if (claim.status !== "needs_review" && claim.status !== "failed") {
+    return { ok: false as const, reason: "invalid_status" as const };
+  }
+  const [doc] = await db
+    .select({ id: dietDocuments.id })
+    .from(dietDocuments)
+    .where(eq(dietDocuments.claimId, claimId));
+  if (!doc) return { ok: false as const, reason: "not_found" as const };
+  await db.update(dietDocuments).set({ bodyMarkdown: markdown }).where(eq(dietDocuments.claimId, claimId));
+  return { ok: true as const };
+}
+
+export async function cancelClaim(claimId: string) {
+  await requireAdmin();
+  const [claim] = await db
+    .select({ id: dietClaims.id, status: dietClaims.status })
+    .from(dietClaims)
+    .where(eq(dietClaims.id, claimId));
+  if (!claim) return { ok: false as const, reason: "not_found" as const };
+  if (claim.status === "completed") return { ok: false as const, reason: "invalid_status" as const };
+  // Record-only cancel: flips the row to completed so the partial unique
+  // index frees the program for re-claim. NO wallet movement here — refunds
+  // (if ever offered) are a separate flow, never implied by this action.
+  await db.update(dietClaims).set({ status: "completed" }).where(eq(dietClaims.id, claimId));
+  return { ok: true as const };
 }
 
 const foodSchema = z.object({

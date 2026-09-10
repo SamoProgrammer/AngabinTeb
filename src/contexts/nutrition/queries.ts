@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { sql, eq, and, gte, lt, desc, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, providers, intakePeriods } from "@/db/schema";
+import { physiologyProfiles, foodIntakes, foods, servingUnits, nutrients, foodNutrients, dailyNutrition, dietPrograms, dietClaims, dietDocuments, providers, intakePeriods, registrySnapshots, users } from "@/db/schema";
 import { localizedRows } from "@/lib/translate";
 import { bmr, tdee, canAccessProgramContent, servingToGrams, nutrientsForIntake, sumDay, macroSplit, type ActivityLevel } from "./kernel";
 import type { FoodCard, FoodDetail, FoodOption, ProgramCard, ProgramContent } from "./model";
@@ -214,6 +214,40 @@ export const myDietClaims = cache(async (userId: string, locale: string) => {
     programName: nameByProgramId.get(r.programId) ?? r.programName,
     hasDocument: documentId !== null,
   }));
+});
+
+// Admin claim queue: every claim joined to its program + claimant name,
+// newest first. Snapshot left-joined for the queue's raw-JSON details view.
+// ponytail: no pagination, add when queue exceeds 100
+export const allClaims = cache(async () => {
+  return db
+    .select({
+      claimId: dietClaims.id,
+      userId: dietClaims.userId,
+      userName: users.name,
+      programId: dietClaims.programId,
+      programName: dietPrograms.name,
+      organizationContext: dietClaims.organizationContext,
+      pricePaid: dietClaims.pricePaid,
+      status: dietClaims.status,
+      retryCount: dietClaims.retryCount,
+      createdAt: dietClaims.createdAt,
+      snapshotId: registrySnapshots.id,
+      personInfo: registrySnapshots.personInfo,
+      medicalHistory: registrySnapshots.medicalHistory,
+      drugHistory: registrySnapshots.drugHistory,
+      addictionHistory: registrySnapshots.addictionHistory,
+      nutritionInfo: registrySnapshots.nutritionInfo,
+      cardiovascularQuestions: registrySnapshots.cardiovascularQuestions,
+      anthropometric: registrySnapshots.anthropometric,
+      medicalDocuments: registrySnapshots.medicalDocuments,
+    })
+    .from(dietClaims)
+    .innerJoin(dietPrograms, eq(dietClaims.programId, dietPrograms.id))
+    .innerJoin(users, eq(dietClaims.userId, users.id))
+    .leftJoin(registrySnapshots, eq(registrySnapshots.claimId, dietClaims.id))
+    .orderBy(desc(dietClaims.createdAt))
+    .limit(100);
 });
 
 // Claim-gated serving point (ticket 13 / spec F1). The ONLY path that hands

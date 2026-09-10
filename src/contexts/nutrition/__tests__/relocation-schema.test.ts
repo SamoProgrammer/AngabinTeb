@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { dietClaims, registrySnapshots } from "@/db/schema/nutrition";
-import { nextGenerationStatus, toSnapshotValues } from "../kernel";
+import { nextGenerationStatus, toSnapshotValues, allowedClaimTransition } from "../kernel";
 
 // NOTE: brief's helper used Object.keys(getTableConfig(t).columns), but in
 // drizzle-orm 0.45 getTableConfig().columns is an Array (keys "0","1",...),
@@ -36,4 +36,10 @@ test("generation transitions: success→review, <3 fails→retry, 3rd→failed",
   expect(nextGenerationStatus({ ok: true, retryCount: 0 })).toBe("needs_review");
   expect(nextGenerationStatus({ ok: false, retryCount: 0 })).toBe("generating");
   expect(nextGenerationStatus({ ok: false, retryCount: 2 })).toBe("failed");
+});
+
+test("admin claim transitions: review→ready allowed, paid/ready locked", () => {
+  expect(allowedClaimTransition("needs_review", "ready")).toBe(true);
+  expect(allowedClaimTransition("pending", "ready")).toBe(false);
+  expect(allowedClaimTransition("ready", "paid")).toBe(false);
 });

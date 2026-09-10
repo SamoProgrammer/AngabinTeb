@@ -1261,6 +1261,25 @@
         "health_centers": "Health centers",
         "clinics": "Clinics",
         "other": "Other"
+      },
+      "claims": {
+        "title": "Diet claim review queue",
+        "claimant": "Claimant",
+        "program": "Program",
+        "org": "Org context",
+        "age": "Age",
+        "ageUnit": "days",
+        "actions": "Actions",
+        "approve": "Approve & publish",
+        "retry": "Retry generation",
+        "requestChanges": "Request changes",
+        "notePlaceholder": "Correction note for the patient…",
+        "saveBody": "Save reviewed text",
+        "bodyPlaceholder": "Final program text (markdown)…",
+        "cancel": "Cancel claim",
+        "snapshot": "Frozen registry snapshot (JSON)",
+        "noSnapshot": "No snapshot recorded",
+        "empty": "No claims in the queue."
       }
     },
     "content": {

@@ -154,3 +154,14 @@ export function nextGenerationStatus(opts: { ok: boolean; retryCount: number }):
   if (opts.ok) return "needs_review";
   return opts.retryCount + 1 >= 3 ? "failed" : "generating";
 }
+
+const ADMIN_TRANSITIONS: Record<string, string[]> = {
+  generating: ["generating"],
+  needs_review: ["ready", "generating"],
+  failed: ["generating", "ready"],
+  paid: ["generating"],
+};
+
+export function allowedClaimTransition(from: string, to: string): boolean {
+  return ADMIN_TRANSITIONS[from]?.includes(to) ?? false;
+}
