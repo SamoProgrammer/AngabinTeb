@@ -1980,7 +1980,31 @@
       "failedNote": "Program preparation failed; try again or contact support.",
       "failedAdminNote": "Our team has been notified and is reviewing this failure; no further action is needed.",
       "supportCta": "Contact support",
-      "detailBack": "Back to my programs"
+      "detailBack": "Back to my programs",
+      "dietType": {
+        "weight_loss": "Weight management",
+        "athletes": "Athletes & fitness",
+        "gender_selection": "Fetal sex selection",
+        "pregnancy": "Pregnancy",
+        "lactation": "Lactation",
+        "children": "Children",
+        "adolescents": "Adolescents",
+        "elderly": "Elderly",
+        "diabetes": "Diabetes",
+        "cardiovascular": "Cardiovascular",
+        "renal": "Kidney",
+        "fatty_liver": "Fatty liver",
+        "oncology": "Oncology",
+        "other_clinical": "Other conditions",
+        "dash": "DASH",
+        "mediterranean": "Mediterranean",
+        "ketogenic": "Clinical ketogenic",
+        "vegetarian": "Vegetarian / vegan",
+        "balanced": "Balanced",
+        "family": "Family",
+        "general": "General",
+        "wellness": "Wellness"
+      }
     }
   },
   "articles": {

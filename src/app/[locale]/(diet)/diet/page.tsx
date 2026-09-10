@@ -53,6 +53,11 @@ export default async function DietWizardPage({
   const { locale } = await params;
   const { step, type, program, org } = await searchParams;
   const t = await getTranslations("nutrition");
+  const typeLabel = (pt: string) => {
+    const key = `dietWizard.dietType.${pt}`;
+    const v = t(key);
+    return v === key ? pt : v;
+  };
   const dir = locale === "en" ? "ltr" : "rtl";
   const BackIcon = locale === "en" ? ArrowLeft : ArrowRight;
   const fmtStep = (n: number) => (locale === "en" ? String(n) : toPersianDigits(n));
@@ -101,7 +106,7 @@ export default async function DietWizardPage({
                 <span className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                   <Salad size={24} aria-hidden="true" />
                 </span>
-                <span className="font-bold text-sm sm:text-base text-on-surface">{pt}</span>
+                <span className="font-bold text-sm sm:text-base text-on-surface">{typeLabel(pt)}</span>
               </Link>
             ))}
           </div>
@@ -136,7 +141,7 @@ export default async function DietWizardPage({
                   <div className="flex flex-col gap-4">
                     <div className="flex items-start justify-between gap-2">
                       <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full">
-                        {p.planType || t("dietDefaultPlanType")}
+                        {p.planType ? typeLabel(p.planType) : t("dietDefaultPlanType")}
                       </span>
                       <span className="bg-secondary-container/20 text-secondary text-xs font-bold px-3 py-1 rounded-full">
                         {durationText(p.durationDays)}

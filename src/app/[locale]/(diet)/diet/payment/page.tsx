@@ -34,6 +34,8 @@ export default async function DietPaymentPage({
   const orgLabel = claim.organizationContext
     ? t(ORG_LABEL_KEYS[claim.organizationContext] ?? "dietContextOtherLabel")
     : t("dietWizard.orgNoneLabel");
+  const typeKey = `dietWizard.dietType.${claim.planType}`;
+  const typeLabel = t(typeKey) === typeKey ? claim.planType : t(typeKey);
 
   return (
     <div className="flex flex-col gap-6 text-start" dir={dir}>
@@ -51,7 +53,7 @@ export default async function DietPaymentPage({
           </div>
           <div className="flex items-center justify-between gap-2">
             <dt className="text-on-surface-variant text-xs">{t("dietWizard.payTier")}</dt>
-            <dd className="font-bold text-on-surface">{claim.planType}</dd>
+            <dd className="font-bold text-on-surface">{typeLabel}</dd>
           </div>
           <div className="flex items-center justify-between gap-2">
             <dt className="text-on-surface-variant text-xs">{t("dietWizard.payOrg")}</dt>

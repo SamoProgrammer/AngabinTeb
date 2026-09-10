@@ -1980,7 +1980,31 @@
       "failedNote": "فشل إعداد البرنامج؛ حاول مجدداً أو اتصل بالدعم.",
       "failedAdminNote": "تم إخطار فريقنا وسيراجع هذا الخطأ؛ لا حاجة لأي إجراء آخر.",
       "supportCta": "اتصل بالدعم",
-      "detailBack": "رجوع إلى برامجي"
+      "detailBack":  "رجوع إلى برامجي",
+      "dietType": {
+        "weight_loss": "إدارة الوزن",
+        "athletes": "الرياضيون واللياقة",
+        "gender_selection": "تحديد جنس الجنين",
+        "pregnancy": "الحمل",
+        "lactation": "الرضاعة",
+        "children": "الأطفال",
+        "adolescents": "المراهقون",
+        "elderly": "كبار السن",
+        "diabetes": "السكري",
+        "cardiovascular": "القلب والأوعية",
+        "renal": "الكلى",
+        "fatty_liver": "الكبد الدهني",
+        "oncology": "الأورام",
+        "other_clinical": "حالات أخرى",
+        "dash": "داش",
+        "mediterranean": "متوسطي",
+        "ketogenic": "كيتوني سريري",
+        "vegetarian": "نباتي",
+        "balanced": "متوازن",
+        "family": "العائلة",
+        "general": "عام",
+        "wellness": "العافية"
+      }
     }
   },
   "articles": {
