@@ -2082,6 +2082,7 @@
       "pendingNote": "Complete the payment to activate your program.",
       "paidNote": "Payment recorded; complete your clinical file to start preparation.",
       "failedNote": "Program preparation failed; try again or contact support.",
+      "failedAdminNote": "Our team has been notified and is reviewing this failure; no further action is needed.",
       "supportCta": "Contact support",
       "detailBack": "Back to my programs"
     }

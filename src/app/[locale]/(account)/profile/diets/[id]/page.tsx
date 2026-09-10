@@ -155,41 +155,41 @@ export default async function ProfileDietDetailPage({
           </section>
         )}
 
-        {(claim.status === "failed" || claim.status === "generating") && (
+        {claim.status === "generating" && (
+          <form
+            action={async () => {
+              "use server";
+              await generateProgramDocument(claim.claimId);
+              revalidatePath(`/${locale}/profile/diets/${claim.claimId}`);
+            }}
+          >
+            <button
+              type="submit"
+              aria-label="Retry"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-3 rounded-xl shadow-xs transition-all"
+            >
+              <RotateCcw size={18} aria-hidden="true" />
+              <span>{t("dietDocRetry")}</span>
+            </button>
+          </form>
+        )}
+
+        {claim.status === "failed" && (
           <div className="flex flex-col gap-3">
-            {claim.status === "failed" && (
-              <p className="text-xs text-on-surface-variant leading-relaxed">
-                {t("dietWizard.failedNote")}
-              </p>
-            )}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <form
-                action={async () => {
-                  "use server";
-                  await generateProgramDocument(claim.claimId);
-                  revalidatePath(`/${locale}/profile/diets/${claim.claimId}`);
-                }}
-              >
-                <button
-                  type="submit"
-                  aria-label="Retry"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs sm:text-sm px-6 py-3 rounded-xl shadow-xs transition-all"
-                >
-                  <RotateCcw size={18} aria-hidden="true" />
-                  <span>{t("dietDocRetry")}</span>
-                </button>
-              </form>
-              {claim.status === "failed" && (
-                <Link
-                  href={`/${locale}/support`}
-                  aria-label="ContactSupport"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all"
-                >
-                  <LifeBuoy size={18} aria-hidden="true" />
-                  <span>{t("dietWizard.supportCta")}</span>
-                </Link>
-              )}
-            </div>
+            <p className="text-xs text-on-surface-variant leading-relaxed">
+              {t("dietWizard.failedNote")}
+            </p>
+            <p className="text-xs text-on-surface-variant leading-relaxed">
+              {t("dietWizard.failedAdminNote")}
+            </p>
+            <Link
+              href={`/${locale}/support`}
+              aria-label="ContactSupport"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all"
+            >
+              <LifeBuoy size={18} aria-hidden="true" />
+              <span>{t("dietWizard.supportCta")}</span>
+            </Link>
           </div>
         )}
       </section>
