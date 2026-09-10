@@ -21,7 +21,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-// Copied from the old (nutrition)/diet page (Task 7 deletes it) — never
+// Diet program definitions, carried over from the old (nutrition)/diet page — never
 // import across route groups. Plus the "no organization" null option.
 const CONTEXT_DEFS: Record<string, { icon: LucideIcon; labelKey: string; hintKey: string }> = {
   clinics: { icon: Hospital, labelKey: "dietContextClinicsLabel", hintKey: "dietContextClinicsHint" },
