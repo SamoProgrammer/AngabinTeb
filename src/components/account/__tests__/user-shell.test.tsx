@@ -27,10 +27,10 @@ describe("user shell nav", () => {
       expect(labelIdx).toBeGreaterThan(-1);
       return html.slice(html.lastIndexOf("<a", labelIdx), labelIdx);
     };
-    const dietsAnchor = anchorFor("diets");
+    const dietsAnchor = anchorFor("رژیم‌های من");
     expect(dietsAnchor).toContain('href="/fa/profile/diets"');
     expect(dietsAnchor.includes("bg-primary text-on-primary")).toBe(true);
-    const dashAnchor = anchorFor("dashboard");
+    const dashAnchor = anchorFor("پیشخوان");
     expect(dashAnchor).toContain('href="/fa/profile"');
     expect(dashAnchor.includes("bg-primary text-on-primary")).toBe(false);
   });

@@ -61,6 +61,24 @@ export const USER_NAV_GROUPS: UserNavGroup[] = [
 
 const USER_NAV_ITEMS = USER_NAV_GROUPS.flatMap((group) => group.items);
 
+const NAV_FALLBACK_FA: Record<string, string> = {
+  overview: "نمای کلی",
+  booking: "نوبت‌ها",
+  nutrition: "تغذیه",
+  messages: "پیام‌ها",
+  account: "حساب",
+  dashboard: "پیشخوان",
+  reservations: "نوبت‌های من",
+  diets: "رژیم‌های من",
+  calorie: "کالری",
+  body: "وضعیت بدنی",
+  clinical: "پرونده بالینی",
+  notifications: "اعلان‌ها",
+  support: "پشتیبانی",
+  personalInfo: "اطلاعات فردی",
+  balance: "کیف پول",
+};
+
 const SHELL_LABELS = {
   dashboard: { fa: "پنل من", en: "My panel", ar: "لوحتي" },
   brand: { fa: "انگبین طب", en: "Angabin Teb", ar: "أنغبين طب" },
@@ -109,7 +127,7 @@ export function UserShell({ children, activePath, locale, badges }: UserShellPro
       const trans = tShell(itemKey ? `items.${itemKey}` : `groups.${groupKey}`);
       if (trans && !trans.includes("items.") && !trans.includes("groups.")) return trans;
     }
-    return fallback;
+    return NAV_FALLBACK_FA[itemKey || groupKey] ?? fallback;
   };
 
   // Longest-href-wins: on /profile/diets/abc both /profile and /profile/diets
@@ -149,7 +167,7 @@ export function UserShell({ children, activePath, locale, badges }: UserShellPro
   const renderNavGroups = () => (
     <div className="flex flex-col gap-4">
       {USER_NAV_GROUPS.map((group) => (
-        <section key={group.key} aria-label={group.key}>
+        <section key={group.key} aria-label={getNavText(group.key, "", group.key)}>
           <h2 className="px-3.5 pb-1.5 text-[11px] font-bold text-on-surface-variant/70">
             {getNavText(group.key, "", group.key)}
           </h2>

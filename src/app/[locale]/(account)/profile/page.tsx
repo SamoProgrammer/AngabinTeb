@@ -62,6 +62,7 @@ export default async function ProfileHubPage({
   const user = await requireUser();
   const { locale } = await params;
   const t = await getTranslations("account.hub");
+  const tov = await getTranslations("account.overview");
   const tn = await getTranslations("nutrition");
   const ts = await getTranslations("states");
   const busyLabel = ts("loading");
@@ -105,7 +106,7 @@ export default async function ProfileHubPage({
     ? `/${locale}/diet/payment?claim=${pending.claimId}`
     : `/${locale}/diet`;
 
-  // Row 1 queues (fa fallback strings until Task 6 backfills account.overview keys).
+  // Row 1 queues (aria-labels + empty states via account.overview keys).
   const now = Date.now();
   const upcoming = appointments
     .filter(
@@ -140,7 +141,7 @@ export default async function ProfileHubPage({
       </div>
 
       <section
-        aria-label="Queues"
+        aria-label={tov("title")}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
         <PendingLink
@@ -187,7 +188,7 @@ export default async function ProfileHubPage({
           </div>
           {dietActions.length === 0 ? (
             <p className="text-xs sm:text-sm text-on-surface-variant">
-              همه‌چیز مرتب است
+              {tov("queuesEmpty")}
             </p>
           ) : (
             <p className="font-extrabold text-3xl text-on-surface">
@@ -211,7 +212,7 @@ export default async function ProfileHubPage({
           </div>
           {unreadTotal === 0 ? (
             <p className="text-xs sm:text-sm text-on-surface-variant">
-              همه‌چیز مرتب است
+              {tov("queuesEmpty")}
             </p>
           ) : (
             <p className="font-extrabold text-3xl text-on-surface">
@@ -385,7 +386,7 @@ export default async function ProfileHubPage({
       </div>
 
       <nav
-        aria-label="Quick actions"
+        aria-label={tov("quickActions")}
         className="grid grid-cols-2 sm:grid-cols-4 gap-4"
       >
         <PendingLink

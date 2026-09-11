@@ -161,9 +161,8 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
 
   const userMenuLabels = {
     account: t("userMenu.account"),
-    // ponytail: hardcoded fa until Task 6 backfills header.userMenu.dashboard/adminConsole
-    dashboard: "پنل من",
-    adminConsole: "کنسول مدیریت",
+    dashboard: t("userMenu.dashboard"),
+    adminConsole: t("userMenu.adminConsole"),
   };
 
   // Close dropdowns and menus on click outside

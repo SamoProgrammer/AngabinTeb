@@ -1071,7 +1071,34 @@
         "فعالیت بدنی و سبک زندگی",
         "آزمایشات پاراکلینیک",
         "مرور و ثبت نهایی پرونده"
-      ]
+      ],
+      "shell": {
+        "groups": {
+          "overview": "نمای کلی",
+          "booking": "نوبت‌ها",
+          "nutrition": "تغذیه",
+          "messages": "پیام‌ها",
+          "account": "حساب"
+        },
+        "items": {
+          "dashboard": "پیشخوان",
+          "reservations": "نوبت‌های من",
+          "diets": "رژیم‌های من",
+          "calorie": "کالری",
+          "body": "وضعیت بدنی",
+          "clinical": "پرونده بالینی",
+          "messages": "پیام‌ها",
+          "notifications": "اعلان‌ها",
+          "support": "پشتیبانی",
+          "personalInfo": "اطلاعات فردی",
+          "balance": "کیف پول"
+        }
+      },
+      "overview": {
+        "title": "صف‌های پیگیری",
+        "queuesEmpty": "موردی برای پیگیری نیست",
+        "quickActions": "اقدام‌های سریع"
+      }
     }
   },
   "notifications": {
@@ -1597,7 +1624,9 @@
       "admin": "پنل مدیریت",
       "adminDesc": "مدیریت پزشکان، خدمات و گزارش‌ها",
       "signOut": "خروج از حساب",
-      "adminBadge": "مدیر سامانه"
+      "adminBadge": "مدیر سامانه",
+      "dashboard": "پنل من",
+      "adminConsole": "کنسول مدیریت"
     }
   },
   "search": {
