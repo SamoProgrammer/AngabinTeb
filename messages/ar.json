@@ -1071,34 +1071,34 @@
         "النشاط البدني ونمط الحياة",
         "الفحوصات المخبرية",
         "المراجعة والتسجيل النهائي"
-      ],
-      "shell": {
-        "groups": {
-          "overview": "نظرة عامة",
-          "booking": "المواعيد",
-          "nutrition": "التغذية",
-          "messages": "الرسائل",
-          "account": "الحساب"
-        },
-        "items": {
-          "dashboard": "اللوحة",
-          "reservations": "مواعيدي",
-          "diets": "حمياتي",
-          "calorie": "السعرات",
-          "body": "الجسم",
-          "clinical": "السجل السريري",
-          "messages": "الرسائل",
-          "notifications": "الإشعارات",
-          "support": "الدعم",
-          "personalInfo": "المعلومات الشخصية",
-          "balance": "المحفظة"
-        }
+      ]
+    },
+    "shell": {
+      "groups": {
+        "overview": "نظرة عامة",
+        "booking": "المواعيد",
+        "nutrition": "التغذية",
+        "messages": "الرسائل",
+        "account": "الحساب"
       },
-      "overview": {
-        "title": "قوائم المتابعة",
-        "queuesEmpty": "لا يوجد ما يستدعي المتابعة",
-        "quickActions": "إجراءات سريعة"
+      "items": {
+        "dashboard": "اللوحة",
+        "reservations": "مواعيدي",
+        "diets": "حمياتي",
+        "calorie": "السعرات",
+        "body": "الجسم",
+        "clinical": "السجل السريري",
+        "messages": "الرسائل",
+        "notifications": "الإشعارات",
+        "support": "الدعم",
+        "personalInfo": "المعلومات الشخصية",
+        "balance": "المحفظة"
       }
+    },
+    "overview": {
+      "title": "قوائم المتابعة",
+      "queuesEmpty": "لا يوجد ما يستدعي المتابعة",
+      "quickActions": "إجراءات سريعة"
     }
   },
   "notifications": {

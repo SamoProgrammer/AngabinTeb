@@ -1071,34 +1071,34 @@
         "Physical Activity & Lifestyle",
         "Clinical Lab Tests",
         "Review & Final Submission"
-      ],
-      "shell": {
-        "groups": {
-          "overview": "Overview",
-          "booking": "Bookings",
-          "nutrition": "Nutrition",
-          "messages": "Messages",
-          "account": "Account"
-        },
-        "items": {
-          "dashboard": "Dashboard",
-          "reservations": "My reservations",
-          "diets": "My diets",
-          "calorie": "Calorie",
-          "body": "Body",
-          "clinical": "Clinical registry",
-          "messages": "Messages",
-          "notifications": "Notifications",
-          "support": "Support",
-          "personalInfo": "Personal info",
-          "balance": "Wallet"
-        }
+      ]
+    },
+    "shell": {
+      "groups": {
+        "overview": "Overview",
+        "booking": "Bookings",
+        "nutrition": "Nutrition",
+        "messages": "Messages",
+        "account": "Account"
       },
-      "overview": {
-        "title": "Queues",
-        "queuesEmpty": "Nothing to follow up",
-        "quickActions": "Quick actions"
+      "items": {
+        "dashboard": "Dashboard",
+        "reservations": "My reservations",
+        "diets": "My diets",
+        "calorie": "Calorie",
+        "body": "Body",
+        "clinical": "Clinical registry",
+        "messages": "Messages",
+        "notifications": "Notifications",
+        "support": "Support",
+        "personalInfo": "Personal info",
+        "balance": "Wallet"
       }
+    },
+    "overview": {
+      "title": "Queues",
+      "queuesEmpty": "Nothing to follow up",
+      "quickActions": "Quick actions"
     }
   },
   "notifications": {
