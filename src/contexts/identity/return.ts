@@ -23,3 +23,12 @@ export function toSignin(locale: string, returnTo: string | null | undefined): s
 export function safeReturnOrDefault(raw: string | null | undefined, locale: string): string {
   return isSafeReturn(raw, locale) ? (raw as string) : defaultDashboard(locale);
 }
+
+export function signedInTarget(
+  role: string | null | undefined,
+  raw: string | null | undefined,
+  locale: string,
+): string {
+  if (isSafeReturn(raw, locale)) return raw as string;
+  return role === "admin" ? `/${locale}/admin` : defaultDashboard(locale);
+}

@@ -4,6 +4,7 @@ import {
   isSafeReturn,
   parseLocale,
   safeReturnOrDefault,
+  signedInTarget,
   toSignin,
 } from "../return";
 
@@ -65,5 +66,13 @@ describe("toSignin / safeReturnOrDefault", () => {
     expect(toSignin("fa", "/fa/profile/calorie")).toBe(
       "/fa/signin?returnUrl=%2Ffa%2Fprofile%2Fcalorie",
     );
+  });
+  it("signedInTarget prefers a safe return for any role", () => {
+    expect(signedInTarget("patient", "/fa/profile/calorie", "fa")).toBe("/fa/profile/calorie");
+    expect(signedInTarget("admin", "/fa/admin/users", "fa")).toBe("/fa/admin/users");
+  });
+  it("signedInTarget falls back by role for unsafe input", () => {
+    expect(signedInTarget("admin", "https://evil.com", "fa")).toBe("/fa/admin");
+    expect(signedInTarget("patient", null, "fa")).toBe("/fa/profile/reservations");
   });
 });
