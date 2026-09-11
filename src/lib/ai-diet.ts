@@ -133,6 +133,6 @@ export async function generateDietPlan(prompt: string): Promise<string> {
     return text;
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
-    throw new Error(`diet generation via ${via} model "${modelId}" failed: ${detail}`);
+    throw new Error(`diet generation via ${via} model "${modelId}" failed: ${detail}`, { cause: err });
   }
 }

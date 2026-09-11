@@ -23,6 +23,14 @@ vi.mock("next-intl", () => ({
   },
 }));
 
+vi.mock("next/headers", () => ({
+  headers: async () => new Headers(),
+}));
+
+vi.mock("@/lib/auth", () => ({
+  auth: { api: { getSession: vi.fn().mockResolvedValue(null) } },
+}));
+
 vi.mock("@/lib/auth-client", () => ({
   authClient: {
     phoneNumber: {
@@ -33,8 +41,10 @@ vi.mock("@/lib/auth-client", () => ({
 }));
 
 describe("SignInPage", () => {
-  it("renders brand heading and phone number form in initial state", () => {
-    const html = renderToString(<SignInPage params={{ locale: "fa" }} />);
+  it("renders brand heading and phone number form in initial state", async () => {
+    const html = renderToString(
+      await SignInPage({ params: { locale: "fa" }, searchParams: Promise.resolve({}) }),
+    );
 
     expect(html).toContain("ورود به سامانه");
     expect(html).toContain("شماره تلفن همراه");
@@ -43,8 +53,10 @@ describe("SignInPage", () => {
     expect(html).toContain("بازگشت به صفحه اصلی");
   });
 
-  it("sets ltr direction when locale is en", () => {
-    const html = renderToString(<SignInPage params={{ locale: "en" }} />);
+  it("sets ltr direction when locale is en", async () => {
+    const html = renderToString(
+      await SignInPage({ params: { locale: "en" }, searchParams: Promise.resolve({}) }),
+    );
 
     expect(html).toContain("dir=\"ltr\"");
     expect(html).toContain('href="/en"');
