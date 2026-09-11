@@ -117,7 +117,9 @@ export function UserShell({ children, activePath, locale, badges }: UserShellPro
   const getShellText = (k: keyof typeof SHELL_LABELS) => {
     if (tShell) {
       const trans = tShell(k);
-      if (trans && trans !== k) return trans;
+      // next-intl returns the namespaced key on a miss ("account.shell.<k>");
+      // never render that — fall back to the built-in label instead.
+      if (trans && trans !== k && !trans.includes("account.shell.")) return trans;
     }
     return SHELL_LABELS[k][currentLocale];
   };

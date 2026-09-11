@@ -1093,7 +1093,13 @@
         "support": "الدعم",
         "personalInfo": "المعلومات الشخصية",
         "balance": "المحفظة"
-      }
+      },
+      "dashboard": "لوحتي",
+      "brand": "أنغبين طب",
+      "portalLink": "العودة إلى البوابة",
+      "signOut": "تسجيل الخروج",
+      "openMenu": "فتح القائمة",
+      "closeMenu": "إغلاق القائمة"
     },
     "overview": {
       "title": "قوائم المتابعة",

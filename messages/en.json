@@ -1093,7 +1093,13 @@
         "support": "Support",
         "personalInfo": "Personal info",
         "balance": "Wallet"
-      }
+      },
+      "dashboard": "My panel",
+      "brand": "Angabin Teb",
+      "portalLink": "Back to portal",
+      "signOut": "Sign out",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu"
     },
     "overview": {
       "title": "Queues",

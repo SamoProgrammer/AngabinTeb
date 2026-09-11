@@ -1093,7 +1093,13 @@
         "support": "پشتیبانی",
         "personalInfo": "اطلاعات فردی",
         "balance": "کیف پول"
-      }
+      },
+      "dashboard": "پنل من",
+      "brand": "انگبین طب",
+      "portalLink": "بازگشت به پورتال",
+      "signOut": "خروج",
+      "openMenu": "باز کردن منو",
+      "closeMenu": "بستن منو"
     },
     "overview": {
       "title": "صف‌های پیگیری",
