@@ -9,10 +9,8 @@ import {
   ArrowLeft,
   ArrowRight,
   Atom,
-  Badge,
   BookOpen,
   Calculator,
-  CalendarCheck,
   ChevronDown,
   CircleHelp,
   FilePenLine,
@@ -24,21 +22,16 @@ import {
   Info,
   Languages,
   LayoutGrid,
-  Mail,
   MapPin,
   Menu,
   Newspaper,
   OctagonAlert,
-  ShieldCheck,
   Stethoscope,
   User,
   Utensils,
   Video,
-  Wallet,
   X,
-  Bell,
   Flower2,
-  LogOut,
   type LucideIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
@@ -168,30 +161,9 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
 
   const userMenuLabels = {
     account: t("userMenu.account"),
-    appointments: t("userMenu.appointments"),
-    appointmentsDesc: t("userMenu.appointmentsDesc"),
-    personalInfo: t("userMenu.personalInfo"),
-    personalInfoDesc: t("userMenu.personalInfoDesc"),
-    balance: t("userMenu.balance"),
-    balanceDesc: t("userMenu.balanceDesc"),
-    messages: t("userMenu.messages"),
-    messagesDesc: t("userMenu.messagesDesc"),
-    notifications: t("userMenu.notifications"),
-    notificationsDesc: t("userMenu.notificationsDesc"),
-    admin: t("userMenu.admin"),
-    adminDesc: t("userMenu.adminDesc"),
-    signOut: t("userMenu.signOut"),
-    adminBadge: t("userMenu.adminBadge"),
-    walletUnit: t("walletUnit"),
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await authClient.signOut();
-    } catch (err) {
-      console.error("Sign out error:", err);
-    }
-    window.location.href = `/${locale}`;
+    // ponytail: hardcoded fa until Task 6 backfills header.userMenu.dashboard/adminConsole
+    dashboard: "پنل من",
+    adminConsole: "کنسول مدیریت",
   };
 
   // Close dropdowns and menus on click outside
@@ -357,184 +329,51 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
             <LocaleSwitcher />
           </div>
 
-          {/* Wallet Balance Badge */}
-          {isAuthenticated && (
-            <Link
-              href={`/${locale}/profile/balance`}
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-primary/10 hover:bg-primary/15 border border-primary/25 px-3 py-2 text-xs sm:text-sm font-bold text-primary transition-all shadow-xs"
-              title={userMenuLabels.balance}
-            >
-              <Wallet size={16} fill="currentColor" aria-hidden="true" />
-              <span>{locale === "en" ? "0" : locale === "ar" ? "٠" : "۰"} {userMenuLabels.walletUnit}</span>
-            </Link>
-          )}
-
           {/* Patient Auth CTA / User Account Menu */}
           {isAuthenticated ? (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                aria-expanded={userMenuOpen}
-                aria-haspopup="menu"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary/10 hover:bg-primary/15 border border-primary/25 px-3 py-2 text-xs sm:text-sm font-bold text-primary transition-all cursor-pointer shadow-xs active:scale-95"
-              >
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                  <User size={16} fill="currentColor" aria-hidden="true" />
-                </div>
-                <span className="max-w-[120px] truncate">
-                  {user?.name || userMenuLabels.account}
-                </span>
-                <ChevronDown
-                  size={16}
-                  className={`transition-transform duration-200 ${
-                    userMenuOpen ? "rotate-180" : ""
-                  }`}
-                  aria-hidden="true"
-                />
-              </button>
-
-              {/* Dropdown Menu */}
-              <div
-                role="menu"
-                className={`absolute top-full end-0 mt-2 w-72 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-tier-2 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-start ${
-                  userMenuOpen ? "block" : "hidden"
-                }`}
-              >
-                {/* User Info Header */}
-                <div className="p-3 rounded-xl bg-surface-container-low/80 mb-1.5 border border-outline-variant/20">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-on-surface truncate">
-                      {user?.name || userMenuLabels.account}
-                    </span>
-                    {isAdmin && (
-                      <span className="bg-primary/15 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
-                        {userMenuLabels.adminBadge}
-                      </span>
-                    )}
-                  </div>
-                  {user?.phoneNumber && (
-                    <span className="text-[11px] text-on-surface-variant font-mono block mt-0.5" dir="ltr">
-                      {user.phoneNumber}
-                    </span>
-                  )}
-                </div>
-
-                {/* Menu Links */}
-                <div className="flex flex-col gap-1">
-                  <Link
-                    href={`/${locale}/profile/reservations`}
-                    role="menuitem"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                      <CalendarCheck size={18} aria-hidden="true" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                        {userMenuLabels.appointments}
-                      </span>
-                      <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1">
-                        {userMenuLabels.appointmentsDesc}
-                      </span>
-                    </div>
-                  </Link>
-
-                  <Link
-                    href={`/${locale}/profile/personal-info`}
-                    role="menuitem"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                      <Badge size={18} aria-hidden="true" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                        {userMenuLabels.personalInfo}
-                      </span>
-                      <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1">
-                        {userMenuLabels.personalInfoDesc}
-                      </span>
-                    </div>
-                  </Link>
-
-                  <Link
-                    href={`/${locale}/profile/balance`}
-                    role="menuitem"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                      <Wallet size={18} aria-hidden="true" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                        {userMenuLabels.balance}
-                      </span>
-                      <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1">
-                        {userMenuLabels.balanceDesc}
-                      </span>
-                    </div>
-                  </Link>
-
-                  <Link
-                    href={`/${locale}/profile/messages`}
-                    role="menuitem"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                      <Mail size={18} aria-hidden="true" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                        {userMenuLabels.messages}
-                      </span>
-                      <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1">
-                        {userMenuLabels.messagesDesc}
-                      </span>
-                    </div>
-                  </Link>
-
-                  {isAdmin && (
-                    <Link
-                      href={`/${locale}/admin`}
-                      role="menuitem"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="group flex items-start gap-2.5 p-2 rounded-xl hover:bg-surface-container-low transition-colors"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                        <ShieldCheck size={18} aria-hidden="true" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                          {userMenuLabels.admin}
-                        </span>
-                        <span className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-1">
-                          {userMenuLabels.adminDesc}
-                        </span>
-                      </div>
-                    </Link>
-                  )}
-                </div>
-
-                {/* Divider */}
-                <div className="border-t border-outline-variant/20 my-1.5" />
-
-                {/* Sign Out Button */}
+            isAdmin ? (
+              <div className="relative">
                 <button
                   type="button"
-                  role="menuitem"
-                  onClick={handleSignOut}
-                  className="flex items-center gap-2.5 w-full p-2 rounded-xl text-error hover:bg-error-container/20 text-xs sm:text-sm font-semibold transition-colors cursor-pointer text-start"
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  aria-expanded={userMenuOpen}
+                  aria-haspopup="menu"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary/10 hover:bg-primary/15 border border-primary/25 px-3 py-2 text-xs sm:text-sm font-bold text-primary transition-all cursor-pointer shadow-xs"
                 >
-                  <LogOut size={18} aria-hidden="true" />
-                  <span>{userMenuLabels.signOut}</span>
+                  <span className="max-w-[120px] truncate">{user?.name || userMenuLabels.account}</span>
+                  <ChevronDown size={16} aria-hidden="true" />
                 </button>
+                <div
+                  role="menu"
+                  className={`absolute top-full end-0 mt-2 w-72 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-tier-2 p-2 z-50 text-start ${userMenuOpen ? "block" : "hidden"}`}
+                >
+                  <Link
+                    role="menuitem"
+                    href={`/${locale}/profile`}
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-surface-container-low text-xs sm:text-sm font-bold"
+                  >
+                    {userMenuLabels.dashboard}
+                  </Link>
+                  <Link
+                    role="menuitem"
+                    href={`/${locale}/admin`}
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-surface-container-low text-xs sm:text-sm font-bold"
+                  >
+                    {userMenuLabels.adminConsole}
+                  </Link>
+                </div>
               </div>
-            </div>
+            ) : (
+              <Link
+                href={`/${locale}/profile`}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-primary shadow-tier-1 hover:bg-primary-container transition-all"
+              >
+                <User size={18} aria-hidden="true" />
+                <span>{userMenuLabels.dashboard}</span>
+              </Link>
+            )
           ) : (
             <Link
               href={toSignin(locale, pathname)}
@@ -564,83 +403,19 @@ export function ClinicalHeader({ locale = "fa" }: ClinicalHeaderProps) {
       {/* Mobile Drawer (When hamburger clicked on phones) */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-outline-variant/30 bg-surface-container-lowest p-4 shadow-tier-2 animate-in slide-in-from-top-3 duration-200 text-start">
-          {/* Authenticated user mobile card OR login button */}
-          <div className="mb-4">
-            {isAuthenticated ? (
-              <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-low/70 p-3.5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-on-primary">
-                      <User size={20} fill="currentColor" aria-hidden="true" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs sm:text-sm font-bold text-on-surface">
-                        {user?.name || userMenuLabels.account}
-                      </span>
-                      {user?.phoneNumber && (
-                        <span className="text-[11px] text-on-surface-variant font-mono" dir="ltr">
-                          {user.phoneNumber}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {isAdmin && (
-                    <span className="bg-primary/15 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      {userMenuLabels.adminBadge}
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-outline-variant/20">
-                  <Link
-                    href={`/${locale}/profile/reservations`}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors"
-                  >
-                    <CalendarCheck size={16} className="text-primary" aria-hidden="true" />
-                    <span>{userMenuLabels.appointments}</span>
-                  </Link>
-                  <Link
-                    href={`/${locale}/notifications`}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors"
-                  >
-                    <Bell size={16} className="text-primary" aria-hidden="true" />
-                    <span>{userMenuLabels.notifications}</span>
-                  </Link>
-                </div>
-
-                {isAdmin && (
-                  <Link
-                    href={`/${locale}/admin`}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs font-bold text-primary hover:bg-primary/15 transition-colors"
-                  >
-                    <ShieldCheck size={16} aria-hidden="true" />
-                    <span>{userMenuLabels.admin}</span>
-                  </Link>
-                )}
-
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-error hover:bg-error-container/20 text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  <LogOut size={16} aria-hidden="true" />
-                  <span>{userMenuLabels.signOut}</span>
-                </button>
-              </div>
-            ) : (
+          {/* Guest-only login CTA (account actions live in UserShell drawer) */}
+          {!isAuthenticated && (
+            <div className="mb-4">
               <Link
                 href={toSignin(locale, pathname)}
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-on-primary text-xs sm:text-sm font-semibold shadow-tier-1 hover:bg-primary-container transition-all"
               >
-<User size={18} fill="currentColor" aria-hidden="true" />
+                <User size={18} fill="currentColor" aria-hidden="true" />
                 <span>{loginLabel}</span>
               </Link>
-            )}
-          </div>
+            </div>
+          )}
           <div className="flex flex-col gap-3">
             {navHubs.map((hub) => {
               const isExpanded = mobileExpandedHub === hub.id;
