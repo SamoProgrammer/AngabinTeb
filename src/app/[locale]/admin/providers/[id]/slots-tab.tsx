@@ -82,12 +82,22 @@ export function SlotsTab({
   }
 
   async function setActive(id: string, isActive: boolean) {
-    await toggleSlotActive(id, isActive);
+    setError(null);
+    const r = await toggleSlotActive(id, isActive);
+    if (!r.ok) {
+      setError("error" in r && r.error ? String(r.error) : t("overlapMessage"));
+      return;
+    }
     router.refresh();
   }
 
   async function remove(id: string) {
-    await deleteSlot(id);
+    setError(null);
+    const r = await deleteSlot(id);
+    if (!r.ok) {
+      setError("error" in r && r.error ? String(r.error) : t("overlapMessage"));
+      return;
+    }
     router.refresh();
   }
 

@@ -12,9 +12,13 @@ import {
 } from "@/contexts/catalog/actions";
 import { JalaliDatePicker } from "@/components/clinical/jalali-date-picker";
 
-// Saturday-first display order for fa.
-const DISPLAY_ORDER = [6, 0, 1, 2, 3, 4, 5];
+// UI weekdays are Saturday-first (0 = Saturday … 6 = Friday) for fa.
+// The kernel + patient search use JS getUTCDay (0 = Sunday … 6 = Saturday),
+// so convert at this boundary — never store UI numbers directly.
+const DISPLAY_ORDER = [0, 1, 2, 3, 4, 5, 6];
 const ALL_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
+const toJsWeekday = (ui: number) => (ui + 6) % 7;
+const toUiWeekday = (js: number) => (js + 1) % 7;
 
 export interface ScheduleTabProps {
   providerId: string;
@@ -73,7 +77,7 @@ export function ScheduleTab({
           const r = await upsertSchedule({
             providerId,
             serviceId: sid,
-            weekday: wd,
+            weekday: toJsWeekday(wd),
             startTime: start,
             endTime: end,
             durationMinutes: duration,
@@ -103,7 +107,7 @@ export function ScheduleTab({
   );
 
   const byWeekday = new Map(
-    schedules.filter((s) => s.serviceId === serviceId).map((s) => [s.weekday, s]),
+    schedules.filter((s) => s.serviceId === serviceId).map((s) => [toUiWeekday(s.weekday), s]),
   );
 
   return (
@@ -166,23 +170,33 @@ export function ScheduleTab({
                   aria-label={`${t(`weekdays.${wd}`)} end`}
                   className="rounded-lg bg-surface-container-lowest px-2 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/40"
                 />
-                <input
-                  type="number"
-                  name={`duration-${wd}`}
-                  defaultValue={row?.durationMinutes ?? 30}
-                  min={5}
-                  step={5}
-                  aria-label="duration"
-                  className="w-20 rounded-lg bg-surface-container-lowest px-2 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/40"
-                />
-                <input
-                  type="number"
-                  name={`capacity-${wd}`}
-                  defaultValue={row?.capacity ?? 1}
-                  min={1}
-                  aria-label="capacity"
-                  className="w-20 rounded-lg bg-surface-container-lowest px-2 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/40"
-                />
+                <label className="flex flex-col gap-1 text-start">
+                  <span className="text-[11px] font-bold text-on-surface-variant">
+                    {t("durationMinutes")}
+                  </span>
+                  <input
+                    type="number"
+                    name={`duration-${wd}`}
+                    defaultValue={row?.durationMinutes ?? 30}
+                    min={5}
+                    step={5}
+                    aria-label={t("durationMinutes")}
+                    className="w-20 rounded-lg bg-surface-container-lowest px-2 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-start">
+                  <span className="text-[11px] font-bold text-on-surface-variant">
+                    {t("capacity")}
+                  </span>
+                  <input
+                    type="number"
+                    name={`capacity-${wd}`}
+                    defaultValue={row?.capacity ?? 1}
+                    min={1}
+                    aria-label={t("capacity")}
+                    className="w-20 rounded-lg bg-surface-container-lowest px-2 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </label>
               </li>
             );
           })}

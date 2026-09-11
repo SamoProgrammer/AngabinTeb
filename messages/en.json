@@ -1277,7 +1277,9 @@
       "exceptionsTitle": "Days off / exceptions",
       "blockSlot": "Block",
       "unblockSlot": "Unblock",
-      "deleteSlot": "Delete"
+      "deleteSlot": "Delete",
+      "durationMinutes": "Visit length (min)",
+      "capacity": "Capacity per slot"
     },
     "bookings": {
       "title": "Bookings",
@@ -1447,8 +1449,7 @@
       "services": "Services & Diagnostics",
       "categories": "Service Categories",
       "locations": "Clinics & Locations",
-      "scheduling": "Scheduling & Slots",
-    "foods": "Foods",
+      "foods": "Foods",
       "dietPrograms": "Diet Programs",
       "content": "Articles & Media",
       "topics": "360° Health Topics",

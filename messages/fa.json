@@ -1277,7 +1277,9 @@
       "exceptionsTitle": "روزهای تعطیل / استثنا",
       "blockSlot": "بستن",
       "unblockSlot": "باز کردن",
-      "deleteSlot": "حذف"
+      "deleteSlot": "حذف",
+      "durationMinutes": "مدت هر نوبت (دقیقه)",
+      "capacity": "ظرفیت هر سانس"
     },
     "bookings": {
       "title": "رزروها",
@@ -1447,7 +1449,6 @@
       "services": "خدمات و آزمایش‌ها",
       "categories": "دسته‌بندی خدمات",
       "locations": "مراکز و کلینیک‌ها",
-      "scheduling": "زمان‌بندی و اسلات‌ها",
       "foods": "بانک خوراک‌های ایرانی",
       "dietPrograms": "برنامه‌های تغذیه",
       "content": "مدیریت مقالات و مدیا",

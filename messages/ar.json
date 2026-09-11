@@ -1277,7 +1277,9 @@
       "exceptionsTitle": "أيام الإغلاق / الاستثناءات",
       "blockSlot": "إغلاق",
       "unblockSlot": "فتح",
-      "deleteSlot": "حذف"
+      "deleteSlot": "حذف",
+      "durationMinutes": "مدة كل موعد (بالدقائق)",
+      "capacity": "السعة لكل موعد"
     },
     "bookings": {
       "title": "الحجوزات",
@@ -1447,7 +1449,6 @@
       "services": "الخدمات والتحاليل",
       "categories": "تصنيفات الخدمات",
       "locations": "المراكز والعيادات",
-      "scheduling": "المواعيد والأوقات",
       "foods": "قاعدة بيانات الأغذية الإيرانية",
       "dietPrograms": "برامج التغذية",
       "content": "إدارة المقالات والوسائط",
