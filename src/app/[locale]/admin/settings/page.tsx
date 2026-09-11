@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { getSettings } from "@/contexts/platform/queries";
 import { saveSettings } from "@/contexts/platform/actions";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Input } from "@/components/ui/input";
 import { PendingAdminButton } from "@/components/clinical/pending-admin-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,15 +17,27 @@ const INTEGRATIONS = [
   { key: "social", integration: "Social (Instagram/Telegram)" },
 ] as const;
 
-export default async function AdminSettingsPage() {
+export default async function AdminSettingsPage({
+  params,
+}: {
+  params?: Promise<{ locale?: string }>;
+}) {
+  const resolved = params ? await params : {};
+  const locale = resolved.locale === "en" || resolved.locale === "ar" ? resolved.locale : "fa";
+  const prefix = `/${locale}`;
+
   const tSettings = await getTranslations("admin.settings");
   const tCommon = await getTranslations("admin.common");
+  const tNav = await getTranslations("admin.nav");
 
   const settings = await getSettings();
 
   return (
     <div className="text-start">
-      <h1 className="mb-6 text-2xl font-bold">{tSettings("title")}</h1>
+      <AdminPageHeader
+        crumbs={[{ label: tNav("dashboard"), href: `${prefix}/admin` }, { label: tSettings("title") }]}
+        title={tSettings("title")}
+      />
       <Table>
         <TableHeader>
           <TableRow>

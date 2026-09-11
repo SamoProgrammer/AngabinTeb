@@ -2,13 +2,20 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { serviceCategories } from "@/db/schema";
-import { Button } from "@/components/ui/button";
+import { createCategory } from "@/contexts/catalog/actions";
+import { parseListParams, paginate } from "@/components/admin/list-params";
+import { AdminToolbar, AdminPagination } from "@/components/admin/admin-table";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { FormDrawer } from "@/components/admin/form-drawer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CategoryForm } from "./category-form";
 
 export default async function AdminCategoriesPage({
   params,
+  searchParams,
 }: {
   params?: Promise<{ locale?: string }>;
+  searchParams?: Promise<{ q?: string; page?: string }>;
 }) {
   const resolved = params ? await params : {};
   const locale = resolved.locale === "en" || resolved.locale === "ar" ? resolved.locale : "fa";
@@ -16,16 +23,45 @@ export default async function AdminCategoriesPage({
 
   const tCategories = await getTranslations("admin.categories");
   const tCommon = await getTranslations("admin.common");
+  const tSearch = await getTranslations("common");
+  const tNav = await getTranslations("admin.nav");
+  const tCancel = await getTranslations("common");
+
+  const sp = (await searchParams) ?? {};
+  const { q, page } = parseListParams(sp, { tabs: [], defaultTab: "" });
 
   const rows = await db.select().from(serviceCategories).orderBy(serviceCategories.name);
 
+  // ponytail: in-page text filter; move to a DB-level filter past ~200 categories.
+  const filtered = rows.filter(
+    (c) =>
+      q === "" ||
+      c.name.toLowerCase().includes(q) ||
+      c.slug.toLowerCase().includes(q),
+  );
+  const { items, totalPages } = paginate(filtered, page);
+
+  const prevLabel = locale === "en" ? "Previous" : locale === "ar" ? "السابق" : "قبلی";
+  const nextLabel = locale === "en" ? "Next" : locale === "ar" ? "التالي" : "بعدی";
+  const qParam = q === "" ? "" : `&q=${encodeURIComponent(q)}`;
+
   return (
     <div className="text-start">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{tCategories("title")}</h1>
-        <Button nativeButton={false} render={<Link href={`${prefix}/admin/categories/new`} />}>
-          {tCategories("newBtn")}
-        </Button>
+      <AdminPageHeader
+        crumbs={[{ label: tNav("dashboard"), href: `${prefix}/admin` }, { label: tCategories("title") }]}
+        title={tCategories("title")}
+        action={
+          <FormDrawer
+            openLabel={tCategories("newBtn")}
+            title={tCategories("newTitle")}
+            closeLabel={tCancel("cancel")}
+          >
+            <CategoryForm action={createCategory} locale={locale} />
+          </FormDrawer>
+        }
+      />
+      <div className="mb-4">
+        <AdminToolbar placeholder={tSearch("search")} searchLabel={tCommon("filter")} currentQ={q} />
       </div>
       <Table>
         <TableHeader>
@@ -35,7 +71,7 @@ export default async function AdminCategoriesPage({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.map((c) => (
+          {items.map((c) => (
             <TableRow key={c.id}>
               <TableCell>
                 <Link href={`${prefix}/admin/categories/${c.id}`} className="font-medium text-primary hover:underline">
@@ -47,6 +83,15 @@ export default async function AdminCategoriesPage({
           ))}
         </TableBody>
       </Table>
+      <div className="mt-4">
+        <AdminPagination
+          page={page}
+          totalPages={totalPages}
+          hrefFor={(p) => `?page=${p}${qParam}`}
+          prevLabel={prevLabel}
+          nextLabel={nextLabel}
+        />
+      </div>
     </div>
   );
 }
