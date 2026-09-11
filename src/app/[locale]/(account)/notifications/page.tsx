@@ -3,6 +3,7 @@ import { requireUser } from "@/contexts/identity/actions";
 import { listNotifications } from "@/contexts/support/queries";
 import { markNotificationsRead } from "@/contexts/support/actions";
 import { PendingButton } from "@/components/clinical/pending-button";
+import { UserPageHeader } from "@/components/account/user-page-header";
 import { resolveIcon } from "@/components/clinical/icons";
 import { formatJalaliDateTime } from "@/lib/format";
 import { BellOff, CheckCheck } from "lucide-react";
@@ -48,28 +49,23 @@ export default async function NotificationsPage({
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="w-full bg-surface min-h-screen py-8 sm:py-12">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8">
-        {/* Header Title & Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/20 pb-6 text-start">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">
-              {t("title")}
-            </h1>
-            <p className="text-xs sm:text-sm text-on-surface-variant">
-              {t("subtitle")}
-            </p>
-          </div>
-
-          {unread.length > 0 && (
-            <form action={markNotificationsRead} className="self-start sm:self-auto">
-              <PendingButton
-                className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container text-on-surface text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
-              >
-                <CheckCheck size={16} aria-hidden="true" />
-                <span>{t("markAllRead")}</span>
-              </PendingButton>
-            </form>
-          )}
-        </div>
+        <UserPageHeader
+          locale={locale}
+          title={t("title")}
+          subtitle={t("subtitle")}
+          action={
+            unread.length > 0 ? (
+              <form action={markNotificationsRead} className="self-start sm:self-auto">
+                <PendingButton
+                  className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container text-on-surface text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+                >
+                  <CheckCheck size={16} aria-hidden="true" />
+                  <span>{t("markAllRead")}</span>
+                </PendingButton>
+              </form>
+            ) : undefined
+          }
+        />
 
         {/* Notifications Feed (Screen #10) */}
         <div className="flex flex-col gap-3">

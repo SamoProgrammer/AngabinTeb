@@ -1,12 +1,12 @@
 import { PendingButton } from "@/components/clinical/pending-button";
-import { PendingLink } from "@/components/clinical/pending-link";
+import { UserPageHeader } from "@/components/account/user-page-header";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/contexts/identity/actions";
 import { createSupportRequest } from "@/contexts/support/actions";
 import { myAppointments } from "@/contexts/booking/queries";
 import { formatJalaliDateTime } from "@/lib/format";
-import { ArrowLeft, ArrowRight, CircleAlert, Headset, Send } from "lucide-react";
+import { CircleAlert, Headset, Send } from "lucide-react";
 
 const KINDS = ["question", "complaint", "appointment_issue"] as const;
 
@@ -21,9 +21,7 @@ export default async function NewSupportRequestPage({
   const { kind, error } = await searchParams;
   const user = await requireUser();
   const t = await getTranslations("support.new");
-  const ts = await getTranslations("states");
   const isRtl = locale !== "en";
-  const ArrowIcon = isRtl ? ArrowRight : ArrowLeft;
 
   const kindValue: (typeof KINDS)[number] = KINDS.includes(kind as (typeof KINDS)[number])
     ? (kind as (typeof KINDS)[number])
@@ -47,16 +45,12 @@ export default async function NewSupportRequestPage({
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="w-full bg-surface min-h-screen py-8 sm:py-12">
-      <main className="mx-auto max-w-2xl px-4 sm:px-6">
-        {/* Back Link */}
-        <PendingLink
-          href={`/${locale}/support`}
-          busyLabel={ts("loading")}
-          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-primary hover:underline mb-6 text-start"
-        >
-          <ArrowIcon size={16} aria-hidden="true" />
-          <span>{t("backLink")}</span>
-        </PendingLink>
+      <main className="mx-auto max-w-2xl px-4 sm:px-6 flex flex-col gap-6">
+        <UserPageHeader
+          locale={locale}
+          title={t(`kinds.${kindValue}`)}
+          subtitle={t("subtitle")}
+        />
 
         {/* Card Container */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-6 sm:p-8 shadow-xs text-start">
@@ -64,13 +58,6 @@ export default async function NewSupportRequestPage({
             <Headset size={16} aria-hidden="true" />
             <span>{t(`kinds.${kindValue}`)}</span>
           </div>
-
-          <h1 className="text-xl sm:text-2xl font-extrabold text-on-surface">
-            {t(`kinds.${kindValue}`)}
-          </h1>
-          <p className="mt-1 text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-            {t("subtitle")}
-          </p>
 
           {error && (
             <div role="alert" className="mt-5 rounded-xl bg-destructive/10 border border-destructive/20 p-3.5 text-xs sm:text-sm text-destructive font-medium flex items-center gap-2">

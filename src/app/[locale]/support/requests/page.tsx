@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { PendingLink } from "@/components/clinical/pending-link";
+import { UserPageHeader } from "@/components/account/user-page-header";
 import { requireUser } from "@/contexts/identity/actions";
 import { listRequests } from "@/contexts/support/queries";
 import { Badge } from "@/components/ui/badge";
@@ -27,42 +28,26 @@ export default async function MyRequestsPage({
   const t = await getTranslations("support.requests");
   const ts = await getTranslations("states");
   const isRtl = locale !== "en";
-  const ArrowIcon = isRtl ? ArrowRight : ArrowLeft;
   const CtaArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="w-full bg-surface min-h-screen py-8 sm:py-12">
-      <main className="mx-auto max-w-3xl px-4 sm:px-6">
-        {/* Navigation & Header */}
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <PendingLink
-            href={`/${locale}/support`}
-            busyLabel={ts("loading")}
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-primary hover:underline"
-          >
-            <ArrowIcon size={16} aria-hidden="true" />
-            <span>{t("backLink")}</span>
-          </PendingLink>
-
-          <PendingLink
-            href={`/${locale}/support/new`}
-            busyLabel={ts("loading")}
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold bg-primary text-on-primary px-3.5 py-1.5 rounded-xl shadow-xs hover:bg-primary-container transition-all"
-          >
-            <Plus size={16} aria-hidden="true" />
-            <span>{t("newRequest")}</span>
-          </PendingLink>
-        </div>
-
-        {/* Page Title */}
-        <div className="text-start mb-8">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface">
-            {t("title")}
-          </h1>
-          <p className="mt-1 text-xs sm:text-sm text-on-surface-variant">
-            {t("subtitle")}
-          </p>
-        </div>
+      <main className="mx-auto max-w-3xl px-4 sm:px-6 flex flex-col gap-6">
+        <UserPageHeader
+          locale={locale}
+          title={t("title")}
+          subtitle={t("subtitle")}
+          action={
+            <PendingLink
+              href={`/${locale}/support/new`}
+              busyLabel={ts("loading")}
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold bg-primary text-on-primary px-3.5 py-1.5 rounded-xl shadow-xs hover:bg-primary-container transition-all"
+            >
+              <Plus size={16} aria-hidden="true" />
+              <span>{t("newRequest")}</span>
+            </PendingLink>
+          }
+        />
 
         {/* List of Requests */}
         <ul className="space-y-4">

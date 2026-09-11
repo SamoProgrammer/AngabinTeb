@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { desc, eq } from "drizzle-orm";
 import { Send } from "lucide-react";
@@ -9,6 +8,7 @@ import { listRequests } from "@/contexts/support/queries";
 import { createSupportRequest, markMessagesRead } from "@/contexts/support/actions";
 import { resolveIcon } from "@/components/clinical/icons";
 import { PendingButton } from "@/components/clinical/pending-button";
+import { UserPageHeader } from "@/components/account/user-page-header";
 import { formatJalaliDateTime, toPersianDigits } from "@/lib/format";
 
 export default async function ProfileMessagesPage({
@@ -40,13 +40,7 @@ export default async function ProfileMessagesPage({
   return (
     <div className="flex flex-col w-full bg-surface min-h-screen py-8 px-4 sm:px-6 lg:px-8" dir={dir}>
       <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-on-surface-variant">
-          <Link href={`/${locale}`} className="hover:text-primary transition-colors">
-            {t("home")}
-          </Link>
-          <span className="opacity-40">/</span>
-          <span className="text-on-surface font-bold">{t("title")}</span>
-        </div>
+        <UserPageHeader locale={locale} title={t("title")} />
 
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-on-surface">

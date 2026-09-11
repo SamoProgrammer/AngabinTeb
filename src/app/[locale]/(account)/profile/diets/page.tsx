@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { PendingLink } from "@/components/clinical/pending-link";
+import { UserPageHeader } from "@/components/account/user-page-header";
 import { requireUser } from "@/contexts/identity/actions";
 import { myDietClaims } from "@/contexts/nutrition/queries";
 import { CircleCheckBig, Hourglass } from "lucide-react";
@@ -44,9 +45,7 @@ export default async function ProfileDietsPage({
 
   return (
     <div className="flex flex-col gap-6 text-start" dir={dir}>
-      <h1 className="text-xl sm:text-2xl font-extrabold text-on-surface">
-        {t("dietWizard.listTitle")}
-      </h1>
+      <UserPageHeader locale={locale} title={t("dietWizard.listTitle")} />
       {claims.length === 0 ? (
         <div className="bg-surface-container-lowest rounded-3xl p-10 text-center border border-dashed border-outline-variant/40 flex flex-col items-center gap-3">
           <p className="text-sm font-bold text-on-surface">{t("dietWizard.listEmpty")}</p>

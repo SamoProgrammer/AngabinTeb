@@ -1,8 +1,8 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { PendingLink } from "@/components/clinical/pending-link";
+import { UserPageHeader } from "@/components/account/user-page-header";
 import { getTranslations } from "next-intl/server";
-import { CalendarClock, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { requireUser } from "@/contexts/identity/actions";
 import { myAppointments } from "@/contexts/booking/queries";
 import ReservationsClient, { type ReservationRow } from "./reservations-client";
@@ -53,30 +53,20 @@ export default async function ProfileReservationsPage({
       dir={dir}
     >
       <div className="max-w-4xl mx-auto w-full flex flex-col gap-6">
-        {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-on-surface-variant">
-          <Link href={`/${locale}`} className="hover:text-primary transition-colors">
-            {t("home")}
-          </Link>
-          <span className="opacity-40">/</span>
-          <span className="text-on-surface font-bold">{t("myAppointments")}</span>
-        </div>
-
-        {/* Header Title */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl sm:text-2xl font-extrabold text-on-surface flex items-center gap-2">
-            <CalendarClock size={26} className="text-primary" aria-hidden="true" />
-            <span>{t("headerTitle")}</span>
-          </h1>
-          <PendingLink
-            href={`/${locale}/booking/doctors`}
-            busyLabel={ts("loading")}
-            className="bg-primary hover:bg-primary-container text-on-primary text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-1.5 shadow-xs"
-          >
-            <Plus size={16} aria-hidden="true" />
-            <span>{t("newBooking")}</span>
-          </PendingLink>
-        </div>
+        <UserPageHeader
+          locale={locale}
+          title={t("headerTitle")}
+          action={
+            <PendingLink
+              href={`/${locale}/booking/doctors`}
+              busyLabel={ts("loading")}
+              className="bg-primary hover:bg-primary-container text-on-primary text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-1.5 shadow-xs"
+            >
+              <Plus size={16} aria-hidden="true" />
+              <span>{t("newBooking")}</span>
+            </PendingLink>
+          }
+        />
 
         <Suspense
           fallback={
