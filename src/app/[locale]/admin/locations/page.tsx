@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { locations, providers } from "@/db/schema";
 import { createLocation } from "@/contexts/catalog/actions";
 import { parseListParams, paginate } from "@/components/admin/list-params";
-import { AdminToolbar, AdminPagination } from "@/components/admin/admin-table";
+import { AdminToolbar, AdminPagination, AdminEmpty } from "@/components/admin/admin-table";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { FormDrawer } from "@/components/admin/form-drawer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -72,6 +72,13 @@ export default async function AdminLocationsPage({
       <div className="mb-4">
         <AdminToolbar placeholder={tSearch("search")} searchLabel={tCommon("filter")} currentQ={q} />
       </div>
+      {items.length === 0 ? (
+        <AdminEmpty
+          title={tLocations("title")}
+          actionHref={`${prefix}/admin/locations/new`}
+          actionLabel={tLocations("newBtn")}
+        />
+      ) : (
       <Table>
         <TableHeader>
           <TableRow>
@@ -96,6 +103,7 @@ export default async function AdminLocationsPage({
           ))}
         </TableBody>
       </Table>
+      )}
       <div className="mt-4">
         <AdminPagination
           page={page}

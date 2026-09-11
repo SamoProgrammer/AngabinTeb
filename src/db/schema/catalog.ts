@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, boolean, numeric, jsonb, index, uniqueIndex, date, type AnyPgColumn } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, boolean, numeric, index, uniqueIndex, date, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 export const providers = pgTable("provider", {
   id: text("id").primaryKey(),
@@ -61,18 +61,6 @@ export const diagnosticServices = pgTable("diagnostic_service", {
   prepInstructions: text("prep_instructions"), // Persian base
   fastingHours: integer("fasting_hours"),
   requiresReferral: boolean("requires_referral").notNull().default(false),
-});
-
-export const homeCareServices = pgTable("home_care_service", {
-  serviceId: text("service_id").primaryKey().references(() => services.id, { onDelete: "cascade" }),
-  requiresPatientAddress: boolean("requires_patient_address").notNull().default(true),
-  serviceableCityIds: jsonb("serviceable_city_ids").$type<string[]>().notNull().default([]), // string[]
-});
-
-export const ambulanceServices = pgTable("ambulance_service", {
-  serviceId: text("service_id").primaryKey().references(() => services.id, { onDelete: "cascade" }),
-  dispatchModel: text("dispatch_model"), // Phase 4
-  vehicleType: text("vehicle_type"),     // Phase 4
 });
 
 export const availabilitySlots = pgTable("availability_slot", {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { listContentAdmin } from "@/contexts/content/queries";
 import { parseListParams, paginate } from "@/components/admin/list-params";
-import { AdminToolbar, AdminPagination } from "@/components/admin/admin-table";
+import { AdminToolbar, AdminPagination, AdminEmpty } from "@/components/admin/admin-table";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -92,6 +92,13 @@ export default async function AdminContentPage({
           </select>
         </AdminToolbar>
       </div>
+      {items.length === 0 ? (
+        <AdminEmpty
+          title={tContent("title")}
+          actionHref={`${prefix}/admin/content/new`}
+          actionLabel={tContent("newBtn")}
+        />
+      ) : (
       <Table>
         <TableHeader>
           <TableRow>
@@ -121,11 +128,12 @@ export default async function AdminContentPage({
                 </TableCell>
                 <TableCell>{kindLabel}</TableCell>
                 <TableCell>{statusLabel}</TableCell>
-              </TableRow>
-            );
-          })}
+          </TableRow>
+          );
+        })}
         </TableBody>
       </Table>
+      )}
       <div className="mt-4">
         <AdminPagination
           page={page}

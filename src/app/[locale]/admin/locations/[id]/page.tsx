@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { locations, providers, translations } from "@/db/schema";
-import { createLocation, updateLocation } from "@/contexts/catalog/actions";
+import { updateLocation } from "@/contexts/catalog/actions";
 import { LocationForm } from "../location-form";
 
 export default async function AdminLocationEditPage({
@@ -15,15 +15,6 @@ export default async function AdminLocationEditPage({
   const tLocations = await getTranslations("admin.locations");
 
   const providerRows = await db.select({ id: providers.id, name: providers.name }).from(providers).orderBy(providers.name);
-
-  if (id === "new") {
-    return (
-      <div className="text-start">
-        <h1 className="mb-6 text-2xl font-bold">{tLocations("newTitle")}</h1>
-        <LocationForm action={createLocation} providers={providerRows} locale={locale} />
-      </div>
-    );
-  }
 
   const [location] = await db.select().from(locations).where(eq(locations.id, id));
   if (!location) notFound();

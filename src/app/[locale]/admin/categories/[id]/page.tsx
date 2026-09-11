@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { serviceCategories, translations } from "@/db/schema";
-import { createCategory, updateCategory } from "@/contexts/catalog/actions";
+import { updateCategory } from "@/contexts/catalog/actions";
 import { CategoryForm } from "../category-form";
 
 export default async function AdminCategoryEditPage({
@@ -13,15 +13,6 @@ export default async function AdminCategoryEditPage({
 }) {
   const { id, locale } = await params;
   const tCategories = await getTranslations("admin.categories");
-
-  if (id === "new") {
-    return (
-      <div className="text-start">
-        <h1 className="mb-6 text-2xl font-bold">{tCategories("newTitle")}</h1>
-        <CategoryForm action={createCategory} locale={locale} />
-      </div>
-    );
-  }
 
   const [category] = await db.select().from(serviceCategories).where(eq(serviceCategories.id, id));
   if (!category) notFound();

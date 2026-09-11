@@ -84,7 +84,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   },
 ];
 
-export const ADMIN_NAV_ITEMS = ADMIN_NAV_GROUPS.flatMap((group) => group.items);
+const ADMIN_NAV_ITEMS = ADMIN_NAV_GROUPS.flatMap((group) => group.items);
 
 const SHELL_LABELS = {
   consoleTitle: { fa: "کنسول مدیریت بالینی", en: "Clinical Admin Console", ar: "وحدة الإدارة السريرية" },

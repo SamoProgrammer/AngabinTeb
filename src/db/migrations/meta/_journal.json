@@ -162,6 +162,13 @@
       "when": 1789040102736,
       "tag": "0022_tough_meggan",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1789110962598,
+      "tag": "0023_special_hardball",
+      "breakpoints": true
     }
   ]
 }

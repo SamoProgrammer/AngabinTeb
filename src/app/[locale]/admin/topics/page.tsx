@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { topics } from "@/db/schema";
 import { saveTopic } from "@/contexts/content/actions";
 import { parseListParams, paginate } from "@/components/admin/list-params";
-import { AdminToolbar, AdminPagination } from "@/components/admin/admin-table";
+import { AdminToolbar, AdminPagination, AdminEmpty } from "@/components/admin/admin-table";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { FormDrawer } from "@/components/admin/form-drawer";
 import { Input } from "@/components/ui/input";
@@ -71,6 +71,9 @@ export default async function AdminTopicsPage({
       <div className="mb-4">
         <AdminToolbar placeholder={tSearch("search")} searchLabel={tCommon("filter")} currentQ={q} />
       </div>
+      {items.length === 0 ? (
+        <AdminEmpty title={tTopics("title")} />
+      ) : (
       <Table>
         <TableHeader>
           <TableRow>
@@ -97,6 +100,7 @@ export default async function AdminTopicsPage({
           ))}
         </TableBody>
       </Table>
+      )}
       <div className="mt-4">
         <AdminPagination
           page={page}

@@ -5,7 +5,7 @@ import { providers } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { parseListParams, paginate } from "@/components/admin/list-params";
-import { AdminToolbar, AdminPagination } from "@/components/admin/admin-table";
+import { AdminToolbar, AdminPagination, AdminEmpty } from "@/components/admin/admin-table";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export default async function AdminProvidersPage({
@@ -70,6 +70,13 @@ export default async function AdminProvidersPage({
           </select>
         </AdminToolbar>
       </div>
+      {items.length === 0 ? (
+        <AdminEmpty
+          title={tProviders("title")}
+          actionHref={`${prefix}/admin/providers/new`}
+          actionLabel={tProviders("newBtn")}
+        />
+      ) : (
       <Table>
         <TableHeader>
           <TableRow>
@@ -96,6 +103,7 @@ export default async function AdminProvidersPage({
           ))}
         </TableBody>
       </Table>
+      )}
       <div className="mt-4">
         <AdminPagination
           page={page}

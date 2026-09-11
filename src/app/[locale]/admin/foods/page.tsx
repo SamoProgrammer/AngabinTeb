@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { foods } from "@/db/schema";
 import { parseListParams, paginate } from "@/components/admin/list-params";
-import { AdminToolbar, AdminPagination } from "@/components/admin/admin-table";
+import { AdminToolbar, AdminPagination, AdminEmpty } from "@/components/admin/admin-table";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -56,6 +56,13 @@ export default async function AdminFoodsPage({
       <div className="mb-4">
         <AdminToolbar placeholder={tSearch("search")} searchLabel={tCommon("filter")} currentQ={q} />
       </div>
+      {items.length === 0 ? (
+        <AdminEmpty
+          title={tFoods("title")}
+          actionHref={`${prefix}/admin/foods/new`}
+          actionLabel={tCommon("create")}
+        />
+      ) : (
       <Table>
         <TableHeader>
           <TableRow>
@@ -78,6 +85,7 @@ export default async function AdminFoodsPage({
           ))}
         </TableBody>
       </Table>
+      )}
       <div className="mt-4">
         <AdminPagination
           page={page}

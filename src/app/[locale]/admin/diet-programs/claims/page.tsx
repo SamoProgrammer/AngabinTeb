@@ -10,7 +10,7 @@ import {
 } from "@/contexts/nutrition/actions";
 import { allClaims } from "@/contexts/nutrition/queries";
 import { parseListParams, paginate } from "@/components/admin/list-params";
-import { AdminPagination } from "@/components/admin/admin-table";
+import { AdminPagination, AdminEmpty } from "@/components/admin/admin-table";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { ConfirmAction } from "@/components/admin/confirm-action";
 import { PendingLink } from "@/components/clinical/pending-link";
@@ -100,7 +100,7 @@ export default async function AdminDietClaimsPage({
         title={t("title")}
       />
       {rows.length === 0 ? (
-        <p className="text-sm text-on-surface-variant">{t("empty")}</p>
+        <AdminEmpty title={t("empty")} />
       ) : (
         <>
           <nav aria-label={tCommon("status")} className="mb-4 flex flex-wrap items-center gap-2">
@@ -133,7 +133,7 @@ export default async function AdminDietClaimsPage({
             })}
           </nav>
           {items.length === 0 ? (
-            <p className="text-sm text-on-surface-variant">{t("empty")}</p>
+            <AdminEmpty title={t("empty")} />
           ) : (
             <Table>
           <TableHeader>

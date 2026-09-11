@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { serviceCategories } from "@/db/schema";
 import { createCategory } from "@/contexts/catalog/actions";
 import { parseListParams, paginate } from "@/components/admin/list-params";
-import { AdminToolbar, AdminPagination } from "@/components/admin/admin-table";
+import { AdminToolbar, AdminPagination, AdminEmpty } from "@/components/admin/admin-table";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { FormDrawer } from "@/components/admin/form-drawer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -63,6 +63,13 @@ export default async function AdminCategoriesPage({
       <div className="mb-4">
         <AdminToolbar placeholder={tSearch("search")} searchLabel={tCommon("filter")} currentQ={q} />
       </div>
+      {items.length === 0 ? (
+        <AdminEmpty
+          title={tCategories("title")}
+          actionHref={`${prefix}/admin/categories/new`}
+          actionLabel={tCategories("newBtn")}
+        />
+      ) : (
       <Table>
         <TableHeader>
           <TableRow>
@@ -83,6 +90,7 @@ export default async function AdminCategoriesPage({
           ))}
         </TableBody>
       </Table>
+      )}
       <div className="mt-4">
         <AdminPagination
           page={page}

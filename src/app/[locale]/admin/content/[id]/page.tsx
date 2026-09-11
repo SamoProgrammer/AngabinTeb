@@ -16,15 +16,6 @@ export default async function AdminContentEditPage({
   const tContent = await getTranslations("admin.content");
   const topics = await listTopics(locale);
 
-  if (id === "new") {
-    return (
-      <div className="text-start">
-        <h1 className="mb-6 text-2xl font-bold">{tContent("newTitle")}</h1>
-        <ContentForm action={saveContent} topics={topics} locale={locale} />
-      </div>
-    );
-  }
-
   const [content] = await db.select().from(contents).where(eq(contents.id, id));
   if (!content) notFound();
   const overrides = await db

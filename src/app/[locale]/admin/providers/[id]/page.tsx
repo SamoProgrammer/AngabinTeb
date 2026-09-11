@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { providers, practitioners, serviceCategories, translations, availabilitySlots } from "@/db/schema";
-import { createProvider, updateProvider } from "@/contexts/catalog/actions";
+import { updateProvider } from "@/contexts/catalog/actions";
 import { listSchedules, listExceptions, listProviderServices } from "@/contexts/catalog/queries";
 import { listBookingsForDoctor } from "@/contexts/booking/queries";
 import { ProviderForm } from "../provider-form";
@@ -33,26 +33,6 @@ export default async function AdminProviderEditPage({
   const tProviders = await getTranslations("admin.providers");
   const tScheduling = await getTranslations("admin.scheduling");
   const tNav = await getTranslations("admin.nav");
-
-  if (id === "new") {
-    const specialties = await db
-      .select({ id: serviceCategories.id, name: serviceCategories.name })
-      .from(serviceCategories)
-      .orderBy(serviceCategories.name);
-    return (
-      <div className="text-start">
-        <AdminPageHeader
-          crumbs={[
-            { label: tNav("dashboard"), href: `/${activeLocale}/admin` },
-            { label: tProviders("title"), href: `/${activeLocale}/admin/providers` },
-            { label: tProviders("newTitle") },
-          ]}
-          title={tProviders("newTitle")}
-        />
-        <ProviderForm action={createProvider} specialties={specialties} locale={locale} />
-      </div>
-    );
-  }
 
   const [provider] = await db.select().from(providers).where(eq(providers.id, id));
   if (!provider) notFound();

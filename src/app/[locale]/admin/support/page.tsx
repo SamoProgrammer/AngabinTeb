@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { listRequests } from "@/contexts/support/queries";
 import { updateRequestStatus } from "@/contexts/support/actions";
 import { parseListParams, paginate } from "@/components/admin/list-params";
-import { AdminToolbar, AdminPagination } from "@/components/admin/admin-table";
+import { AdminToolbar, AdminPagination, AdminEmpty } from "@/components/admin/admin-table";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { PendingButton } from "@/components/clinical/pending-button";
 import { PendingLink } from "@/components/clinical/pending-link";
@@ -66,7 +66,7 @@ export default async function AdminSupportPage({
         title={tSupport("title")}
       />
       {rows.length === 0 ? (
-        <p className="text-muted-foreground">{tSupport("empty")}</p>
+        <AdminEmpty title={tSupport("empty")} />
       ) : (
         <>
           <div className="mb-4">
@@ -107,7 +107,7 @@ export default async function AdminSupportPage({
             })}
           </nav>
           {items.length === 0 ? (
-            <p className="text-muted-foreground">{tSupport("empty")}</p>
+            <AdminEmpty title={tSupport("empty")} />
           ) : (
             <ul className="space-y-4">
               {items.map((r) => {
