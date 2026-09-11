@@ -1098,7 +1098,16 @@
     "overview": {
       "title": "Queues",
       "queuesEmpty": "Nothing to follow up",
-      "quickActions": "Quick actions"
+      "quickActions": "Quick actions",
+      "queueNext": "Next appointment",
+      "queueNextEmpty": "No active appointments",
+      "queueDiets": "Diets needing action",
+      "queueUnread": "Unread messages",
+      "queueWallet": "Wallet balance",
+      "qaBook": "Book appointment",
+      "qaDiet": "New diet",
+      "qaTicket": "New ticket",
+      "qaProfile": "Edit profile"
     }
   },
   "notifications": {

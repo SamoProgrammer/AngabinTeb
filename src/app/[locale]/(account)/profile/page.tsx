@@ -151,7 +151,7 @@ export default async function ProfileHubPage({
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-on-surface-variant">
-              نوبت بعدی
+              {tov("queueNext")}
             </span>
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
               <CalendarClock size={22} aria-hidden="true" />
@@ -168,7 +168,7 @@ export default async function ProfileHubPage({
             </div>
           ) : (
             <p className="text-xs sm:text-sm text-on-surface-variant">
-              نوبت فعالی نداری
+              {tov("queueNextEmpty")}
             </p>
           )}
         </PendingLink>
@@ -180,7 +180,7 @@ export default async function ProfileHubPage({
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-on-surface-variant">
-              رژیم‌های نیازمند اقدام
+              {tov("queueDiets")}
             </span>
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
               <Salad size={22} aria-hidden="true" />
@@ -204,7 +204,7 @@ export default async function ProfileHubPage({
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-on-surface-variant">
-              پیام‌های خوانده‌نشده
+              {tov("queueUnread")}
             </span>
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
               <Bell size={22} aria-hidden="true" />
@@ -228,7 +228,7 @@ export default async function ProfileHubPage({
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-on-surface-variant">
-              موجودی کیف پول
+              {tov("queueWallet")}
             </span>
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
               <Wallet size={22} aria-hidden="true" />
@@ -240,12 +240,13 @@ export default async function ProfileHubPage({
         </PendingLink>
       </section>
 
-      <Link
+      <PendingLink
         href={primaryHref}
+        busyLabel={busyLabel}
         className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary py-3 px-8 rounded-xl font-bold text-sm sm:text-base shadow-sm hover:shadow-md transition-all self-start"
       >
         <span>{pending ? t("primaryResume") : t("primaryNew")}</span>
-      </Link>
+      </PendingLink>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <section aria-label={t("identityTitle")} className={cardClass}>
@@ -395,7 +396,7 @@ export default async function ProfileHubPage({
           className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:shadow-tier-1 transition-all"
         >
           <Plus size={16} aria-hidden="true" />
-          <span>رزرو نوبت جدید</span>
+          <span>{tov("qaBook")}</span>
         </PendingLink>
         <PendingLink
           href={primaryHref}
@@ -403,7 +404,7 @@ export default async function ProfileHubPage({
           className="inline-flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant/30 text-on-surface py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:border-primary/40 transition-all"
         >
           <Salad size={16} aria-hidden="true" />
-          <span>رژیم جدید</span>
+          <span>{tov("qaDiet")}</span>
         </PendingLink>
         <PendingLink
           href={`/${locale}/support/new`}
@@ -411,7 +412,7 @@ export default async function ProfileHubPage({
           className="inline-flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant/30 text-on-surface py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:border-primary/40 transition-all"
         >
           <Ticket size={16} aria-hidden="true" />
-          <span>ثبت تیکت جدید</span>
+          <span>{tov("qaTicket")}</span>
         </PendingLink>
         <PendingLink
           href="./personal-info"
@@ -419,7 +420,7 @@ export default async function ProfileHubPage({
           className="inline-flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant/30 text-on-surface py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:border-primary/40 transition-all"
         >
           <CircleUserRound size={16} aria-hidden="true" />
-          <span>ویرایش مشخصات</span>
+          <span>{tov("qaProfile")}</span>
         </PendingLink>
       </nav>
     </div>

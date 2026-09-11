@@ -1098,7 +1098,16 @@
     "overview": {
       "title": "صف‌های پیگیری",
       "queuesEmpty": "موردی برای پیگیری نیست",
-      "quickActions": "اقدام‌های سریع"
+      "quickActions": "اقدام‌های سریع",
+      "queueNext": "نوبت بعدی",
+      "queueNextEmpty": "نوبت فعالی نداری",
+      "queueDiets": "رژیم‌های نیازمند اقدام",
+      "queueUnread": "پیام‌های خوانده‌نشده",
+      "queueWallet": "موجودی کیف پول",
+      "qaBook": "رزرو نوبت جدید",
+      "qaDiet": "رژیم جدید",
+      "qaTicket": "ثبت تیکت جدید",
+      "qaProfile": "ویرایش مشخصات"
     }
   },
   "notifications": {

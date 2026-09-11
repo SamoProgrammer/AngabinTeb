@@ -1098,7 +1098,16 @@
     "overview": {
       "title": "قوائم المتابعة",
       "queuesEmpty": "لا يوجد ما يستدعي المتابعة",
-      "quickActions": "إجراءات سريعة"
+      "quickActions": "إجراءات سريعة",
+      "queueNext": "الموعد التالي",
+      "queueNextEmpty": "لا توجد مواعيد نشطة",
+      "queueDiets": "حميات تحتاج إلى إجراء",
+      "queueUnread": "رسائل غير مقروءة",
+      "queueWallet": "رصيد المحفظة",
+      "qaBook": "حجز موعد جديد",
+      "qaDiet": "حمية جديدة",
+      "qaTicket": "تذكرة جديدة",
+      "qaProfile": "تعديل المعلومات"
     }
   },
   "notifications": {
