@@ -111,7 +111,7 @@ export default async function AdminOverviewPage({
     {
       testid: "queue-today",
       title: tq("today"),
-      href: `${prefix}/admin/scheduling`,
+      href: `${prefix}/admin/providers`,
       icon: CalendarCheck,
       total: today.length,
       ageDays: null,
@@ -139,7 +139,7 @@ export default async function AdminOverviewPage({
       title: t("stats.appointments.title"),
       value: appointmentCount[0]?.n ?? 0,
       icon: CalendarDays,
-      href: `${prefix}/admin/scheduling`,
+      href: `${prefix}/admin/providers`,
       note: t("stats.appointments.note"),
     },
     {
@@ -154,7 +154,7 @@ export default async function AdminOverviewPage({
   const quickActions: { title: string; href: string; icon: LucideIcon }[] = [
     { title: t("quick.newProvider"), href: `${prefix}/admin/providers/new`, icon: UserPlus },
     { title: t("quick.newService"), href: `${prefix}/admin/services/new`, icon: CirclePlus },
-    { title: t("quick.scheduling"), href: `${prefix}/admin/scheduling`, icon: Calendar },
+    { title: t("quick.scheduling"), href: `${prefix}/admin/providers`, icon: Calendar },
     { title: t("quick.newContent"), href: `${prefix}/admin/content/new`, icon: FilePlus },
   ];
 

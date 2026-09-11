@@ -54,7 +54,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: "support_agent",
         badge: "support",
       },
-      { href: "/admin/scheduling", key: "scheduling", label: "زمان‌بندی و اسلات‌ها", icon: "calendar_month" },
     ],
   },
   {
