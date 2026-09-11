@@ -1,16 +1,22 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import {
+  Bell,
+  CalendarClock,
   CircleUserRound,
   ClipboardList,
   Hourglass,
+  Plus,
   Salad,
   Scale,
+  Ticket,
+  Wallet,
 } from "lucide-react";
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { clinicalMessages, users, wallets } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
+import { myAppointments } from "@/contexts/booking/queries";
 import {
   getPhysiology,
   listPeriods,
@@ -18,7 +24,14 @@ import {
   periodEntries,
   weightHistory,
 } from "@/contexts/nutrition/queries";
-import { formatJalaliDate, toPersianDigits } from "@/lib/format";
+import { unreadCount } from "@/contexts/support/queries";
+import { PendingLink } from "@/components/clinical/pending-link";
+import {
+  formatJalaliDate,
+  formatJalaliDateTime,
+  formatPrice,
+  toPersianDigits,
+} from "@/lib/format";
 
 const STATUS_KEYS: Record<string, string> = {
   pending: "statusPending",
@@ -50,17 +63,29 @@ export default async function ProfileHubPage({
   const { locale } = await params;
   const t = await getTranslations("account.hub");
   const tn = await getTranslations("nutrition");
+  const ts = await getTranslations("states");
+  const busyLabel = ts("loading");
   const dir = locale === "en" ? "ltr" : "rtl";
   const digits = (v: string | number) =>
     locale === "en" ? String(v) : toPersianDigits(v);
 
   const [row] = await db.select().from(users).where(eq(users.id, user.id));
-  const [claims, periods, profile, history] = await Promise.all([
-    myDietClaims(user.id, locale),
-    listPeriods(user.id),
-    getPhysiology(user.id),
-    weightHistory(user.id),
-  ]);
+  const [claims, periods, profile, history, appointments, unreadNotifications, inbox, walletRows] =
+    await Promise.all([
+      myDietClaims(user.id, locale),
+      listPeriods(user.id),
+      getPhysiology(user.id),
+      weightHistory(user.id),
+      myAppointments(user.id),
+      unreadCount(user.id),
+      db
+        .select()
+        .from(clinicalMessages)
+        .where(eq(clinicalMessages.recipientUserId, user.id))
+        .orderBy(desc(clinicalMessages.sentAt))
+        .limit(50),
+      db.select().from(wallets).where(eq(wallets.userId, user.id)),
+    ]);
 
   const latestPeriod = periods[0] ?? null;
   const entryCount = latestPeriod
@@ -75,9 +100,33 @@ export default async function ProfileHubPage({
       : null;
 
   const pending = claims.find((c) => c.status === "pending") ?? null;
+  const paid = claims.find((c) => c.status === "paid") ?? null;
   const primaryHref = pending
     ? `/${locale}/diet/payment?claim=${pending.claimId}`
     : `/${locale}/diet`;
+
+  // Row 1 queues (fa fallback strings until Task 6 backfills account.overview keys).
+  const now = Date.now();
+  const upcoming = appointments
+    .filter(
+      (a) =>
+        a.status !== "cancelled" &&
+        a.startsAt instanceof Date &&
+        a.startsAt.getTime() >= now,
+    )
+    .sort((a, b) => (a.startsAt as Date).getTime() - (b.startsAt as Date).getTime());
+  const nextAppt = upcoming[0] ?? null;
+  const dietActions = claims.filter(
+    (c) => c.status === "pending" || c.status === "paid" || c.status === "generating",
+  );
+  const dietQueueHref = pending
+    ? `/${locale}/diet/payment?claim=${pending.claimId}`
+    : paid
+      ? `/${locale}/diet/check?claim=${paid.claimId}`
+      : "./diets";
+  const unreadInbox = inbox.filter((m) => !m.isRead).length;
+  const unreadTotal = unreadInbox + unreadNotifications;
+  const balance = Number(walletRows[0]?.balance ?? 0);
 
   return (
     <div className="flex flex-col gap-6 text-start" dir={dir}>
@@ -89,6 +138,106 @@ export default async function ProfileHubPage({
           {t("subtitle")}
         </p>
       </div>
+
+      <section
+        aria-label="Queues"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
+        <PendingLink
+          href="./reservations"
+          busyLabel={busyLabel}
+          className={`${cardClass} group hover:border-primary/40 hover:shadow-tier-1 transition-all`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-on-surface-variant">
+              نوبت بعدی
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
+              <CalendarClock size={22} aria-hidden="true" />
+            </div>
+          </div>
+          {nextAppt ? (
+            <div className="flex flex-col gap-1">
+              <p className="font-bold text-sm text-on-surface truncate">
+                {nextAppt.serviceName}
+              </p>
+              <p className="text-xs text-on-surface-variant">
+                {formatJalaliDateTime(nextAppt.startsAt as Date, locale)}
+              </p>
+            </div>
+          ) : (
+            <p className="text-xs sm:text-sm text-on-surface-variant">
+              نوبت فعالی نداری
+            </p>
+          )}
+        </PendingLink>
+
+        <PendingLink
+          href={dietQueueHref}
+          busyLabel={busyLabel}
+          className={`${cardClass} group hover:border-primary/40 hover:shadow-tier-1 transition-all`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-on-surface-variant">
+              رژیم‌های نیازمند اقدام
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
+              <Salad size={22} aria-hidden="true" />
+            </div>
+          </div>
+          {dietActions.length === 0 ? (
+            <p className="text-xs sm:text-sm text-on-surface-variant">
+              همه‌چیز مرتب است
+            </p>
+          ) : (
+            <p className="font-extrabold text-3xl text-on-surface">
+              {digits(dietActions.length)}
+            </p>
+          )}
+        </PendingLink>
+
+        <PendingLink
+          href="./messages"
+          busyLabel={busyLabel}
+          className={`${cardClass} group hover:border-primary/40 hover:shadow-tier-1 transition-all`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-on-surface-variant">
+              پیام‌های خوانده‌نشده
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
+              <Bell size={22} aria-hidden="true" />
+            </div>
+          </div>
+          {unreadTotal === 0 ? (
+            <p className="text-xs sm:text-sm text-on-surface-variant">
+              همه‌چیز مرتب است
+            </p>
+          ) : (
+            <p className="font-extrabold text-3xl text-on-surface">
+              {digits(unreadTotal)}
+            </p>
+          )}
+        </PendingLink>
+
+        <PendingLink
+          href="./balance"
+          busyLabel={busyLabel}
+          className={`${cardClass} group hover:border-primary/40 hover:shadow-tier-1 transition-all`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-on-surface-variant">
+              موجودی کیف پول
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
+              <Wallet size={22} aria-hidden="true" />
+            </div>
+          </div>
+          <p className="font-extrabold text-lg text-on-surface">
+            {formatPrice(balance, locale)}
+          </p>
+        </PendingLink>
+      </section>
 
       <Link
         href={primaryHref}
@@ -234,6 +383,44 @@ export default async function ProfileHubPage({
           </Link>
         </section>
       </div>
+
+      <nav
+        aria-label="Quick actions"
+        className="grid grid-cols-2 sm:grid-cols-4 gap-4"
+      >
+        <PendingLink
+          href={`/${locale}/booking/doctors`}
+          busyLabel={busyLabel}
+          className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:shadow-tier-1 transition-all"
+        >
+          <Plus size={16} aria-hidden="true" />
+          <span>رزرو نوبت جدید</span>
+        </PendingLink>
+        <PendingLink
+          href={primaryHref}
+          busyLabel={busyLabel}
+          className="inline-flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant/30 text-on-surface py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:border-primary/40 transition-all"
+        >
+          <Salad size={16} aria-hidden="true" />
+          <span>رژیم جدید</span>
+        </PendingLink>
+        <PendingLink
+          href={`/${locale}/support/new`}
+          busyLabel={busyLabel}
+          className="inline-flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant/30 text-on-surface py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:border-primary/40 transition-all"
+        >
+          <Ticket size={16} aria-hidden="true" />
+          <span>ثبت تیکت جدید</span>
+        </PendingLink>
+        <PendingLink
+          href="./personal-info"
+          busyLabel={busyLabel}
+          className="inline-flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant/30 text-on-surface py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-xs hover:border-primary/40 transition-all"
+        >
+          <CircleUserRound size={16} aria-hidden="true" />
+          <span>ویرایش مشخصات</span>
+        </PendingLink>
+      </nav>
     </div>
   );
 }
