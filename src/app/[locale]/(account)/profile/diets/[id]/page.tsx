@@ -7,7 +7,7 @@ import { db } from "@/db";
 import { dietDocuments } from "@/db/schema";
 import { requireUser } from "@/contexts/identity/actions";
 import { myDietClaims, getRegistryStatus } from "@/contexts/nutrition/queries";
-import { generateProgramDocument } from "@/contexts/nutrition/actions";
+import { generateProgramDocument, advanceDoctorClaimToReview } from "@/contexts/nutrition/actions";
 import { PendingButton } from "@/components/clinical/pending-button";
 import { PendingLink } from "@/components/clinical/pending-link";
 import PrintButton from "./print-button";
@@ -19,6 +19,8 @@ import {
   LifeBuoy,
   RotateCcw,
   Snowflake,
+  Sparkles,
+  Stethoscope,
 } from "lucide-react";
 
 const TIMELINE = ["pending", "paid", "generating", "needs_review", "ready", "failed"] as const;
@@ -53,8 +55,12 @@ export default async function ProfileDietDetailPage({
     ? await db.select().from(dietDocuments).where(eq(dietDocuments.claimId, claim.claimId))
     : [];
   // Paid claims need the registry state to pick the right CTA: incomplete →
-  // back to the check step; complete → kick off AI preparation.
+  // back to the check step; complete → kick off AI preparation (or auto-queue for doctor).
   const registry = claim.status === "paid" ? await getRegistryStatus(user.id) : null;
+  if (claim.status === "paid" && claim.fulfillmentType === "doctor" && (!registry || registry.complete)) {
+    await advanceDoctorClaimToReview(claim.claimId);
+    claim.status = "needs_review";
+  }
   const statusKey = STATUS_KEYS[claim.status];
   // failed branches off after generating; otherwise progress is linear.
   const reached = (s: string) =>
@@ -150,7 +156,7 @@ export default async function ProfileDietDetailPage({
             </PendingLink>
           </div>
         )}
-        {claim.status === "paid" && (!registry || registry.complete) && (
+        {claim.status === "paid" && claim.fulfillmentType !== "doctor" && (!registry || registry.complete) && (
           <div className="flex flex-col gap-3">
             <p className="text-xs text-on-surface-variant leading-relaxed">{t("dietWizard.readyToPrepare")}</p>
             <form
@@ -167,6 +173,33 @@ export default async function ProfileDietDetailPage({
                 <span>{t("dietWizard.startPreparation")}</span>
               </PendingButton>
             </form>
+          </div>
+        )}
+
+        {claim.status === "needs_review" && (
+          <div
+            aria-label="UnderReviewBanner"
+            className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-2xl p-4 sm:p-5"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              {claim.fulfillmentType === "doctor" ? (
+                <Stethoscope size={22} aria-hidden="true" />
+              ) : (
+                <Sparkles size={22} aria-hidden="true" />
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              <h3 className="font-bold text-xs sm:text-sm text-on-surface">
+                {claim.fulfillmentType === "doctor"
+                  ? t("dietWizard.doctorReviewTitle")
+                  : t("dietWizard.aiReviewTitle")}
+              </h3>
+              <p className="text-[11px] sm:text-xs text-on-surface-variant leading-relaxed">
+                {claim.fulfillmentType === "doctor"
+                  ? t("dietWizard.doctorReviewDesc", { doctor: claim.practitionerName ?? t("dietDefaultPractitioner") })
+                  : t("dietWizard.aiReviewDesc")}
+              </p>
+            </div>
           </div>
         )}
 

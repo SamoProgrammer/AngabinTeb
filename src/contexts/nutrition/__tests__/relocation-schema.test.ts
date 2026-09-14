@@ -8,10 +8,11 @@ import { nextGenerationStatus, toSnapshotValues, allowedClaimTransition, missing
 const cols = (t: object) => Object.keys(t);
 
 describe("relocation schema", () => {
-  test("diet_claim carries org context, paid price, retry counter", () => {
+  test("diet_claim carries org context, paid price, retry counter, fulfillment type", () => {
     expect(cols(dietClaims)).toEqual(
-      expect.arrayContaining(["organizationContext", "pricePaid", "retryCount"]),
+      expect.arrayContaining(["organizationContext", "pricePaid", "retryCount", "fulfillmentType"]),
     );
+    expect(dietClaims.fulfillmentType.default).toBe("ai");
   });
   test("registry_snapshot mirrors the 8 registry sections, one per claim", () => {
     expect(cols(registrySnapshots)).toEqual(

@@ -60,6 +60,14 @@ export default async function DietPaymentPage({
             <dt className="text-on-surface-variant text-xs">{t("dietWizard.payOrg")}</dt>
             <dd className="font-bold text-on-surface">{orgLabel}</dd>
           </div>
+          <div className="flex items-center justify-between gap-2">
+            <dt className="text-on-surface-variant text-xs">{t("dietWizard.payFulfillment")}</dt>
+            <dd className="font-bold text-on-surface">
+              {claim.fulfillmentType === "doctor"
+                ? `${t("dietWizard.fulfillmentDoctorTitle")}${claim.practitionerName ? ` (${claim.practitionerName})` : ""}`
+                : t("dietWizard.fulfillmentAiTitle")}
+            </dd>
+          </div>
           <div className="flex items-center justify-between gap-2 border-t border-outline-variant/20 pt-3">
             <dt className="text-on-surface-variant text-xs">{t("dietWizard.payPrice")}</dt>
             <dd className="text-xl font-extrabold text-on-surface font-data-metric">

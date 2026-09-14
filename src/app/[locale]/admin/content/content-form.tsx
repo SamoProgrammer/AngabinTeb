@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { redirect } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PendingAdminButton } from "@/components/clinical/pending-admin-button";
+import { RichTextEditor } from "@/components/clinical/rich-text-editor";
 import { Input } from "@/components/ui/input";
 
 type ActionResult = { ok?: boolean; id?: string; error?: string };
@@ -57,27 +58,24 @@ export function ContentForm({
       <label className="block space-y-1 text-sm">
         {tContent("titleFa")} <Input name="titleFa" defaultValue={initial.titleFa ?? ""} required />
       </label>
-      <label className="block space-y-1 text-sm">
-        {tContent("bodyFa")}
-        <textarea name="bodyFa" defaultValue={initial.bodyFa ?? ""} rows={5} required
-          className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
-      </label>
+      <div className="block space-y-1 text-sm">
+        <span>{tContent("bodyFa")}</span>
+        <RichTextEditor name="bodyFa" defaultValue={initial.bodyFa ?? ""} />
+      </div>
       <label className="block space-y-1 text-sm">
         {tContent("titleEn")} <Input name="titleEn" defaultValue={initial.titleEn ?? ""} />
       </label>
-      <label className="block space-y-1 text-sm">
-        {tContent("bodyEn")}
-        <textarea name="bodyEn" defaultValue={initial.bodyEn ?? ""} rows={3}
-          className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
-      </label>
+      <div className="block space-y-1 text-sm">
+        <span>{tContent("bodyEn")}</span>
+        <RichTextEditor name="bodyEn" defaultValue={initial.bodyEn ?? ""} />
+      </div>
       <label className="block space-y-1 text-sm">
         {tContent("titleAr")} <Input name="titleAr" defaultValue={initial.titleAr ?? ""} />
       </label>
-      <label className="block space-y-1 text-sm">
-        {tContent("bodyAr")}
-        <textarea name="bodyAr" defaultValue={initial.bodyAr ?? ""} rows={3}
-          className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
-      </label>
+      <div className="block space-y-1 text-sm">
+        <span>{tContent("bodyAr")}</span>
+        <RichTextEditor name="bodyAr" defaultValue={initial.bodyAr ?? ""} />
+      </div>
       <label className="block space-y-1 text-sm">
         {tContent("videoUrl")} <Input name="videoUrl" defaultValue={initial.videoUrl ?? ""} disabled={kind !== "video"} />
       </label>

@@ -169,6 +169,13 @@
       "when": 1789110962598,
       "tag": "0023_special_hardball",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1789415380389,
+      "tag": "0024_charming_pride",
+      "breakpoints": true
     }
   ]
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getContent } from "@/contexts/content/queries";
+import { RichTextView, isRichHtml } from "@/components/clinical/rich-text-view";
 import { formatJalaliDate } from "@/lib/format";
 import { BriefcaseMedical, Calendar, Clock, Download, Timer, UserCheck } from "lucide-react";
 
@@ -17,7 +18,8 @@ export default async function ArticlePage({
   const t = await getTranslations("articles");
   const dir = locale === "en" ? "ltr" : "rtl";
 
-  const paragraphs = content.body.split("\n\n").filter(Boolean);
+  const rich = isRichHtml(content.body);
+  const paragraphs = rich ? [] : content.body.split("\n\n").filter(Boolean);
   const leadParagraph = paragraphs[0] ?? "";
   const remainingParagraphs = paragraphs.slice(1);
 
@@ -130,23 +132,29 @@ export default async function ArticlePage({
 
           {/* Editorial Long-form Body */}
           <main className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-2 text-start">
-            {/* Intro Lead */}
-            {leadParagraph && (
-              <div className="bg-surface-container-low/70 border border-outline-variant/30 p-6 sm:p-8 rounded-2xl shadow-xs">
-                <p className="text-base sm:text-lg text-on-surface font-medium leading-relaxed">
-                  {leadParagraph}
-                </p>
-              </div>
-            )}
+            {rich ? (
+              <RichTextView value={content.body} />
+            ) : (
+              <>
+                {/* Intro Lead */}
+                {leadParagraph && (
+                  <div className="bg-surface-container-low/70 border border-outline-variant/30 p-6 sm:p-8 rounded-2xl shadow-xs">
+                    <p className="text-base sm:text-lg text-on-surface font-medium leading-relaxed">
+                      {leadParagraph}
+                    </p>
+                  </div>
+                )}
 
-            {/* Article Body Paragraphs */}
-            <div className="space-y-5 text-sm sm:text-base text-on-surface leading-relaxed">
-              {remainingParagraphs.map((p, idx) => (
-                <p key={idx} className="leading-relaxed">
-                  {p}
-                </p>
-              ))}
-            </div>
+                {/* Article Body Paragraphs */}
+                <div className="space-y-5 text-sm sm:text-base text-on-surface leading-relaxed">
+                  {remainingParagraphs.map((p, idx) => (
+                    <p key={idx} className="leading-relaxed">
+                      {p}
+                    </p>
+                  ))}
+                </div>
+              </>
+            )}
           </main>
         </div>
       </article>

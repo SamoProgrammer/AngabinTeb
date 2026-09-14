@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ChevronDown, CircleHelp, Headset, MessageCircle, Search } from "lucide-react";
+import { RichTextView, toPlainText } from "@/components/clinical/rich-text-view";
 
 export interface FaqItem {
   id: string;
@@ -54,7 +55,7 @@ export function FaqClient({
       const matchesSearch =
         !q ||
         item.question.toLowerCase().includes(q) ||
-        item.answer.toLowerCase().includes(q);
+        toPlainText(item.answer).toLowerCase().includes(q);
       return matchesCategory && matchesSearch;
     });
   }, [allFaqs, selectedCategory, searchQuery]);
@@ -149,7 +150,7 @@ export function FaqClient({
 
               {isOpen && (
                 <div className="px-5 pb-5 text-on-surface-variant text-xs sm:text-sm leading-relaxed border-t border-outline-variant/10 pt-4 text-start">
-                  <p>{faq.answer}</p>
+                  <RichTextView value={faq.answer} />
                 </div>
               )}
             </div>

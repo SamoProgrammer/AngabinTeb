@@ -17,6 +17,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { toPersianDigits, formatPrice } from "@/lib/format";
+import { RichTextView } from "@/components/clinical/rich-text-view";
 
 export default async function ServicePage({
   params,
@@ -232,9 +233,7 @@ export default async function ServicePage({
                   <Pill size={18} aria-hidden="true" />
                   <span>{t("detail.medTitle")}</span>
                 </div>
-                <p className="text-xs text-on-surface-variant leading-relaxed mt-1">
-                  {medDesc}
-                </p>
+                <RichTextView value={medDesc} className="text-xs text-on-surface-variant mt-1" />
               </div>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { redirect } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PendingAdminButton } from "@/components/clinical/pending-admin-button";
+import { RichTextEditor } from "@/components/clinical/rich-text-editor";
 import { Input } from "@/components/ui/input";
 
 type ActionResult = { ok?: boolean; id?: string; error?: string };
@@ -63,21 +64,18 @@ export function DietProgramForm({ action, locale = "fa" }: { action: Action; loc
       <label className="block space-y-1 text-sm">
         {tCommon("price")} <Input type="number" min={0} step={1} name="price" required />
       </label>
-      <label className="block space-y-1 text-sm">
-        {tDiet("descFa")}
-        <textarea name="descriptionFa" rows={4}
-          className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
-      </label>
-      <label className="block space-y-1 text-sm">
-        {tDiet("descEn")}
-        <textarea name="descriptionEn" rows={4}
-          className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
-      </label>
-      <label className="block space-y-1 text-sm">
-        {tDiet("descAr")}
-        <textarea name="descriptionAr" rows={4}
-          className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
-      </label>
+      <div className="block space-y-1 text-sm">
+        <span>{tDiet("descFa")}</span>
+        <RichTextEditor name="descriptionFa" />
+      </div>
+      <div className="block space-y-1 text-sm">
+        <span>{tDiet("descEn")}</span>
+        <RichTextEditor name="descriptionEn" />
+      </div>
+      <div className="block space-y-1 text-sm">
+        <span>{tDiet("descAr")}</span>
+        <RichTextEditor name="descriptionAr" />
+      </div>
       <PendingAdminButton>{tDiet("createBtn")}</PendingAdminButton>
     </form>
   );

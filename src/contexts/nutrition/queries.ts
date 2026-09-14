@@ -191,14 +191,18 @@ export const myDietClaims = cache(async (userId: string, locale: string) => {
       programId: dietClaims.programId,
       programName: dietPrograms.name,
       status: dietClaims.status,
+      fulfillmentType: dietClaims.fulfillmentType,
       pricePaid: dietClaims.pricePaid,
       organizationContext: dietClaims.organizationContext,
       createdAt: dietClaims.createdAt,
       documentId: dietDocuments.id,
+      practitionerName: providers.name,
+      practitionerPhone: providers.phone,
     })
     .from(dietClaims)
     .innerJoin(dietPrograms, eq(dietClaims.programId, dietPrograms.id))
     .leftJoin(dietDocuments, eq(dietDocuments.claimId, dietClaims.id))
+    .leftJoin(providers, eq(dietPrograms.practitionerId, providers.id))
     .where(eq(dietClaims.userId, userId))
     .orderBy(desc(dietClaims.createdAt));
 
@@ -228,6 +232,7 @@ export const allClaims = cache(async () => {
       programId: dietClaims.programId,
       programName: dietPrograms.name,
       organizationContext: dietClaims.organizationContext,
+      fulfillmentType: dietClaims.fulfillmentType,
       pricePaid: dietClaims.pricePaid,
       status: dietClaims.status,
       retryCount: dietClaims.retryCount,
@@ -243,10 +248,12 @@ export const allClaims = cache(async () => {
       cardiovascularQuestions: registrySnapshots.cardiovascularQuestions,
       anthropometric: registrySnapshots.anthropometric,
       medicalDocuments: registrySnapshots.medicalDocuments,
+      practitionerName: providers.name,
     })
     .from(dietClaims)
     .innerJoin(dietPrograms, eq(dietClaims.programId, dietPrograms.id))
     .innerJoin(users, eq(dietClaims.userId, users.id))
+    .leftJoin(providers, eq(dietPrograms.practitionerId, providers.id))
     .leftJoin(registrySnapshots, eq(registrySnapshots.claimId, dietClaims.id))
     .leftJoin(dietDocuments, eq(dietDocuments.claimId, dietClaims.id))
     .orderBy(desc(dietClaims.createdAt))
@@ -423,6 +430,7 @@ export const getMyClaim = cache(async (userId: string, claimId: string, locale: 
     .select({
       claimId: dietClaims.id,
       status: dietClaims.status,
+      fulfillmentType: dietClaims.fulfillmentType,
       pricePaid: dietClaims.pricePaid,
       organizationContext: dietClaims.organizationContext,
       createdAt: dietClaims.createdAt,
@@ -432,9 +440,12 @@ export const getMyClaim = cache(async (userId: string, claimId: string, locale: 
       planType: dietPrograms.planType,
       durationDays: dietPrograms.durationDays,
       price: dietPrograms.price,
+      practitionerName: providers.name,
+      practitionerPhone: providers.phone,
     })
     .from(dietClaims)
     .innerJoin(dietPrograms, eq(dietClaims.programId, dietPrograms.id))
+    .leftJoin(providers, eq(dietPrograms.practitionerId, providers.id))
     .where(and(eq(dietClaims.id, claimId), eq(dietClaims.userId, userId)));
   if (!row) return null;
   const [overlaid] = await localizedRows(

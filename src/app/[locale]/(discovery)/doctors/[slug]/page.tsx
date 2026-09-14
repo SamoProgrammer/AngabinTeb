@@ -21,6 +21,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { toPersianDigits } from "@/lib/format";
+import { RichTextView } from "@/components/clinical/rich-text-view";
 
 export default async function DoctorPage({
   params,
@@ -156,9 +157,7 @@ export default async function DoctorPage({
                 <Badge size={22} aria-hidden="true" />
                 <h2>{t("profile.bioTitle")}</h2>
               </div>
-              <p className="text-sm text-on-surface leading-relaxed text-justify">
-                {doctor.bio}
-              </p>
+              <RichTextView value={doctor.bio} className="text-sm text-justify" />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               <div className="bg-surface-container-low p-3.5 rounded-xl flex items-start gap-2.5">

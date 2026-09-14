@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { listProgramTypes, listProgramsByType } from "@/contexts/nutrition/queries";
 import { claimDietProgram } from "@/contexts/nutrition/actions";
 import { formatPersianNumber, toPersianDigits } from "@/lib/format";
+import { RichTextView } from "@/components/clinical/rich-text-view";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,6 +19,7 @@ import {
   Landmark,
   Salad,
   ShieldPlus,
+  Sparkles,
   Stethoscope,
   type LucideIcon,
 } from "lucide-react";
@@ -47,10 +49,11 @@ export default async function DietWizardPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ step?: string; type?: string; program?: string; org?: string }>;
+  searchParams: Promise<{ step?: string; type?: string; program?: string; org?: string; fulfillment?: string }>;
 }) {
   const { locale } = await params;
-  const { step, type, program, org } = await searchParams;
+  const { step, type, program, org, fulfillment } = await searchParams;
+  const selectedFulfillment = fulfillment === "doctor" ? "doctor" : "ai";
   const t = await getTranslations("nutrition");
   const ts = await getTranslations("states");
   const typeLabel = (pt: string) => {
@@ -154,9 +157,7 @@ export default async function DietWizardPage({
                         {p.name}
                       </h3>
                       {p.description && (
-                        <p className="text-xs sm:text-sm text-on-surface-variant mt-2 leading-relaxed">
-                          {p.description}
-                        </p>
+                        <RichTextView value={p.description} className="text-xs sm:text-sm text-on-surface-variant mt-2" />
                       )}
                     </div>
                     <div className="bg-surface-container-low p-3 sm:p-4 rounded-2xl flex items-center justify-between gap-3 border border-outline-variant/20">
@@ -233,6 +234,64 @@ export default async function DietWizardPage({
           ) : (
             <>
               <p className="font-bold text-sm sm:text-base text-on-surface">{selectedProgram.name}</p>
+
+              {/* Fulfillment Method Selection */}
+              <div className="flex flex-col gap-2.5">
+                <h3 className="text-xs font-bold text-on-surface-variant">
+                  {t("dietWizard.fulfillmentTitle")}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <PendingLink
+                    href={`?step=3&type=${encodeURIComponent(selectedType ?? "")}&program=${selectedProgram.id}&org=${selectedOrg ?? ""}&fulfillment=ai`}
+                    aria-label="Fulfillment-AI"
+                    busyLabel={ts("loading")}
+                    className={`flex items-start gap-3 p-4 rounded-2xl border transition-all ${
+                      selectedFulfillment === "ai"
+                        ? "border-primary bg-primary/10 text-on-surface ring-1 ring-primary/40 shadow-xs"
+                        : "border-outline-variant/30 bg-surface-container-lowest text-on-surface hover:border-primary/50"
+                    }`}
+                  >
+                    <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Sparkles size={20} aria-hidden="true" />
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="font-bold text-xs sm:text-sm">{t("dietWizard.fulfillmentAiTitle")}</span>
+                      <span className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
+                        {t("dietWizard.fulfillmentAiDesc")}
+                      </span>
+                    </span>
+                  </PendingLink>
+
+                  <PendingLink
+                    href={`?step=3&type=${encodeURIComponent(selectedType ?? "")}&program=${selectedProgram.id}&org=${selectedOrg ?? ""}&fulfillment=doctor`}
+                    aria-label="Fulfillment-Doctor"
+                    busyLabel={ts("loading")}
+                    className={`flex items-start gap-3 p-4 rounded-2xl border transition-all ${
+                      selectedFulfillment === "doctor"
+                        ? "border-primary bg-primary/10 text-on-surface ring-1 ring-primary/40 shadow-xs"
+                        : "border-outline-variant/30 bg-surface-container-lowest text-on-surface hover:border-primary/50"
+                    }`}
+                  >
+                    <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Stethoscope size={20} aria-hidden="true" />
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                        <span>{t("dietWizard.fulfillmentDoctorTitle")}</span>
+                        {selectedProgram.practitionerName && (
+                          <span className="text-[10px] bg-secondary/15 text-secondary px-2 py-0.5 rounded-full font-bold">
+                            {selectedProgram.practitionerName}
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
+                        {t("dietWizard.fulfillmentDoctorDesc")}
+                      </span>
+                    </span>
+                  </PendingLink>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {CONTEXT_IDS.map((cid) => {
                   const c = CONTEXT_DEFS[cid];
@@ -240,7 +299,7 @@ export default async function DietWizardPage({
                   return (
                     <PendingLink
                       key={cid}
-                      href={`?step=3&type=${encodeURIComponent(selectedType ?? "")}&program=${selectedProgram.id}&org=${cid}`}
+                      href={`?step=3&type=${encodeURIComponent(selectedType ?? "")}&program=${selectedProgram.id}&org=${cid}&fulfillment=${selectedFulfillment}`}
                       aria-label={`Org-${cid}`}
                       busyLabel={ts("loading")}
                       className={`flex items-center gap-2.5 p-4 rounded-2xl border transition-all ${
@@ -259,7 +318,7 @@ export default async function DietWizardPage({
                 })}
                 <PendingLink
                   key="none"
-                  href={`?step=3&type=${encodeURIComponent(selectedType ?? "")}&program=${selectedProgram.id}&org=none`}
+                  href={`?step=3&type=${encodeURIComponent(selectedType ?? "")}&program=${selectedProgram.id}&org=none&fulfillment=${selectedFulfillment}`}
                   aria-label="Org-none"
                   busyLabel={ts("loading")}
                   className={`flex items-center gap-2.5 p-4 rounded-2xl border transition-all ${
@@ -287,6 +346,7 @@ export default async function DietWizardPage({
                 </p>
                 <form action={claimAndGo} className="flex flex-col gap-2">
                   <input type="hidden" name="programId" value={selectedProgram.id} />
+                  <input type="hidden" name="fulfillmentType" value={selectedFulfillment} />
                   {selectedOrg && selectedOrg !== "none" && (
                     <input type="hidden" name="organizationContext" value={selectedOrg} />
                   )}

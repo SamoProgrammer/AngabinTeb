@@ -1,0 +1,1 @@
+ALTER TABLE "diet_claim" ADD COLUMN "fulfillment_type" text DEFAULT 'ai' NOT NULL;

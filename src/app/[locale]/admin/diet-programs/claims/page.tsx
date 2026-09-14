@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Check, Pencil, RotateCcw, Save, X } from "lucide-react";
+import { Check, Pencil, RotateCcw, Save, Sparkles, Stethoscope, X } from "lucide-react";
 import { requireAdmin } from "@/contexts/identity/actions";
 import {
   approveClaim,
@@ -185,7 +185,27 @@ export default async function AdminDietClaimsPage({
                       {r.userId}
                     </span>
                   </TableCell>
-                  <TableCell>{r.programName}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <span className="font-bold">{r.programName}</span>
+                      <span className="inline-flex items-center gap-1 w-fit rounded-full px-2 py-0.5 text-[10px] font-bold bg-surface-container-high text-on-surface-variant">
+                        {r.fulfillmentType === "doctor" ? (
+                          <>
+                            <Stethoscope size={12} className="text-secondary" aria-hidden="true" />
+                            <span>
+                              {t("fulfillmentDoctor")}
+                              {r.practitionerName ? ` (${r.practitionerName})` : ""}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={12} className="text-primary" aria-hidden="true" />
+                            <span>{t("fulfillmentAi")}</span>
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  </TableCell>
                   <TableCell>{r.organizationContext ?? tCommon("emptyValue")}</TableCell>
                   <TableCell>{formattedPrice}</TableCell>
                   <TableCell>
@@ -222,7 +242,7 @@ export default async function AdminDietClaimsPage({
                           tone: "danger",
                         },
                         {
-                          title: t("docTitle"),
+                          title: r.fulfillmentType === "doctor" ? t("fulfillmentDoctor") : t("docTitle"),
                           body: r.documentBody,
                           emptyText: t("noDocument"),
                         },

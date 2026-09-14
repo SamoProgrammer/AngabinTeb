@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { listContent } from "@/contexts/content/queries";
+import { toPlainText } from "@/components/clinical/rich-text-view";
 import { Download, FileDown, FileText } from "lucide-react";
 
 export default async function PamphletsPage({
@@ -73,12 +74,12 @@ export default async function PamphletsPage({
                     </h3>
                   </Link>
                   <p className="text-xs text-on-surface-variant leading-relaxed mb-4 line-clamp-4">
-                    {p.body}
+                    {toPlainText(p.body)}
                   </p>
                 </div>
 
                 <a
-                  href={`data:text/plain;charset=utf-8,${encodeURIComponent(`${p.title}\n\n${p.body}`)}`}
+                  href={`data:text/plain;charset=utf-8,${encodeURIComponent(`${p.title}\n\n${toPlainText(p.body)}`)}`}
                   download={`${p.slug}.txt`}
                   className="w-full bg-primary hover:bg-primary-container text-on-primary py-2.5 px-4 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                 >

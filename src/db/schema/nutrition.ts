@@ -127,6 +127,7 @@ export const dietClaims = pgTable("diet_claim", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   programId: text("program_id").notNull().references(() => dietPrograms.id),
   status: text("status").notNull().default("pending"), // pending | paid | generating | needs_review | ready | failed (+ legacy active | completed)
+  fulfillmentType: text("fulfillment_type").notNull().default("ai"), // ai | doctor
   organizationContext: text("organization_context"), // banks|universities|health_centers|clinics|other
   pricePaid: numeric("price_paid", { precision: 12, scale: 0 }),
   retryCount: integer("retry_count").notNull().default(0),

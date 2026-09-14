@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, ArrowRight, BookOpen, CirclePlay, Play, Timer, User, Video } from "lucide-react";
 import { toPersianDigits } from "@/lib/format";
+import { toPlainText } from "./rich-text-view";
 
 export interface ArticleData {
   id: string;
@@ -89,7 +90,7 @@ export function ArticleCard({
           </Link>
           {summary && (
             <p className="text-xs text-on-surface-variant line-clamp-3 leading-relaxed mb-3">
-              {summary}
+              {toPlainText(summary)}
             </p>
           )}
         </div>
@@ -229,7 +230,7 @@ export function VideoCard({
           </Link>
           {summary && (
             <p className="text-xs text-on-surface-variant line-clamp-3 leading-relaxed mb-3">
-              {summary}
+              {toPlainText(summary)}
             </p>
           )}
         </div>

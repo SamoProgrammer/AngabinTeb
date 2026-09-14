@@ -98,14 +98,19 @@ export async function logIntake(input: z.infer<typeof intakeSchema>) {
 
 const claimSchema = z.object({
   programId: z.string().min(1),
+  fulfillmentType: z.enum(["ai", "doctor"]).default("ai"),
   organizationContext: z.enum(["banks", "universities", "health_centers", "clinics", "other"]).nullish(),
 });
 
 export async function claimDietProgram(input: FormData) {
   const user = await requireUser();
-  const parsed = claimSchema.safeParse({ programId: input.get("programId"), organizationContext: input.get("organizationContext") });
+  const parsed = claimSchema.safeParse({
+    programId: input.get("programId"),
+    fulfillmentType: input.get("fulfillmentType") || "ai",
+    organizationContext: input.get("organizationContext"),
+  });
   if (!parsed.success) return { ok: false as const, error: parsed.error.issues.map((i) => i.message).join("; ") };
-  const programId = parsed.data.programId;
+  const { programId, fulfillmentType, organizationContext } = parsed.data;
 
   const [program] = await db.select({ id: dietPrograms.id, price: dietPrograms.price }).from(dietPrograms).where(eq(dietPrograms.id, programId));
   if (!program) return { ok: false as const, reason: "not_found" as const };
@@ -118,7 +123,15 @@ export async function claimDietProgram(input: FormData) {
 
   try {
     const claimId = randomUUID();
-    await db.insert(dietClaims).values({ id: claimId, userId: user.id, programId, status: "pending", organizationContext: parsed.data.organizationContext ?? null, pricePaid: program.price });
+    await db.insert(dietClaims).values({
+      id: claimId,
+      userId: user.id,
+      programId,
+      status: "pending",
+      fulfillmentType,
+      organizationContext: organizationContext ?? null,
+      pricePaid: program.price,
+    });
     return { ok: true as const, claimId };
   } catch (err) {
     // partial unique index (user_id, program_id) where status != 'completed'
@@ -279,6 +292,20 @@ export async function resetClaimToPaid(claimId: string) {
   return { ok: true as const };
 }
 
+export async function advanceDoctorClaimToReview(claimId: string, opts?: { dbc?: typeof db }) {
+  const dbc = opts?.dbc ?? db;
+  const user = await requireUser();
+  const [claim] = await dbc
+    .select({ id: dietClaims.id, status: dietClaims.status, fulfillmentType: dietClaims.fulfillmentType })
+    .from(dietClaims)
+    .where(and(eq(dietClaims.id, claimId), eq(dietClaims.userId, user.id)));
+  if (!claim) return { ok: false as const, reason: "not_found" as const };
+  if (claim.fulfillmentType === "doctor" && claim.status === "paid") {
+    await dbc.update(dietClaims).set({ status: "needs_review" }).where(eq(dietClaims.id, claimId));
+  }
+  return { ok: true as const };
+}
+
 // Admin claim queue (profile-nutrition relocation). Every action re-verifies
 // the admin session FIRST, loads the claim for ANY user, and guards the flip
 // with allowedClaimTransition from kernel.ts.
@@ -290,6 +317,11 @@ export async function approveClaim(claimId: string) {
     .where(eq(dietClaims.id, claimId));
   if (!claim) return { ok: false as const, reason: "not_found" as const };
   if (!allowedClaimTransition(claim.status, "ready")) return { ok: false as const, reason: "invalid_status" as const };
+  const [doc] = await db
+    .select({ id: dietDocuments.id })
+    .from(dietDocuments)
+    .where(eq(dietDocuments.claimId, claimId));
+  if (!doc) return { ok: false as const, reason: "no_document" as const };
   await db.update(dietClaims).set({ status: "ready" }).where(eq(dietClaims.id, claimId));
   return { ok: true as const };
 }
@@ -370,8 +402,17 @@ export async function saveDocumentBody(claimId: string, markdown: string) {
     .select({ id: dietDocuments.id })
     .from(dietDocuments)
     .where(eq(dietDocuments.claimId, claimId));
-  if (!doc) return { ok: false as const, reason: "not_found" as const };
-  await db.update(dietDocuments).set({ bodyMarkdown: markdown }).where(eq(dietDocuments.claimId, claimId));
+  if (!doc) {
+    await db.insert(dietDocuments).values({
+      id: randomUUID(),
+      claimId,
+      model: "specialist",
+      promptVersion: "manual",
+      bodyMarkdown: markdown.trim(),
+    });
+    return { ok: true as const };
+  }
+  await db.update(dietDocuments).set({ bodyMarkdown: markdown.trim() }).where(eq(dietDocuments.claimId, claimId));
   return { ok: true as const };
 }
 

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { redirect } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PendingAdminButton } from "@/components/clinical/pending-admin-button";
+import { RichTextEditor } from "@/components/clinical/rich-text-editor";
 import { Input } from "@/components/ui/input";
 
 type ActionResult = { ok?: boolean; id?: string; error?: string };
@@ -83,11 +84,10 @@ export function ProviderForm({
           ))}
         </select>
       </label>
-      <label className="block space-y-1 text-sm">
-        {tProviders("bioFa")}
-        <textarea name="bioFa" defaultValue={initial.bioFa ?? ""} rows={4}
-          className="block w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base outline-none placeholder:text-muted-foreground md:text-sm" />
-      </label>
+      <div className="block space-y-1 text-sm">
+        <span>{tProviders("bioFa")}</span>
+        <RichTextEditor name="bioFa" defaultValue={initial.bioFa ?? ""} />
+      </div>
       <PendingAdminButton>{tCommon("save")}</PendingAdminButton>
     </form>
   );

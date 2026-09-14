@@ -121,6 +121,7 @@ describe("claim org context + frozen price (disposable database)", () => {
     const [row] = await testDb.select().from(schema.dietClaims).where(eq(schema.dietClaims.id, res.claimId));
     expect(row.organizationContext).toBe("banks");
     expect(String(row.pricePaid)).toBe("890000");
+    expect(row.fulfillmentType).toBe("ai");
   });
 
   it("rejects a duplicate claim for the same user+program", async (ctx) => {
@@ -146,6 +147,7 @@ describe("claim org context + frozen price (disposable database)", () => {
     expect(row!.status).toBe("pending");
     expect(String(row!.pricePaid)).toBe("890000");
     expect(row!.organizationContext).toBe("banks");
+    expect(row!.fulfillmentType).toBe("ai");
     expect(row!.hasDocument).toBe(false);
   });
 });

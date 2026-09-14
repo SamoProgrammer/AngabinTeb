@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/contexts/identity/actions";
 import { getMyClaim, getRegistryStatus } from "@/contexts/nutrition/queries";
-import { freezeRegistrySnapshotForUser } from "@/contexts/nutrition/actions";
+import { freezeRegistrySnapshotForUser, advanceDoctorClaimToReview } from "@/contexts/nutrition/actions";
 import { ClipboardCheck } from "lucide-react";
 
 export default async function DietCheckPage({
@@ -29,7 +29,12 @@ export default async function DietCheckPage({
   // itself — this call picks up the fresh dossier for paid claims.
   await freezeRegistrySnapshotForUser(user.id);
   const status = await getRegistryStatus(user.id);
-  if (status.complete) redirect(`/${locale}/profile/diets/${claim.claimId}`);
+  if (status.complete) {
+    if (claim.fulfillmentType === "doctor" && claim.status === "paid") {
+      await advanceDoctorClaimToReview(claim.claimId);
+    }
+    redirect(`/${locale}/profile/diets/${claim.claimId}`);
+  }
 
   return (
     <div className="flex flex-col gap-6 text-start" dir={dir}>
